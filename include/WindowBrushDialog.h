@@ -1,16 +1,24 @@
-#ifndef _THIN_PNG_DIALOG_H_
-#define _THIN_PNG_DIALOG_H_
+#ifndef _WINDOW_BRUSH_DIALOG_H_
+#define _WINDOW_BRUSH_DIALOG_H_
 
 #include "WindowDialog.h"
+#include "ButtonShape.h"
+#include <memory>
 
 class WindowBrush : public WindowDialog
 {
 protected:
 	RECT m_viewRect;
+	std::map<ButtonShape::TYPE, DRect> m_buttonTable;
+	std::unique_ptr<ButtonShape> mp_buttonsShape;
 
 public:
 	WindowBrush();
 	virtual ~WindowBrush();
+
+private:
+	void InitButtonRects();
+
 
 protected:
 	virtual void OnInitDialog() override;
@@ -28,4 +36,4 @@ protected:
 	int MouseWheelHandler(WPARAM a_wordParam, LPARAM a_longParam);
 };
 
-#endif //_THIN_PNG_DIALOG_H_
+#endif //_WINDOW_BRUSH_DIALOG_H_

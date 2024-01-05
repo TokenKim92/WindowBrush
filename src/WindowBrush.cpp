@@ -16,7 +16,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE ah_instance, _In_opt_ HINSTANCE ah_notUseIn
     if (S_OK == appCore.Create()) {
         WindowBrush dialog;
         dialog.SetExtendStyle(WS_EX_TOPMOST);
-        return dialog.Create(256, 256);
+        return dialog.Create(80, 390);
     }
 
     return 0;
