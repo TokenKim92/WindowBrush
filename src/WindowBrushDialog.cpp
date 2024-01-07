@@ -50,6 +50,23 @@ void WindowBrush::InitButtonRects()
 
 		index++;
 	}
+
+	const float fadeRectOffet = 3.0f;
+	DRect &rect = m_buttonTable.at(ButtonShape::TYPE::FADE);
+	rect.top += fadeRectOffet;
+	rect.bottom += fadeRectOffet;
+}
+
+void WindowBrush::InitDivider()
+{
+	auto AddDividerRect = [](std::vector<DRect> &a_divierList, const DRect &a_rect)
+	{
+		a_divierList.push_back(DRect({ a_rect.left, a_rect.bottom, a_rect.right, a_rect.bottom }));
+	};
+
+	AddDividerRect(m_dividerList, m_buttonTable.at(ButtonShape::TYPE::TEXT));
+	AddDividerRect(m_dividerList, m_buttonTable.at(ButtonShape::TYPE::STROKE));
+	AddDividerRect(m_dividerList, m_buttonTable.at(ButtonShape::TYPE::COLOR));
 }
 
 void WindowBrush::OnInitDialog()
@@ -57,6 +74,8 @@ void WindowBrush::OnInitDialog()
 	::GetClientRect(mh_window, &m_viewRect);
 
 	InitButtonRects();
+	InitDivider();
+
 	mp_buttonsShape = std::make_unique<ButtonShape>(mp_direct2d, m_buttonTable, GetThemeMode());
 
 	mp_direct2d->SetStrokeWidth(2.5f);
@@ -77,6 +96,11 @@ void WindowBrush::OnPaint()
 
 	for (auto const &[type, rect] : m_buttonTable) {
 		mp_buttonsShape->DrawButton(type, m_buttonShapeData);
+	}
+
+	mp_direct2d->SetBrushColor(RGB_TO_COLORF(NEUTRAL_300));
+	for (auto const &divier : m_dividerList) {
+		mp_direct2d->DrawRectangle(divier);
 	}
 }
 

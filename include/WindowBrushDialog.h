@@ -10,6 +10,7 @@ class WindowBrush : public WindowDialog
 protected:
 	RECT m_viewRect;
 	std::map<ButtonShape::TYPE, DRect> m_buttonTable;
+	std::vector<DRect> m_dividerList;
 	std::unique_ptr<ButtonShape> mp_buttonsShape;
 
 	ButtonShape::BUTTON_SHAPE_DATA m_buttonShapeData;;
@@ -20,7 +21,7 @@ public:
 
 private:
 	void InitButtonRects();
-
+	void InitDivider();
 
 protected:
 	virtual void OnInitDialog() override;
