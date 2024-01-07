@@ -12,6 +12,8 @@ WindowBrush::WindowBrush() :
 {
 	memset(&m_viewRect, 0, sizeof(RECT));
 	m_buttonShapeData.hoverArea = BST::NONE;
+	m_buttonShapeData.drawMode = BST::NONE;
+	m_buttonShapeData.isGradientMode = false;
 }
 
 WindowBrush::~WindowBrush()
@@ -80,6 +82,7 @@ void WindowBrush::OnInitDialog()
 
 	// add message handlers
 	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&WindowBrush::MouseMoveHandler));
+	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&WindowBrush::MouseLeftButtonUpHandler));
 }
 
 void WindowBrush::OnDestroy()
@@ -142,7 +145,58 @@ int WindowBrush::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPar
 // to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
 int WindowBrush::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
+	static auto OnDrawButtonUp = [](BSD &a_buttonShapeData, const BST &a_type)
+	{
+		if (a_type != a_buttonShapeData.drawMode) {
+			// TODO:: turn on draw mode
+			a_buttonShapeData.drawMode = a_type;
+		}
+		else {
+			// TODO:: turn off draw mode
+			a_buttonShapeData.drawMode = BST::NONE;;
+		}
+	};
+	static auto OnGradientButtonUp = [](BSD &a_buttonShapeData)
+	{
+		a_buttonShapeData.isGradientMode = !a_buttonShapeData.isGradientMode;
+	};
+	static auto OnFadeButtonUp = [](BSD &a_buttonShapeData)
+	{
+		a_buttonShapeData.isFadeMode = !a_buttonShapeData.isFadeMode;
+	};
+
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+
+	// check first click area on draw mode buttons
+	for (auto const &[type, rect] : m_buttonTable) {
+		if (PointInRectF(rect, pos)) {
+			switch (type)
+			{
+			case BST::CURVE:
+			case BST::RECTANGLE:
+			case BST::CIRCLE:
+			case BST::TEXT:
+				OnDrawButtonUp(m_buttonShapeData, type);
+				break;
+			case BST::STROKE:
+				break;
+			case BST::GRADIATION:
+				OnGradientButtonUp(m_buttonShapeData);
+				break;
+			case BST::COLOR:
+				break;
+			case BST::FADE:
+				OnFadeButtonUp(m_buttonShapeData);
+				break;
+			default:
+				break;
+			}
+			
+			::InvalidateRect(mh_window, &m_viewRect, true);
+
+			return S_OK;
+		}
+	}
 
 	return S_OK;
 }

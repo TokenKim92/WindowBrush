@@ -19,6 +19,9 @@ typedef enum class BUTTON_SHAPE_TYPE
 typedef struct BUTTON_SHAPE_DATA
 {
 	BST hoverArea;
+	BST drawMode;
+	bool isGradientMode;
+	bool isFadeMode;
 } BSD;
 
 D2D1_COLOR_F fromHueToColorF(const float hue);

@@ -50,7 +50,7 @@ private:
 	void UpdateColorSymbolBrush();
 	void InitFadeShapeData();
 
-	void UpdateTextColorOnHover(const bool isHover);
+	void UpdateTextColorOnHover(const BST &a_type, const BSD &a_data);
 
 	void DrawCurveShape(const BSD &a_data);
 	void DrawRectangleShape(const BSD &a_data);
