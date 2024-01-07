@@ -12,6 +12,8 @@ protected:
 	std::map<ButtonShape::TYPE, DRect> m_buttonTable;
 	std::unique_ptr<ButtonShape> mp_buttonsShape;
 
+	ButtonShape::BUTTON_SHAPE_DATA m_buttonShapeData;;
+
 public:
 	WindowBrush();
 	virtual ~WindowBrush();

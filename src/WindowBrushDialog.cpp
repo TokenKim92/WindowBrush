@@ -1,5 +1,6 @@
 #include "WindowBrushDialog.h"
 #include "ColorPalette.h"
+#include "Utility.h"
 #include <vector>
 
 #ifdef _DEBUG
@@ -12,6 +13,7 @@ WindowBrush::WindowBrush() :
 	WindowDialog(L"WINDOWBRUSH", L"")
 {
 	memset(&m_viewRect, 0, sizeof(RECT));
+	m_buttonShapeData.hoverArea = ButtonShape::TYPE::NONE;
 }
 
 WindowBrush::~WindowBrush()
@@ -52,10 +54,15 @@ void WindowBrush::InitButtonRects()
 
 void WindowBrush::OnInitDialog()
 {
+	::GetClientRect(mh_window, &m_viewRect);
+
 	InitButtonRects();
 	mp_buttonsShape = std::make_unique<ButtonShape>(mp_direct2d, m_buttonTable, GetThemeMode());
 
 	mp_direct2d->SetStrokeWidth(2.5f);
+
+	// add message handlers
+	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&WindowBrush::MouseMoveHandler));
 }
 
 void WindowBrush::OnDestroy()
@@ -68,9 +75,8 @@ void WindowBrush::OnPaint()
 {
 	mp_direct2d->Clear();
 
-
 	for (auto const &[type, rect] : m_buttonTable) {
-		mp_buttonsShape->DrawButton(type);
+		mp_buttonsShape->DrawButton(type, m_buttonShapeData);
 	}
 }
 
@@ -83,6 +89,22 @@ void WindowBrush::OnSetThemeMode()
 int WindowBrush::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+
+	for (auto const &[type, rect] : m_buttonTable) {
+		if (PointInRectF(rect, pos)) {
+			if (type != m_buttonShapeData.hoverArea) {
+				m_buttonShapeData.hoverArea = type;
+				::InvalidateRect(mh_window, &m_viewRect, true);
+			}
+
+			return S_OK;
+		}
+	}
+
+	if (ButtonShape::TYPE::NONE != m_buttonShapeData.hoverArea) {
+		m_buttonShapeData.hoverArea = ButtonShape::TYPE::NONE;
+		::InvalidateRect(mh_window, &m_viewRect, false);
+	}
 
 	return S_OK;
 }

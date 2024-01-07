@@ -36,3 +36,11 @@ D2D1_COLOR_F fromHueToColorF(const float hue)
 
 	return D2D1_COLOR_F({ rgb[0], rgb[1], rgb[2], 1.0f });
 }
+
+bool PointInRectF(const D2D1_RECT_F &ap_rect, const POINT &ap_pos)
+{
+	return ap_rect.left <= ap_pos.x &&
+		ap_rect.top <= ap_pos.y &&
+		ap_rect.right >= ap_pos.x &&
+		ap_rect.bottom >= ap_pos.y;
+}

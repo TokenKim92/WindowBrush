@@ -9,7 +9,8 @@ class ButtonShape
 public:
 	enum TYPE
 	{
-		CURVE,
+		NONE = -1,
+		CURVE = 0,
 		RECTANGLE,
 		CIRCLE,
 		TEXT,
@@ -18,6 +19,12 @@ public:
 		COLOR,
 		FADE
 	};
+
+	struct BUTTON_SHAPE_DATA
+	{
+		ButtonShape::TYPE hoverArea;
+	};
+
 private:
 	struct HUE_DATA
 	{
@@ -28,10 +35,10 @@ private:
 private:
 	Direct2DEx *const  mp_direct2d;
 	const std::map<TYPE, DRect> &m_buttonTable;
-	std::map<TYPE, void (ButtonShape::*)()> m_drawTable;
+	std::map<TYPE, void (ButtonShape::*)(const BUTTON_SHAPE_DATA &)> m_drawTable;
 	IDWriteTextFormat *mp_textFormat;
 
-	DColor m_color;
+	DColor m_textColor;
 	DColor m_highlightColor;
 	const float m_defaultTransparency;
 
@@ -51,7 +58,7 @@ public:
 	virtual ~ButtonShape();
 
 	void SetColorMode(const WindowDialog::THEME_MODE &a_mode);
-	void DrawButton(const TYPE &a_type);
+	void DrawButton(const TYPE &a_type, const BUTTON_SHAPE_DATA &a_data);
 	
 private:
 	void InitCurveShapeData();
@@ -61,14 +68,16 @@ private:
 	void UpdateColorSymbolBrush();
 	void InitFadeShapeData();
 
-	void DrawCurveShape();
-	void DrawRectangleShape();
-	void DrawCircleShape();
-	void DrawTextShape();
-	void DrawStrokeShape();
-	void DrawGradiationShape();
-	void DrawColorShape();
-	void DrawFadeShape();
+	void UpdateTextColorOnHover(const bool isHover);
+
+	void DrawCurveShape(const BUTTON_SHAPE_DATA &a_data);
+	void DrawRectangleShape(const BUTTON_SHAPE_DATA &a_data);
+	void DrawCircleShape(const BUTTON_SHAPE_DATA &a_data);
+	void DrawTextShape(const BUTTON_SHAPE_DATA &a_data);
+	void DrawStrokeShape(const BUTTON_SHAPE_DATA &a_data);
+	void DrawGradiationShape(const BUTTON_SHAPE_DATA &a_data);
+	void DrawColorShape(const BUTTON_SHAPE_DATA &a_data);
+	void DrawFadeShape(const BUTTON_SHAPE_DATA &a_data);
 };
 
 #endif //_BUTTON_SHAPE_H_
