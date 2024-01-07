@@ -1,31 +1,27 @@
-#include "Direct2DEx.h"
 #include "WindowDialog.h"
-#include "ButtonShape.h"
 #include "ColorPalette.h"
-#include "Utility.h"
-#include <direct.h>
-#include <vector>
+#include "ButtonShape.h"
 
 //#define SHOW_BUTTON_AREA
 #define CONVERT_RADIAN		 0.0174532888;
 
 extern ApplicationCore *gp_appCore;
 
-ButtonShape::ButtonShape(Direct2DEx *const ap_direct2d, const std::map<TYPE, DRect> &a_buttonTable, const WindowDialog::THEME_MODE &a_mode) :
+ButtonShape::ButtonShape(Direct2DEx *const ap_direct2d, const std::map<BST, DRect> &a_buttonTable, const WindowDialog::THEME_MODE &a_mode) :
 	mp_direct2d(ap_direct2d),
 	m_buttonTable(a_buttonTable),
 	m_defaultTransparency(0.6f)
 {
 	SetColorMode(a_mode);
 
-	m_drawTable.insert({ TYPE::CURVE, &ButtonShape::DrawCurveShape });
-	m_drawTable.insert({ TYPE::RECTANGLE, &ButtonShape::DrawRectangleShape });
-	m_drawTable.insert({ TYPE::CIRCLE, &ButtonShape::DrawCircleShape });
-	m_drawTable.insert({ TYPE::TEXT, &ButtonShape::DrawTextShape });
-	m_drawTable.insert({ TYPE::STROKE, &ButtonShape::DrawStrokeShape });
-	m_drawTable.insert({ TYPE::GRADIATION, &ButtonShape::DrawGradiationShape });
-	m_drawTable.insert({ TYPE::COLOR, &ButtonShape::DrawColorShape });
-	m_drawTable.insert({ TYPE::FADE, &ButtonShape::DrawFadeShape });
+	m_drawTable.insert({ BST::CURVE, &ButtonShape::DrawCurveShape });
+	m_drawTable.insert({ BST::RECTANGLE, &ButtonShape::DrawRectangleShape });
+	m_drawTable.insert({ BST::CIRCLE, &ButtonShape::DrawCircleShape });
+	m_drawTable.insert({ BST::TEXT, &ButtonShape::DrawTextShape });
+	m_drawTable.insert({ BST::STROKE, &ButtonShape::DrawStrokeShape });
+	m_drawTable.insert({ BST::GRADIATION, &ButtonShape::DrawGradiationShape });
+	m_drawTable.insert({ BST::COLOR, &ButtonShape::DrawColorShape });
+	m_drawTable.insert({ BST::FADE, &ButtonShape::DrawFadeShape });
 
 	mp_textFormat = ap_direct2d->CreateTextFormat(L"Times New Roman", 30.0f, DWRITE_FONT_WEIGHT_MEDIUM, DWRITE_FONT_STYLE_NORMAL);
 	mp_textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -59,7 +55,7 @@ void ButtonShape::SetColorMode(const WindowDialog::THEME_MODE &a_mode)
 	m_highlightColor.a = m_defaultTransparency;
 }
 
-void ButtonShape::DrawButton(const TYPE &a_type, const BUTTON_SHAPE_DATA &a_data)
+void ButtonShape::DrawButton(const BST &a_type, const BSD &a_data)
 {
 	auto drawFunction = m_drawTable.at(a_type);
 	(this->*drawFunction)(a_data);
@@ -74,18 +70,18 @@ void ButtonShape::UpdateTextColorOnHover(const bool isHover)
 	mp_direct2d->SetBrushColor(color);
 }
 
-void ButtonShape::DrawCurveShape(const BUTTON_SHAPE_DATA &a_data)
+void ButtonShape::DrawCurveShape(const BSD &a_data)
 {
 #ifdef  SHOW_BUTTON_AREA
-	mp_direct2d->DrawRectangle(m_buttonTable.at(TYPE::CURVE));
+	mp_direct2d->DrawRectangle(m_buttonTable.at(BST::CURVE));
 #endif 
 
 	if (nullptr != mp_curveGeometry) {
-		const auto rect = m_buttonTable.at(TYPE::CURVE);
+		const auto rect = m_buttonTable.at(BST::CURVE);
 		const float centerPosX = rect.left + (rect.right - rect.left) / 2.0f;
 		const float centerPosY = rect.top + (rect.bottom - rect.top) / 2.0f;
 
-		UpdateTextColorOnHover(TYPE::CURVE == a_data.hoverArea);
+		UpdateTextColorOnHover(BST::CURVE == a_data.hoverArea);
 
 		mp_direct2d->SetMatrixTransform(D2D1::Matrix3x2F::Rotation(10, { centerPosX, centerPosY }));
 		mp_direct2d->DrawGeometry(mp_curveGeometry);
@@ -93,78 +89,78 @@ void ButtonShape::DrawCurveShape(const BUTTON_SHAPE_DATA &a_data)
 	}
 }
 
-void ButtonShape::DrawRectangleShape(const BUTTON_SHAPE_DATA &a_data)
+void ButtonShape::DrawRectangleShape(const BSD &a_data)
 {
 #ifdef  SHOW_BUTTON_AREA
-	mp_direct2d->DrawRectangle(m_buttonTable.at(TYPE::RECTANGLE));
+	mp_direct2d->DrawRectangle(m_buttonTable.at(BST::RECTANGLE));
 #endif 
 
-	auto rect = m_buttonTable.at(TYPE::RECTANGLE);
+	auto rect = m_buttonTable.at(BST::RECTANGLE);
 	const float margin = 7.0f;
 	rect.left += margin;
 	rect.top += margin;
 	rect.right -= margin;
 	rect.bottom -= margin;
 
-	UpdateTextColorOnHover(TYPE::RECTANGLE == a_data.hoverArea);
+	UpdateTextColorOnHover(BST::RECTANGLE == a_data.hoverArea);
 	
 	mp_direct2d->DrawRoundedRectangle(rect, 5.0f);
 }
 
-void ButtonShape::DrawCircleShape(const BUTTON_SHAPE_DATA &a_data)
+void ButtonShape::DrawCircleShape(const BSD &a_data)
 {
 #ifdef  SHOW_BUTTON_AREA
-	mp_direct2d->DrawRectangle(m_buttonTable.at(TYPE::CIRCLE));
+	mp_direct2d->DrawRectangle(m_buttonTable.at(BST::CIRCLE));
 #endif 
 
-	auto rect = m_buttonTable.at(TYPE::CIRCLE);
+	auto rect = m_buttonTable.at(BST::CIRCLE);
 	const float margin = 7.0f;
 	rect.left += margin;
 	rect.top += margin;
 	rect.right -= margin;
 	rect.bottom -= margin;
 
-	UpdateTextColorOnHover(TYPE::CIRCLE == a_data.hoverArea);
+	UpdateTextColorOnHover(BST::CIRCLE == a_data.hoverArea);
 
 	mp_direct2d->DrawEllipse(rect);
 }
 
-void ButtonShape::DrawTextShape(const BUTTON_SHAPE_DATA &a_data)
+void ButtonShape::DrawTextShape(const BSD &a_data)
 {
 #ifdef  SHOW_BUTTON_AREA
-	mp_direct2d->DrawRectangle(m_buttonTable.at(TYPE::TEXT));
+	mp_direct2d->DrawRectangle(m_buttonTable.at(BST::TEXT));
 #endif 
 
-	auto rect = m_buttonTable.at(TYPE::TEXT);
+	auto rect = m_buttonTable.at(BST::TEXT);
 
-	UpdateTextColorOnHover(TYPE::TEXT == a_data.hoverArea);
+	UpdateTextColorOnHover(BST::TEXT == a_data.hoverArea);
 
 	auto prevTextFormat = mp_direct2d->SetTextFormat(mp_textFormat);
 	mp_direct2d->DrawUserText(L"T", rect);
 	mp_direct2d->SetTextFormat(prevTextFormat);
 }
 
-void ButtonShape::DrawStrokeShape(const BUTTON_SHAPE_DATA &a_data)
+void ButtonShape::DrawStrokeShape(const BSD &a_data)
 {
 #ifdef  SHOW_BUTTON_AREA
-	mp_direct2d->DrawRectangle(m_buttonTable.at(TYPE::STROKE));
+	mp_direct2d->DrawRectangle(m_buttonTable.at(BST::STROKE));
 #endif 
 
-	UpdateTextColorOnHover(TYPE::STROKE == a_data.hoverArea);
+	UpdateTextColorOnHover(BST::STROKE == a_data.hoverArea);
 
 	for (auto &rect : m_strokShapeRects) {
 		mp_direct2d->DrawEllipse(rect);	
 	}
 }
 
-void ButtonShape::DrawGradiationShape(const BUTTON_SHAPE_DATA &a_data)
+void ButtonShape::DrawGradiationShape(const BSD &a_data)
 {
 #ifdef  SHOW_BUTTON_AREA
-	mp_direct2d->DrawRectangle(m_buttonTable.at(TYPE::GRADIATION));
+	mp_direct2d->DrawRectangle(m_buttonTable.at(BST::GRADIATION));
 #endif 
 
 	ID2D1Brush *p_prevBrush = mp_direct2d->SetBrush(mp_gradientBrush);
-	const float transparency = TYPE::GRADIATION == a_data.hoverArea
+	const float transparency = BST::GRADIATION == a_data.hoverArea
 		? 1.0f
 		: m_defaultTransparency;
 	mp_gradientBrush->SetOpacity(transparency);
@@ -176,10 +172,10 @@ void ButtonShape::DrawGradiationShape(const BUTTON_SHAPE_DATA &a_data)
 	mp_direct2d->SetBrush(p_prevBrush);
 }
 
-void ButtonShape::DrawColorShape(const BUTTON_SHAPE_DATA &a_data)
+void ButtonShape::DrawColorShape(const BSD &a_data)
 {
 #ifdef  SHOW_BUTTON_AREA
-	mp_direct2d->DrawRectangle(m_buttonTable.at(TYPE::COLOR));
+	mp_direct2d->DrawRectangle(m_buttonTable.at(BST::COLOR));
 #endif 
 
 	// draw hue circle
@@ -191,14 +187,14 @@ void ButtonShape::DrawColorShape(const BUTTON_SHAPE_DATA &a_data)
 	// draw selected color circle
 	//if (!m_isGradationMode) 
 	{
-		auto rect = m_buttonTable.at(TYPE::COLOR);
+		auto rect = m_buttonTable.at(BST::COLOR);
 		rect.left += m_colorShapeMargin;
 		rect.top += m_colorShapeMargin;
 		rect.right -= m_colorShapeMargin;
 		rect.bottom -= m_colorShapeMargin;
 
 		ID2D1Brush *const p_prevBrush = mp_direct2d->SetBrush(mp_colorShapeBrush);
-		const float transparency = TYPE::COLOR == a_data.hoverArea
+		const float transparency = BST::COLOR == a_data.hoverArea
 			? 1.0f
 			: m_defaultTransparency;
 		mp_colorShapeBrush->SetOpacity(transparency);
@@ -208,20 +204,20 @@ void ButtonShape::DrawColorShape(const BUTTON_SHAPE_DATA &a_data)
 	}
 }
 
-void ButtonShape::DrawFadeShape(const BUTTON_SHAPE_DATA &a_data)
+void ButtonShape::DrawFadeShape(const BSD &a_data)
 {
 #ifdef  SHOW_BUTTON_AREA
-	mp_direct2d->DrawRectangle(m_buttonTable.at(TYPE::FADE));
+	mp_direct2d->DrawRectangle(m_buttonTable.at(BST::FADE));
 #endif 
 	
-	auto rect = m_buttonTable.at(TYPE::FADE);
+	auto rect = m_buttonTable.at(BST::FADE);
 	rect.left += m_fadeShapeMargin;
 	rect.top += m_fadeShapeMargin;
 	rect.right -= m_fadeShapeMargin;
 	rect.bottom -= m_fadeShapeMargin;
 	
 	DColor color = m_highlightColor;
-	if (TYPE::FADE == a_data.hoverArea) {
+	if (BST::FADE == a_data.hoverArea) {
 		color.a = 1.0f;
 	}
 	mp_direct2d->SetBrushColor(color);
@@ -265,7 +261,7 @@ void ButtonShape::InitCurveShapeData()
 	};
 
 	std::vector<DPoint> pointList;
-	const auto rect = m_buttonTable.at(TYPE::CURVE);
+	const auto rect = m_buttonTable.at(BST::CURVE);
 	const float startPosX = rect.left + 6.0f;
 	const float startPosY = rect.top + (rect.bottom - rect.top) * 0.7f;
 
@@ -288,7 +284,7 @@ void ButtonShape::InitStrokyShapeData()
 {
 	m_strokShapeRects.resize(3);
 
-	const auto rect = m_buttonTable.at(TYPE::STROKE);	
+	const auto rect = m_buttonTable.at(BST::STROKE);	
 	const float centerPosX = rect.left + (rect.right - rect.left) / 2.0f;
 	const float centerPosY = rect.top + (rect.bottom - rect.top) / 2.0f;
 
@@ -326,7 +322,7 @@ void ButtonShape::InitGradiationShapeData()
 	};
 
 	const float margin = 7.0f;
-	auto rect = m_buttonTable.at(TYPE::GRADIATION);
+	auto rect = m_buttonTable.at(BST::GRADIATION);
 	rect.left += margin;
 	rect.top += margin;
 	rect.right -= margin;
@@ -419,7 +415,7 @@ void ButtonShape::InitColorShapeData()
 	//----------------------------------------
 	m_hueDataList.resize(90);
 
-	auto rect = m_buttonTable.at(TYPE::COLOR);
+	auto rect = m_buttonTable.at(BST::COLOR);
 	const float marginOffset = 7.0f;
 	rect.left += m_colorShapeMargin - marginOffset;
 	rect.top += m_colorShapeMargin - marginOffset;
@@ -465,7 +461,7 @@ void ButtonShape::UpdateColorSymbolBrush()
 void ButtonShape::InitFadeShapeData()
 {
 	
-	auto rect = m_buttonTable.at(TYPE::FADE);
+	auto rect = m_buttonTable.at(BST::FADE);
 	rect.left += m_fadeShapeMargin;
 	rect.top += m_fadeShapeMargin;
 	rect.right -= m_fadeShapeMargin;

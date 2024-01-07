@@ -1,7 +1,5 @@
-#include "WindowBrushDialog.h"
 #include "ColorPalette.h"
-#include "Utility.h"
-#include <vector>
+#include "WindowBrushDialog.h"
 
 #ifdef _DEBUG
 #pragma comment (lib, "AppTemplateDebug.lib")
@@ -13,7 +11,7 @@ WindowBrush::WindowBrush() :
 	WindowDialog(L"WINDOWBRUSH", L"")
 {
 	memset(&m_viewRect, 0, sizeof(RECT));
-	m_buttonShapeData.hoverArea = ButtonShape::TYPE::NONE;
+	m_buttonShapeData.hoverArea = BST::NONE;
 }
 
 WindowBrush::~WindowBrush()
@@ -30,15 +28,15 @@ void WindowBrush::InitButtonRects()
 	const float buttonSize = viewRect.right - viewRect.left - margin * 2.0f;
 	const size_t buttonCount = 8;
 
-	std::vector<ButtonShape::TYPE> buttonShapeList = {
-		ButtonShape::TYPE::CURVE,
-		ButtonShape::TYPE::RECTANGLE,
-		ButtonShape::TYPE::CIRCLE,
-		ButtonShape::TYPE::TEXT,
-		ButtonShape::TYPE::STROKE,
-		ButtonShape::TYPE::GRADIATION,
-		ButtonShape::TYPE::COLOR,
-		ButtonShape::TYPE::FADE
+	std::vector<BST> buttonShapeList = {
+		BST::CURVE,
+		BST::RECTANGLE,
+		BST::CIRCLE,
+		BST::TEXT,
+		BST::STROKE,
+		BST::GRADIATION,
+		BST::COLOR,
+		BST::FADE
 	};
 
 	size_t index = 0;
@@ -52,7 +50,7 @@ void WindowBrush::InitButtonRects()
 	}
 
 	const float fadeRectOffet = 3.0f;
-	DRect &rect = m_buttonTable.at(ButtonShape::TYPE::FADE);
+	DRect &rect = m_buttonTable.at(BST::FADE);
 	rect.top += fadeRectOffet;
 	rect.bottom += fadeRectOffet;
 }
@@ -64,9 +62,9 @@ void WindowBrush::InitDivider()
 		a_divierList.push_back(DRect({ a_rect.left, a_rect.bottom, a_rect.right, a_rect.bottom }));
 	};
 
-	AddDividerRect(m_dividerList, m_buttonTable.at(ButtonShape::TYPE::TEXT));
-	AddDividerRect(m_dividerList, m_buttonTable.at(ButtonShape::TYPE::STROKE));
-	AddDividerRect(m_dividerList, m_buttonTable.at(ButtonShape::TYPE::COLOR));
+	AddDividerRect(m_dividerList, m_buttonTable.at(BST::TEXT));
+	AddDividerRect(m_dividerList, m_buttonTable.at(BST::STROKE));
+	AddDividerRect(m_dividerList, m_buttonTable.at(BST::COLOR));
 }
 
 void WindowBrush::OnInitDialog()
@@ -125,8 +123,8 @@ int WindowBrush::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		}
 	}
 
-	if (ButtonShape::TYPE::NONE != m_buttonShapeData.hoverArea) {
-		m_buttonShapeData.hoverArea = ButtonShape::TYPE::NONE;
+	if (BST::NONE != m_buttonShapeData.hoverArea) {
+		m_buttonShapeData.hoverArea = BST::NONE;
 		::InvalidateRect(mh_window, &m_viewRect, false);
 	}
 

@@ -1,30 +1,12 @@
 #ifndef _BUTTON_SHAPE_H_
 #define _BUTTON_SHAPE_H_
 
+#include "Utility.h"
 #include <map>
 #include <vector>
 
 class ButtonShape
 {
-public:
-	enum TYPE
-	{
-		NONE = -1,
-		CURVE = 0,
-		RECTANGLE,
-		CIRCLE,
-		TEXT,
-		STROKE,
-		GRADIATION,
-		COLOR,
-		FADE
-	};
-
-	struct BUTTON_SHAPE_DATA
-	{
-		ButtonShape::TYPE hoverArea;
-	};
-
 private:
 	struct HUE_DATA
 	{
@@ -34,8 +16,8 @@ private:
 
 private:
 	Direct2DEx *const  mp_direct2d;
-	const std::map<TYPE, DRect> &m_buttonTable;
-	std::map<TYPE, void (ButtonShape::*)(const BUTTON_SHAPE_DATA &)> m_drawTable;
+	const std::map<BST, DRect> &m_buttonTable;
+	std::map<BST, void (ButtonShape::*)(const BSD &)> m_drawTable;
 	IDWriteTextFormat *mp_textFormat;
 
 	DColor m_textColor;
@@ -54,11 +36,11 @@ private:
 	const float m_fadeShapeMargin = 10.0f;
 
 public:
-	ButtonShape(Direct2DEx * const ap_direct2d, const std::map<TYPE, DRect> &a_buttonTable, const WindowDialog::THEME_MODE &a_mode);
+	ButtonShape(Direct2DEx * const ap_direct2d, const std::map<BST, DRect> &a_buttonTable, const WindowDialog::THEME_MODE &a_mode);
 	virtual ~ButtonShape();
 
 	void SetColorMode(const WindowDialog::THEME_MODE &a_mode);
-	void DrawButton(const TYPE &a_type, const BUTTON_SHAPE_DATA &a_data);
+	void DrawButton(const BST &a_type, const BSD &a_data);
 	
 private:
 	void InitCurveShapeData();
@@ -70,14 +52,14 @@ private:
 
 	void UpdateTextColorOnHover(const bool isHover);
 
-	void DrawCurveShape(const BUTTON_SHAPE_DATA &a_data);
-	void DrawRectangleShape(const BUTTON_SHAPE_DATA &a_data);
-	void DrawCircleShape(const BUTTON_SHAPE_DATA &a_data);
-	void DrawTextShape(const BUTTON_SHAPE_DATA &a_data);
-	void DrawStrokeShape(const BUTTON_SHAPE_DATA &a_data);
-	void DrawGradiationShape(const BUTTON_SHAPE_DATA &a_data);
-	void DrawColorShape(const BUTTON_SHAPE_DATA &a_data);
-	void DrawFadeShape(const BUTTON_SHAPE_DATA &a_data);
+	void DrawCurveShape(const BSD &a_data);
+	void DrawRectangleShape(const BSD &a_data);
+	void DrawCircleShape(const BSD &a_data);
+	void DrawTextShape(const BSD &a_data);
+	void DrawStrokeShape(const BSD &a_data);
+	void DrawGradiationShape(const BSD &a_data);
+	void DrawColorShape(const BSD &a_data);
+	void DrawFadeShape(const BSD &a_data);
 };
 
 #endif //_BUTTON_SHAPE_H_

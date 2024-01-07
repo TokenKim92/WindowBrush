@@ -1,4 +1,3 @@
-#include <d2d1.h>
 #include "Utility.h"
 
 D2D1_COLOR_F fromHueToColorF(const float hue)
