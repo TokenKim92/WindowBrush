@@ -107,7 +107,19 @@ void WindowBrush::OnPaint()
 
 void WindowBrush::OnSetThemeMode()
 {
+	const auto colorMode = GetThemeMode();
+	DColor backgroundColor;
+	if (THEME_MODE::DARK_MODE == colorMode) {
+		backgroundColor = RGB_TO_COLORF(NEUTRAL_800);
+	}
+	else {
+		backgroundColor = RGB_TO_COLORF(NEUTRAL_100);
+	}
+	
+	mp_buttonsShape->SetColorMode(colorMode);
+	mp_direct2d->SetBackgroundColor(backgroundColor);
 
+	::InvalidateRect(mh_window, &m_viewRect, false);
 }
 
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed

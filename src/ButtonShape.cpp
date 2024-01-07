@@ -44,7 +44,7 @@ void ButtonShape::SetColorMode(const WindowDialog::THEME_MODE &a_mode)
 {
 	if (WindowDialog::THEME_MODE::LIGHT_MODE == a_mode) {
 		m_textColor = RGB_TO_COLORF(NEUTRAL_600);
-		m_highlightColor = RGB_TO_COLORF(SKY_300);
+		m_highlightColor = RGB_TO_COLORF(ORANGE_400);
 	}
 	else {
 		m_textColor = RGB_TO_COLORF(NEUTRAL_200);
