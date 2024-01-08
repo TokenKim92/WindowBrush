@@ -245,7 +245,7 @@ void ButtonShape::InitCurveShapeData()
 		return;
 	}
 
-	auto InsertPointList = [](std::vector<DPoint> &postList, const unsigned int a_radius, const unsigned int a_startDegree, const DPoint &a_startPos)
+	const auto InsertPointList = [](std::vector<DPoint> &postList, const unsigned int a_radius, const unsigned int a_startDegree, const DPoint &a_startPos)
 	{
 		const unsigned char POINT_COUNT = 32;
 		double radian;
@@ -334,17 +334,11 @@ void ButtonShape::InitGradiationShapeData()
 	mp_gradientBrush = nullptr;
 	mp_gradientBrush = mp_direct2d->CreateLinearGradientBrush(gradientStopList, gradientCount, &gradientData);
 
-	// create darker gradient color to be used on selected
-	//gradientStopList[0] = { 0.2f, RGB_TO_COLORF(RGB(141, 176, 233)) };
-	//gradientStopList[1] = { 0.5f, RGB_TO_COLORF(RGB(112, 230, 156)) };
-	//gradientStopList[2] = { 0.8f, RGB_TO_COLORF(RGB(232, 162, 139)) };
-	//mp_darkGradientbrush = mp_d2dView->CreateLinearGradientBrush(gradientStopList, gradientCount, &gradientData);
-
 	///////////////////////////////////////////////////////////////////
 	// init geometry
 	///////////////////////////////////////////////////////////////////
 
-	auto OnFailedInit = [](std::vector<ID2D1PathGeometry *> &gradientGeometries)
+	const auto OnFailedInit = [](std::vector<ID2D1PathGeometry *> &gradientGeometries)
 	{
 		for (auto &geometry : gradientGeometries) {
 			geometry = nullptr;
@@ -404,7 +398,6 @@ void ButtonShape::InitGradiationShapeData()
 
 void ButtonShape::InitColorShapeData()
 {
-	const double PI = 3.14159265358979;
 	const float HUE_RADIUS = 14.0f;
 
 	//----------------------------------------
@@ -426,7 +419,7 @@ void ButtonShape::InitColorShapeData()
 		hueData.point.x = static_cast<float>(centerPosX + HUE_RADIUS * cos(radian));
 		hueData.point.y = static_cast<float>(centerPosY - HUE_RADIUS * sin(radian));
 		// convert hue to [0,6]
-		hueData.color = fromHueToColor(degree / 15.0f);
+		hueData.color = FromHueToColor(degree / 15.0f);
 
 		degree++;
 	}

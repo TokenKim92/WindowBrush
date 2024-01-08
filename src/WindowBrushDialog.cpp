@@ -60,7 +60,7 @@ void WindowBrush::InitButtonRects()
 
 void WindowBrush::InitDivider()
 {
-	auto AddDividerRect = [](std::vector<DRect> &a_divierList, const DRect &a_rect)
+	const auto AddDividerRect = [](std::vector<DRect> &a_divierList, const DRect &a_rect)
 	{
 		a_divierList.push_back(DRect({ a_rect.left, a_rect.bottom, a_rect.right, a_rect.bottom }));
 	};
@@ -160,7 +160,7 @@ int WindowBrush::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPar
 // to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
 int WindowBrush::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static auto OnDrawButtonUp = [](BSD &a_buttonShapeData, const BST &a_type)
+	static const auto OnDrawButtonUp = [](BSD &a_buttonShapeData, const BST &a_type)
 	{
 		if (a_type != a_buttonShapeData.drawMode) {
 			// TODO:: turn on draw mode
@@ -171,7 +171,7 @@ int WindowBrush::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 			a_buttonShapeData.drawMode = BST::NONE;;
 		}
 	};
-	static auto OnColorButtonUp = [](const HWND &ah_parentWindow, DColor &a_selectedColor, const THEME_MODE &a_mode, const std::unique_ptr<ButtonShape> &ap_buttonShape)
+	static const auto OnColorButtonUp = [](const HWND &ah_parentWindow, DColor &a_selectedColor, const THEME_MODE &a_mode, const std::unique_ptr<ButtonShape> &ap_buttonShape)
 	{
 		RECT rect;
 		::GetWindowRect(ah_parentWindow, &rect);
@@ -191,14 +191,18 @@ int WindowBrush::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 
 		ap_buttonShape->UpdateColorSymbolBrush(a_selectedColor);
 	};
-	static auto OnGradientButtonUp = [](BSD &a_buttonShapeData)
+	static const auto OnGradientButtonUp = [](BSD &a_buttonShapeData)
 	{
 		a_buttonShapeData.isGradientMode = !a_buttonShapeData.isGradientMode;
 	};
-	static auto OnFadeButtonUp = [](BSD &a_buttonShapeData)
+	static const auto OnFadeButtonUp = [](BSD &a_buttonShapeData)
 	{
 		a_buttonShapeData.isFadeMode = !a_buttonShapeData.isFadeMode;
 	};
+
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
 
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 

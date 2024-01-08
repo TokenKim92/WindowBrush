@@ -8,10 +8,11 @@
 #pragma comment (lib, "AppTemplate.lib")     
 #endif
 
-#define INTERVAL		40
-#define COUNT_PER_LINE	5
-#define TEXT_HEIGHT		35
-#define COLOR_RADIUS	10.0f
+#define INTERVAL			40
+#define COUNT_PER_LINE		5
+#define TEXT_HEIGHT			35
+#define INDICATE_HEIGHT		25
+#define COLOR_RADIUS		10.0f
 
 
 ColorDialog::ColorDialog(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList) :
@@ -30,7 +31,11 @@ ColorDialog::ColorDialog(const DColor &a_selectedColor, const std::vector<DColor
 	m_hoverIndex = INVALID_INDEX;
 	m_clickedIndex = INVALID_INDEX;
 
-	InitColorDataList(a_selectedColor, a_colorList);
+	InitColorDataTable(a_selectedColor, a_colorList);
+
+	isInitializedAddMode = false;
+	m_hoverButton = BT::NONE;
+	m_clickedButton = BT::NONE;
 }
 
 ColorDialog::~ColorDialog()
@@ -90,31 +95,62 @@ void ColorDialog::OnPaint()
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
 int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+	static const auto OnSelectMode = [](
+		const std::map<size_t, CD> a_colorDataTable, const std::pair<size_t, DRect> &a_addButtonData,
+		ColorDialog *const a_dialog, size_t &a_hoverIndex, const POINT &pos
+	)
+	{
+		for (auto const &[index, colorData] : a_colorDataTable) {
+			if (PointInRect(colorData.rect, pos)) {
+				if (index != a_hoverIndex) {
+					a_hoverIndex = index;
+					a_dialog->Invalidate();
+				}
 
-	for (auto const &[index, colorData] : m_colorDataTable) {
-		if (PointInRect(colorData.rect, pos)) {
-			if (index != m_hoverIndex) {
-				m_hoverIndex = index;
-				Invalidate();
+				return;
+			}
+		}
+
+		if (PointInRect(a_addButtonData.second, pos)) {
+			if (a_colorDataTable.size() != a_hoverIndex) {
+				a_hoverIndex = a_addButtonData.first;
+				a_dialog->Invalidate();
 			}
 
-			return S_OK;
+			return;
 		}
-	}
 
-	if (PointInRect(m_addButtonData.second, pos)) {
-		if (m_colorDataTable.size() != m_hoverIndex) {
-			m_hoverIndex = m_addButtonData.first;
+		if (INVALID_INDEX != a_hoverIndex) {
+			a_hoverIndex = INVALID_INDEX;
+			a_dialog->Invalidate();
+		}
+	};
+
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
+
+	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+
+	if (DM::SELECT == m_drawMode) {
+		OnSelectMode(m_colorDataTable, m_addButtonData, this, m_hoverIndex, pos);
+	}
+	else {
+		for (auto const &[type, rect] : m_buttonTable) {
+			if (PointInRect(rect, pos)) {
+				if (type != m_hoverButton) {
+					m_hoverButton = type;
+					Invalidate();
+				}
+
+				return S_OK;
+			}
+		}
+
+		if (BT::NONE != m_hoverButton) {
+			m_hoverButton = BT::NONE;
 			Invalidate();
 		}
-
-		return S_OK;
-	}
-
-	if (INVALID_INDEX != m_hoverIndex) {
-		m_hoverIndex = INVALID_INDEX;
-		Invalidate();
 	}
 
 	return S_OK;
@@ -123,22 +159,46 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 // to handle the WM_LBUTTONDOWN  message that occurs when a window is destroyed
 int ColorDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
+	static const auto OnSelectMode = [](
+		const std::map<size_t, CD> a_colorDataTable, const std::pair<size_t, DRect> &a_addButtonData,
+		ColorDialog *const a_dialog, size_t &a_clickedIndex, const POINT &pos
+	)
+	{
+		for (auto const &[index, colorData] : a_colorDataTable) {
+			if (PointInRect(colorData.rect, pos)) {
+				a_clickedIndex = index;
+				a_dialog->Invalidate();
+
+				return;
+			}
+		}
+
+		if (PointInRect(a_addButtonData.second, pos)) {
+			a_clickedIndex = a_addButtonData.first;
+			a_dialog->Invalidate();
+
+			return;
+		}
+	};
+
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
+
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
-	for (auto const &[index, colorData] : m_colorDataTable) {
-		if (PointInRect(colorData.rect, pos)) {
-			m_clickedIndex = index;
-			Invalidate();
-
-			return S_OK;
-		}
+	if (DM::SELECT == m_drawMode) {
+		OnSelectMode(m_colorDataTable, m_addButtonData, this, m_clickedIndex, pos);
 	}
+	else {
+		for (auto const &[type, rect] : m_buttonTable) {
+			if (PointInRect(rect, pos)) {
+				m_clickedButton = type;
+				Invalidate();
 
-	if (PointInRect(m_addButtonData.second, pos)) {
-		m_clickedIndex = m_addButtonData.first;
-		Invalidate();
-
-		return S_OK;
+				return S_OK;
+			}
+		}
 	}
 
 	return S_OK;
@@ -147,38 +207,69 @@ int ColorDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPar
 // to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
 int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+	static const auto OnSelectMode = [](
+		const std::map<size_t, CD> a_colorDataTable, const std::pair<size_t, DRect> &a_addButtonData, std::pair<size_t, CD> &a_selectedColorData,
+		ColorDialog *const a_dialog, size_t &a_clickedIndex, const POINT &pos
+	)
+	{
+		for (auto const &[index, colorData] : a_colorDataTable) {
+			if (PointInRect(colorData.rect, pos)) {
+				if (index == a_clickedIndex) {
+					a_selectedColorData.second = colorData;
+					::DestroyWindow(a_dialog->GetWidnowHandle());
+				}
+				else {
+					a_clickedIndex = INVALID_INDEX;
+					a_dialog->Invalidate();
+				}
 
-	for (auto const &[index, colorData] : m_colorDataTable) {
-		if (PointInRect(colorData.rect, pos)) {
-			if (index == m_clickedIndex) {
-				m_selectedColorData.second = colorData;
-				::DestroyWindow(mh_window);
+				return;
+			}
+		}
+
+		if (PointInRect(a_addButtonData.second, pos)) {
+			if (a_addButtonData.first == a_clickedIndex) {
+				a_dialog->ChangeToAddMode();
 			}
 			else {
-				m_clickedIndex = INVALID_INDEX;
-				Invalidate();
+				a_clickedIndex = INVALID_INDEX;
+				a_dialog->Invalidate();
 			}
 
-			return S_OK;
+			return;
 		}
+
+		a_clickedIndex = INVALID_INDEX;
+		a_dialog->Invalidate();
+	};
+
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
+
+	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+
+	if (DM::SELECT == m_drawMode) {
+		OnSelectMode(m_colorDataTable, m_addButtonData, m_selectedColorData, this, m_clickedIndex, pos);
+	}
+	else {
+		for (auto const &[type, rect] : m_buttonTable) {
+			if (PointInRect(rect, pos)) {
+				if (type == m_clickedButton) {
+					ChangeToSelectMode();
+				}
+				else {
+					m_clickedButton = BT::NONE;
+				}
+
+				return S_OK;
+			}
+		}
+
+		m_clickedButton = BT::NONE;
+		Invalidate();
 	}
 
-	if (PointInRect(m_addButtonData.second, pos)) {
-		if (m_addButtonData.first == m_clickedIndex) {
-			ChangeToAddMode();
-		}
-		else {
-			m_clickedIndex = INVALID_INDEX;
-			Invalidate();
-		}
-
-		return S_OK;
-	}
-
-	m_clickedIndex = INVALID_INDEX;
-	Invalidate();
-	
 	return S_OK;
 }
 
@@ -194,7 +285,7 @@ int ColorDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	return S_OK;
 }
 
-void ColorDialog::InitColorDataList(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList)
+void ColorDialog::InitColorDataTable(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList)
 {
 	const std::vector<DColor> defaultColorList({
 		RGB_TO_COLORF(NEUTRAL_950), RGB_TO_COLORF(NEUTRAL_500), RGB_TO_COLORF(NEUTRAL_50), RGB_TO_COLORF(RED_500), RGB_TO_COLORF(ORANGE_500),
@@ -239,6 +330,55 @@ void ColorDialog::UpdateAddButtonRect()
 
 	m_addButtonData.first = m_colorDataTable.size();
 	m_addButtonData.second = { posX - COLOR_RADIUS, posY - COLOR_RADIUS, posX + COLOR_RADIUS, posY + COLOR_RADIUS };
+}
+
+void ColorDialog::InitOnAddMode()
+{
+	const auto InitHueDataList = [](std::vector<std::pair<DColor, std::pair<DPoint, DPoint>>> &a_hueDataList, const SIZE &a_dialogSize)
+	{
+		const float STROKE_WIDTH = 2.5f;
+
+		const float radius = a_dialogSize.cx * 0.33f;
+		const float startHueRadius = radius - STROKE_WIDTH;
+		const float endHueRadius = radius + STROKE_WIDTH;
+		const float centerPosX = a_dialogSize.cx / 2.0f;
+		const float centerPosY = (a_dialogSize.cy + TEXT_HEIGHT) / 2.0f - INDICATE_HEIGHT;
+
+		a_hueDataList.resize(720);
+
+		double radian;
+		unsigned int degree = 0;
+		for (auto &hueData : a_hueDataList) {
+			radian = PI * degree / 360;
+
+			// set strat point
+			hueData.second.first = {
+				static_cast<float>(centerPosX + startHueRadius * cos(radian)),
+				static_cast<float>(centerPosY + startHueRadius * sin(radian))
+			};
+			// set end point
+			hueData.second.second = {
+				static_cast<float>(centerPosX + endHueRadius * cos(radian)),
+				static_cast<float>(centerPosY + endHueRadius * sin(radian))
+			};
+			// set color
+			hueData.first = FromHueToColor(degree / 120.0f);;
+
+			degree++;
+		}
+	};
+
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
+	InitHueDataList(m_hueDataList, GetSize());
+
+	m_returnIconPoints = {
+		{{ 14.0f, TEXT_HEIGHT / 2.0f }, { TEXT_HEIGHT - 14.0f, 10.0f }},
+		{{ 14.0f, TEXT_HEIGHT / 2.0f }, { TEXT_HEIGHT - 14.0f, TEXT_HEIGHT - 10.0f }}
+	};
+
+	m_buttonTable.insert({ BT::RETURN, { 10.0f, 10.0f, TEXT_HEIGHT - 10.0f, TEXT_HEIGHT - 10.0f } });
 }
 
 void ColorDialog::DrawSelectMode()
@@ -292,6 +432,22 @@ void ColorDialog::DrawAddMode()
 {
 	DrawTitle(DM::ADD);
 
+	// draw return button
+	DColor color = m_titleColor;
+	if (BT::RETURN == m_clickedButton || BT::RETURN != m_hoverButton) {
+		color.a = m_defaultTransparency;
+	}
+	mp_direct2d->SetBrushColor(color);
+	mp_direct2d->SetStrokeWidth(3.0f);
+	mp_direct2d->DrawLine(m_returnIconPoints[0].first, m_returnIconPoints[0].second);
+	mp_direct2d->DrawLine(m_returnIconPoints[1].first, m_returnIconPoints[1].second);
+	mp_direct2d->SetStrokeWidth(1.0f);
+
+	// draw the hue circle
+	for (const auto &hueData : m_hueDataList) {
+		mp_direct2d->SetBrushColor(hueData.first);
+		mp_direct2d->DrawLine(hueData.second.first, hueData.second.second);
+	}
 }
 
 void ColorDialog::DrawTitle(const DM &a_mode)
@@ -356,6 +512,24 @@ void ColorDialog::DrawAddButton(const DM &a_mode)
 void ColorDialog::ChangeToAddMode()
 {
 	m_drawMode = DM::ADD;
+	m_hoverIndex = INVALID_INDEX;
+	m_clickedIndex = INVALID_INDEX;
+
+	if (!isInitializedAddMode) {
+		isInitializedAddMode = true;
+
+		InitOnAddMode();
+	}
+
+	Invalidate();
+}
+
+void ColorDialog::ChangeToSelectMode()
+{
+	m_drawMode = DM::SELECT;
+	m_hoverButton = BT::NONE;
+	m_clickedButton = BT::NONE;
+
 	Invalidate();
 }
 

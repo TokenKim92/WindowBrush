@@ -1,6 +1,6 @@
 #include "Utility.h"
 
-D2D1_COLOR_F fromHueToColor(const float hue)
+D2D1_COLOR_F FromHueToColor(const float hue)
 {
 	const size_t colorCount = 3;
 	const float saturation = 1.0f;

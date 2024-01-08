@@ -58,13 +58,14 @@ public:
     void Invalidate(bool backgroundErase = false);
 
     void SetSize(int a_width, int a_height);
-    SIZE GetSize();
     void SetStyle(const unsigned long a_tyle);
     void SetExtendStyle(const unsigned long a_extendStyle);
     int SetThemeMode(const THEME_MODE a_mode);
     void InheritDirect2D(Direct2DEx *const ap_direct2d);
-    const THEME_MODE GetThemeMode();
 
+    HWND GetWidnowHandle();
+    SIZE GetSize();
+    const THEME_MODE GetThemeMode();
 
     void DisableMove();
     void DisableSize();

@@ -19,25 +19,41 @@ protected:
 		DRect rect;
 	} CD;
 
+	typedef enum class BUTTON_TYPE
+	{
+		NONE,
+		RETURN,
+		HUE,
+		LIGHTNESS,
+		ADD
+	}BT;
+
 protected:
-	// first data of pair is a index
-	std::map<size_t, CD> m_colorDataTable;
-	std::pair<size_t, CD> m_selectedColorData;
-	std::pair<size_t, DRect> m_addButtonData; 
-
 	const std::map<DM, void (ColorDialog:: *)()> m_drawTable;
-	DM m_drawMode;
-	size_t m_hoverIndex;
-	size_t m_clickedIndex;
-
 	IDWriteTextFormat *mp_titleFont;
 	ID2D1StrokeStyle *mp_addButtonStroke;
+	DM m_drawMode;
 
 	DRect m_textRect;
 	DColor m_titleColor;
 	DColor m_textBackgroundColor;
 	DColor m_borderColor;
 	const float m_defaultTransparency;
+
+	// variables for select mode
+	std::map<size_t, CD> m_colorDataTable;		// key is a index
+	std::pair<size_t, CD> m_selectedColorData;	// first data of pair is a index
+	std::pair<size_t, DRect> m_addButtonData;	// first data of pair is a index
+	size_t m_hoverIndex;
+	size_t m_clickedIndex;
+
+	// variables for add mode
+	bool isInitializedAddMode;
+	std::vector<std::pair<DPoint, DPoint>> m_returnIconPoints;
+	std::map<BT, DRect> m_buttonTable;
+	std::vector<std::pair<DColor, std::pair<DPoint, DPoint>>> m_hueDataList;
+	BT m_hoverButton;
+	BT m_clickedButton;
 
 public:
 	ColorDialog(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList);
@@ -60,14 +76,18 @@ protected:
 	int KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
 
 private:
-	void InitColorDataList(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList);
+	void InitColorDataTable(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList);
+	void InitOnAddMode();
 	void UpdateAddButtonRect();
-	
+
 	void DrawSelectMode();
 	void DrawAddMode();
+
 	void DrawTitle(const DM &a_mode);
 	void DrawAddButton(const DM &a_mode);
+
 	void ChangeToAddMode();
+	void ChangeToSelectMode();
 };
 
 #endif //_COLOR_DIALOG_H_
