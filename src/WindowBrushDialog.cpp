@@ -8,7 +8,7 @@
 #pragma comment (lib, "AppTemplate.lib")     
 #endif
 
-WindowBrush::WindowBrush() :
+WindowBrushDialog::WindowBrushDialog() :
 	WindowDialog(L"WINDOWBRUSH", L"")
 {
 	SetSize(80, 390);
@@ -20,12 +20,12 @@ WindowBrush::WindowBrush() :
 	m_selectedColor = RGB_TO_COLORF(BLUE_500);
 }
 
-WindowBrush::~WindowBrush()
+WindowBrushDialog::~WindowBrushDialog()
 {
 
 }
 
-void WindowBrush::InitButtonRects()
+void WindowBrushDialog::InitButtonRects()
 {
 	const float margin = 10.0f;
 	const float buttonSize = m_viewRect.right - m_viewRect.left - margin * 2.0f;
@@ -58,7 +58,7 @@ void WindowBrush::InitButtonRects()
 	rect.bottom += fadeRectOffet;
 }
 
-void WindowBrush::InitDivider()
+void WindowBrushDialog::InitDivider()
 {
 	const auto AddDividerRect = [](std::vector<DRect> &a_divierList, const DRect &a_rect)
 	{
@@ -70,7 +70,7 @@ void WindowBrush::InitDivider()
 	AddDividerRect(m_dividerList, m_buttonTable.at(BST::COLOR));
 }
 
-void WindowBrush::OnInitDialog()
+void WindowBrushDialog::OnInitDialog()
 {
 	DisableMaximize();
 	DisableMinimize();
@@ -84,17 +84,17 @@ void WindowBrush::OnInitDialog()
 	mp_direct2d->SetStrokeWidth(2.5f);
 
 	// add message handlers
-	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&WindowBrush::MouseMoveHandler));
-	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&WindowBrush::MouseLeftButtonUpHandler));
+	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&WindowBrushDialog::MouseMoveHandler));
+	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&WindowBrushDialog::MouseLeftButtonUpHandler));
 }
 
-void WindowBrush::OnDestroy()
+void WindowBrushDialog::OnDestroy()
 {
 
 }
 
 
-void WindowBrush::OnPaint()
+void WindowBrushDialog::OnPaint()
 {
 	mp_direct2d->Clear();
 
@@ -108,7 +108,7 @@ void WindowBrush::OnPaint()
 	}
 }
 
-void WindowBrush::OnSetThemeMode()
+void WindowBrushDialog::OnSetThemeMode()
 {
 	const auto colorMode = GetThemeMode();
 	DColor backgroundColor;
@@ -126,7 +126,7 @@ void WindowBrush::OnSetThemeMode()
 }
 
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
-int WindowBrush::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
+int WindowBrushDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
@@ -150,7 +150,7 @@ int WindowBrush::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 }
 
 // to handle the WM_LBUTTONDOWN  message that occurs when a window is destroyed
-int WindowBrush::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
+int WindowBrushDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
@@ -158,7 +158,7 @@ int WindowBrush::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPar
 }
 
 // to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
-int WindowBrush::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
+int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
 	static const auto OnDrawButtonUp = [](BSD &a_buttonShapeData, const BST &a_type)
 	{
@@ -242,7 +242,7 @@ int WindowBrush::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 }
 
 // to handle the WM_MOUSEWHEEL  message that occurs when a window is destroyed
-int WindowBrush::MouseWheelHandler(WPARAM a_wordParam, LPARAM a_longParam)
+int WindowBrushDialog::MouseWheelHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
 	short delta = GET_WHEEL_DELTA_WPARAM(a_wordParam);
 

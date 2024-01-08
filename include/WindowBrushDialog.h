@@ -5,7 +5,7 @@
 #include "ButtonShape.h"
 #include <memory>
 
-class WindowBrush : public WindowDialog
+class WindowBrushDialog : public WindowDialog
 {
 protected:
 	std::map<BST, DRect> m_buttonTable;
@@ -16,8 +16,8 @@ protected:
 	DColor m_selectedColor;
 
 public:
-	WindowBrush();
-	virtual ~WindowBrush();
+	WindowBrushDialog();
+	virtual ~WindowBrushDialog();
 
 private:
 	void InitButtonRects();

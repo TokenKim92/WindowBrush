@@ -16,28 +16,34 @@
     <Filter Include="Header Files\base">
       <UniqueIdentifier>{5f756bb6-dc43-4bd0-a05e-13ff4058c605}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Dialog">
+    <Filter Include="Header Files\WindowBrushDialog">
       <UniqueIdentifier>{fd06e43c-5097-4c57-9123-4fe81fed4280}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Dialog">
+    <Filter Include="Source Files\WindowBrushDialog">
       <UniqueIdentifier>{5eaa1e48-21f9-458b-be87-241cc56d3335}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ColorDialog">
+      <UniqueIdentifier>{9b8efd2e-88f7-461a-85fb-961891da3a66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ColorDialog">
+      <UniqueIdentifier>{aa850421-18f4-4e16-b13f-d1b4814b5d3d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WindowBrush.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ButtonShape.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\WindowBrushDialog.cpp">
-      <Filter>Source Files\Dialog</Filter>
+      <Filter>Source Files\WindowBrushDialog</Filter>
     </ClCompile>
     <ClCompile Include="src\ColorDialog.cpp">
-      <Filter>Source Files\Dialog</Filter>
+      <Filter>Source Files\ColorDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ButtonShape.cpp">
+      <Filter>Source Files\WindowBrushDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -65,17 +71,17 @@
     <ClInclude Include="include\base\WindowDialog.h">
       <Filter>Header Files\base</Filter>
     </ClInclude>
-    <ClInclude Include="include\ButtonShape.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\WindowBrushDialog.h">
-      <Filter>Header Files\Dialog</Filter>
+      <Filter>Header Files\WindowBrushDialog</Filter>
     </ClInclude>
     <ClInclude Include="include\ColorDialog.h">
-      <Filter>Header Files\Dialog</Filter>
+      <Filter>Header Files\ColorDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ButtonShape.h">
+      <Filter>Header Files\WindowBrushDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
