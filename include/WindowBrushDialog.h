@@ -13,6 +13,7 @@ protected:
 	std::unique_ptr<ButtonShape> mp_buttonsShape;
 
 	BSD m_buttonShapeData;;
+	DColor m_selectedColor;
 
 public:
 	WindowBrush();

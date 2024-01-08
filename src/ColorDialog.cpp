@@ -28,6 +28,7 @@ ColorDialog::ColorDialog(const DColor &a_selectedColor, const std::vector<DColor
 	m_textRect = { 0.0f, 0.0f, static_cast<float>(width), static_cast<float>(TEXT_HEIGHT) };
 	m_drawMode = DM::SELECT;
 	m_hoverIndex = INVALID_INDEX;
+	m_clickedIndex = INVALID_INDEX;
 
 	InitColorDataList(a_selectedColor, a_colorList);
 }
@@ -90,6 +91,7 @@ void ColorDialog::OnPaint()
 int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+
 	for (auto const &[index, colorData] : m_colorDataTable) {
 		if (PointInRect(colorData.rect, pos)) {
 			if (index != m_hoverIndex) {
@@ -123,12 +125,59 @@ int ColorDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPar
 {
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
+	for (auto const &[index, colorData] : m_colorDataTable) {
+		if (PointInRect(colorData.rect, pos)) {
+			m_clickedIndex = index;
+			Invalidate();
+
+			return S_OK;
+		}
+	}
+
+	if (PointInRect(m_addButtonData.second, pos)) {
+		m_clickedIndex = m_addButtonData.first;
+		Invalidate();
+
+		return S_OK;
+	}
+
 	return S_OK;
 }
 
 // to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
 int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
+	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+
+	for (auto const &[index, colorData] : m_colorDataTable) {
+		if (PointInRect(colorData.rect, pos)) {
+			if (index == m_clickedIndex) {
+				m_selectedColorData.second = colorData;
+				::DestroyWindow(mh_window);
+			}
+			else {
+				m_clickedIndex = INVALID_INDEX;
+				Invalidate();
+			}
+
+			return S_OK;
+		}
+	}
+
+	if (PointInRect(m_addButtonData.second, pos)) {
+		if (m_addButtonData.first == m_clickedIndex) {
+			ChangeToAddMode();
+		}
+		else {
+			m_clickedIndex = INVALID_INDEX;
+			Invalidate();
+		}
+
+		return S_OK;
+	}
+
+	m_clickedIndex = INVALID_INDEX;
+	Invalidate();
 	
 	return S_OK;
 }
@@ -203,7 +252,10 @@ void ColorDialog::DrawSelectMode()
 	for (auto const &[index, colorData] : m_colorDataTable) {
 		rect = colorData.rect;
 		// draw a large circle where the mouse is located
-		if (index == m_hoverIndex) {
+		if (index == m_clickedIndex) {
+			ShrinkRect(rect, 1.0f);
+		}
+		else if (index == m_hoverIndex) {
 			ExpandRect(rect, 2.0f);
 		}
 
@@ -218,15 +270,14 @@ void ColorDialog::DrawSelectMode()
 		rect = m_selectedColorData.second.rect;
 		
 		// draw border
-		ExpandRect(rect, 4.0f);
+		const bool isClicked = m_selectedColorData.first == m_clickedIndex;
+		float offset = isClicked ? 2.0f : 4.0f;
+		ExpandRect(rect, offset);
 		mp_direct2d->SetBrushColor(m_borderColor);
 		mp_direct2d->FillEllipse(rect);
 
 		// draw color circle
-		const float offset = m_selectedColorData.first == m_hoverIndex
-			? 2.0f
-			: 4.0f;
-
+		offset = !isClicked && m_selectedColorData.first == m_hoverIndex ? 2.0f : 4.0f;
 		ShrinkRect(rect, offset);
 		mp_direct2d->SetBrushColor(m_selectedColorData.second.color);
 		mp_direct2d->FillEllipse(rect);
@@ -264,9 +315,13 @@ void ColorDialog::DrawAddButton(const DM &a_mode)
 {
 	// draw main circle
 	DRect mainRect = m_addButtonData.second;
-	if (m_addButtonData.first == m_hoverIndex) {
+	if (m_addButtonData.first == m_clickedIndex) {
+		ShrinkRect(mainRect, 1.0f);
+	}
+	else if (m_addButtonData.first == m_hoverIndex) {
 		ExpandRect(mainRect, 2.0f);
 	}
+
 	ID2D1StrokeStyle *p_prevStrokeStyle = mp_direct2d->SetStrokeStyle(mp_addButtonStroke);
 	mp_direct2d->SetBrushColor(m_titleColor);
 	mp_direct2d->DrawEllipse(mainRect);
@@ -296,4 +351,15 @@ void ColorDialog::DrawAddButton(const DM &a_mode)
 	endPos = { centerPosX, smallRect.bottom + offset };
 	mp_direct2d->DrawLine(startPos, endPos);
 	mp_direct2d->SetStrokeWidth(1.0f);
+}
+
+void ColorDialog::ChangeToAddMode()
+{
+	m_drawMode = DM::ADD;
+	Invalidate();
+}
+
+DColor ColorDialog::GetSelectedColor()
+{
+	return m_selectedColorData.second.color;
 }

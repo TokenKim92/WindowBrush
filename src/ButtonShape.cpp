@@ -434,17 +434,16 @@ void ButtonShape::InitColorShapeData()
 	//----------------------------------------
 	// init the gradient color of color symbol
 	//----------------------------------------
-	m_selectedBrushColor = RGB_TO_COLORF(RED_400);
-	UpdateColorSymbolBrush();
+	UpdateColorSymbolBrush(RGB_TO_COLORF(RED_400));
 }
 
-void ButtonShape::UpdateColorSymbolBrush()
+void ButtonShape::UpdateColorSymbolBrush(const DColor &a_color)
 {
 	const unsigned int gradientCount = 3;
 	const D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES gradientData = { {14.0f, 303.0f}, {42.0f, 275.0f} };
 	D2D1_GRADIENT_STOP gradientStopList[gradientCount] = {
 		{0.177777f, {0.0f, 0.0f, 0.0f, 1.0f}},
-		{0.5f, m_selectedBrushColor},
+		{0.5f, a_color},
 		{0.833333f, { 1.0f, 1.0f, 1.0f, 1.0f }},
 	};
 

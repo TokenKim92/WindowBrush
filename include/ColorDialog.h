@@ -28,6 +28,7 @@ protected:
 	const std::map<DM, void (ColorDialog:: *)()> m_drawTable;
 	DM m_drawMode;
 	size_t m_hoverIndex;
+	size_t m_clickedIndex;
 
 	IDWriteTextFormat *mp_titleFont;
 	ID2D1StrokeStyle *mp_addButtonStroke;
@@ -41,6 +42,8 @@ protected:
 public:
 	ColorDialog(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList);
 	virtual ~ColorDialog();
+
+	DColor GetSelectedColor();
 
 protected:
 	virtual void OnInitDialog() override;
@@ -64,6 +67,7 @@ private:
 	void DrawAddMode();
 	void DrawTitle(const DM &a_mode);
 	void DrawAddButton(const DM &a_mode);
+	void ChangeToAddMode();
 };
 
 #endif //_COLOR_DIALOG_H_
