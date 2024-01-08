@@ -1,6 +1,6 @@
 #include "Utility.h"
 
-D2D1_COLOR_F fromHueToColorF(const float hue)
+D2D1_COLOR_F fromHueToColor(const float hue)
 {
 	const size_t colorCount = 3;
 	const float saturation = 1.0f;
@@ -36,10 +36,31 @@ D2D1_COLOR_F fromHueToColorF(const float hue)
 	return D2D1_COLOR_F({ rgb[0], rgb[1], rgb[2], 1.0f });
 }
 
-bool PointInRectF(const D2D1_RECT_F &ap_rect, const POINT &ap_pos)
+bool PointInRect(const D2D1_RECT_F &a_rect, const POINT &a_pos)
 {
-	return ap_rect.left <= ap_pos.x &&
-		ap_rect.top <= ap_pos.y &&
-		ap_rect.right >= ap_pos.x &&
-		ap_rect.bottom >= ap_pos.y;
+	return a_rect.left <= a_pos.x &&
+		a_rect.top <= a_pos.y &&
+		a_rect.right >= a_pos.x &&
+		a_rect.bottom >= a_pos.y;
+}
+
+bool IsSameColor(const D2D1_COLOR_F &a_color1, const D2D1_COLOR_F &a_color2)
+{
+	return  a_color1.r == a_color2.r && a_color1.g == a_color2.g && a_color1.b == a_color2.b && a_color1.a == a_color2.a;
+}
+
+void ExpandRect(D2D1_RECT_F &a_rect, const float a_offset)
+{
+	a_rect.left -= a_offset;
+	a_rect.top -= a_offset;
+	a_rect.right += a_offset;
+	a_rect.bottom += a_offset;
+}
+
+void ShrinkRect(D2D1_RECT_F &a_rect, const float a_offset)
+{
+	a_rect.left += a_offset;
+	a_rect.top += a_offset;
+	a_rect.right -= a_offset;
+	a_rect.bottom -= a_offset;
 }

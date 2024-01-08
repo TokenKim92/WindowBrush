@@ -56,7 +56,7 @@ protected:
 	virtual HRESULT CreateDeviceResources();
 	virtual void DestroyDeviceResources();
 
-// drawing methode
+	// drawing methode
 public:
 	void DrawLine(const DPoint &a_startPoint, const DPoint &a_endPoint);
 	void DrawRectangle(const DPoint &a_startPoint, const DPoint &a_endPoint);

@@ -1,5 +1,6 @@
 #include "ColorPalette.h"
 #include "WindowBrushDialog.h"
+#include "ColorDialog.h"
 
 #ifdef _DEBUG
 #pragma comment (lib, "AppTemplateDebug.lib")
@@ -10,7 +11,8 @@
 WindowBrush::WindowBrush() :
 	WindowDialog(L"WINDOWBRUSH", L"")
 {
-	memset(&m_viewRect, 0, sizeof(RECT));
+	SetSize(80, 390);
+
 	m_buttonShapeData.hoverArea = BST::NONE;
 	m_buttonShapeData.drawMode = BST::NONE;
 	m_buttonShapeData.isGradientMode = false;
@@ -23,11 +25,8 @@ WindowBrush::~WindowBrush()
 
 void WindowBrush::InitButtonRects()
 {
-	RECT viewRect;
-	::GetClientRect(mh_window, &viewRect);
-
 	const float margin = 10.0f;
-	const float buttonSize = viewRect.right - viewRect.left - margin * 2.0f;
+	const float buttonSize = m_viewRect.right - m_viewRect.left - margin * 2.0f;
 	const size_t buttonCount = 8;
 
 	std::vector<BST> buttonShapeList = {
@@ -45,7 +44,7 @@ void WindowBrush::InitButtonRects()
 	for (const auto &tpye : buttonShapeList) {
 		m_buttonTable.insert({
 			tpye,
-			DRect({ margin, buttonSize * index, viewRect.right - margin, buttonSize * (index + 1) })
+			DRect({ margin, buttonSize * index, m_viewRect.right - margin, buttonSize * (index + 1) })
 		});
 
 		index++;
@@ -71,7 +70,9 @@ void WindowBrush::InitDivider()
 
 void WindowBrush::OnInitDialog()
 {
-	::GetClientRect(mh_window, &m_viewRect);
+	DisableMaximize();
+	DisableMinimize();
+	DisableSize();
 
 	InitButtonRects();
 	InitDivider();
@@ -119,7 +120,7 @@ void WindowBrush::OnSetThemeMode()
 	mp_buttonsShape->SetColorMode(colorMode);
 	mp_direct2d->SetBackgroundColor(backgroundColor);
 
-	::InvalidateRect(mh_window, &m_viewRect, false);
+	Invalidate();
 }
 
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
@@ -128,10 +129,10 @@ int WindowBrush::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
 	for (auto const &[type, rect] : m_buttonTable) {
-		if (PointInRectF(rect, pos)) {
+		if (PointInRect(rect, pos)) {
 			if (type != m_buttonShapeData.hoverArea) {
 				m_buttonShapeData.hoverArea = type;
-				::InvalidateRect(mh_window, &m_viewRect, true);
+				Invalidate();
 			}
 
 			return S_OK;
@@ -140,7 +141,7 @@ int WindowBrush::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 
 	if (BST::NONE != m_buttonShapeData.hoverArea) {
 		m_buttonShapeData.hoverArea = BST::NONE;
-		::InvalidateRect(mh_window, &m_viewRect, false);
+		Invalidate();
 	}
 
 	return S_OK;
@@ -168,6 +169,23 @@ int WindowBrush::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 			a_buttonShapeData.drawMode = BST::NONE;;
 		}
 	};
+	static auto OnColorButtonUp = [](const HWND &ah_parentWindow, const THEME_MODE &a_mode)
+	{
+		RECT rect;
+		::GetWindowRect(ah_parentWindow, &rect);
+
+		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
+		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
+
+		std::vector<DColor> colorList;
+		ColorDialog instanceDialog(RGB_TO_COLORF(BLUE_500), colorList);
+		instanceDialog.SetStyle(WS_POPUP | WS_VISIBLE);
+		instanceDialog.SetExtendStyle(WS_EX_TOPMOST);
+		instanceDialog.SetThemeMode(a_mode);
+
+		const SIZE size = instanceDialog.GetSize();
+		instanceDialog.DoModal(ah_parentWindow, centerPosX - size.cx / 2, centerPosY - size.cy / 2);
+	};
 	static auto OnGradientButtonUp = [](BSD &a_buttonShapeData)
 	{
 		a_buttonShapeData.isGradientMode = !a_buttonShapeData.isGradientMode;
@@ -181,7 +199,7 @@ int WindowBrush::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 
 	// check first click area on draw mode buttons
 	for (auto const &[type, rect] : m_buttonTable) {
-		if (PointInRectF(rect, pos)) {
+		if (PointInRect(rect, pos)) {
 			switch (type)
 			{
 			case BST::CURVE:
@@ -196,6 +214,7 @@ int WindowBrush::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 				OnGradientButtonUp(m_buttonShapeData);
 				break;
 			case BST::COLOR:
+				OnColorButtonUp(mh_window, GetThemeMode());
 				break;
 			case BST::FADE:
 				OnFadeButtonUp(m_buttonShapeData);
@@ -204,7 +223,7 @@ int WindowBrush::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 				break;
 			}
 			
-			::InvalidateRect(mh_window, &m_viewRect, true);
+			Invalidate();
 
 			return S_OK;
 		}

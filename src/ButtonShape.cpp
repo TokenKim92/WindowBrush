@@ -98,11 +98,7 @@ void ButtonShape::DrawRectangleShape(const BSD &a_data)
 #endif 
 
 	auto rect = m_buttonTable.at(BST::RECTANGLE);
-	const float margin = 7.0f;
-	rect.left += margin;
-	rect.top += margin;
-	rect.right -= margin;
-	rect.bottom -= margin;
+	ShrinkRect(rect, 7.0f);
 
 	UpdateTextColorOnHover(BST::RECTANGLE, a_data);
 	
@@ -116,11 +112,7 @@ void ButtonShape::DrawCircleShape(const BSD &a_data)
 #endif 
 
 	auto rect = m_buttonTable.at(BST::CIRCLE);
-	const float margin = 7.0f;
-	rect.left += margin;
-	rect.top += margin;
-	rect.right -= margin;
-	rect.bottom -= margin;
+	ShrinkRect(rect, 7.0f);
 
 	UpdateTextColorOnHover(BST::CIRCLE, a_data);
 
@@ -201,10 +193,7 @@ void ButtonShape::DrawColorShape(const BSD &a_data)
 	// draw selected color circle
 	if (!a_data.isGradientMode) {
 		auto rect = m_buttonTable.at(BST::COLOR);
-		rect.left += m_colorShapeMargin;
-		rect.top += m_colorShapeMargin;
-		rect.right -= m_colorShapeMargin;
-		rect.bottom -= m_colorShapeMargin;
+		ShrinkRect(rect, m_colorShapeMargin);
 
 		ID2D1Brush *const p_prevBrush = mp_direct2d->SetBrush(mp_colorShapeBrush);
 		const float transparency = BST::COLOR == a_data.hoverArea
@@ -224,10 +213,7 @@ void ButtonShape::DrawFadeShape(const BSD &a_data)
 #endif 
 	
 	auto rect = m_buttonTable.at(BST::FADE);
-	rect.left += m_fadeShapeMargin;
-	rect.top += m_fadeShapeMargin;
-	rect.right -= m_fadeShapeMargin;
-	rect.bottom -= m_fadeShapeMargin;
+	ShrinkRect(rect, m_fadeShapeMargin);
 	
 	DColor color = a_data.isFadeMode
 		? m_highlightColor
@@ -336,12 +322,8 @@ void ButtonShape::InitGradiationShapeData()
 		{0.8f, RGB_TO_COLORF(RGB(252, 182, 159))},
 	};
 
-	const float margin = 7.0f;
 	auto rect = m_buttonTable.at(BST::GRADIATION);
-	rect.left += margin;
-	rect.top += margin;
-	rect.right -= margin;
-	rect.bottom -= margin;
+	ShrinkRect(rect, 7.0f);
 	const float centerPosX = rect.left + (rect.right - rect.left) / 2.0f;
 	const float centerPosY = rect.top + (rect.bottom - rect.top) / 2.0f;
 	
@@ -431,11 +413,7 @@ void ButtonShape::InitColorShapeData()
 	m_hueDataList.resize(90);
 
 	auto rect = m_buttonTable.at(BST::COLOR);
-	const float marginOffset = 7.0f;
-	rect.left += m_colorShapeMargin - marginOffset;
-	rect.top += m_colorShapeMargin - marginOffset;
-	rect.right -= m_colorShapeMargin - marginOffset;
-	rect.bottom -= m_colorShapeMargin - marginOffset;
+	ShrinkRect(rect, m_colorShapeMargin - 7.0f);
 
 	const float centerPosX = rect.left + (rect.right - rect.left) / 2.0f;
 	const float centerPosY = rect.top + (rect.bottom - rect.top) / 2.0f;
@@ -448,7 +426,7 @@ void ButtonShape::InitColorShapeData()
 		hueData.point.x = static_cast<float>(centerPosX + HUE_RADIUS * cos(radian));
 		hueData.point.y = static_cast<float>(centerPosY - HUE_RADIUS * sin(radian));
 		// convert hue to [0,6]
-		hueData.color = fromHueToColorF(degree / 15.0f);
+		hueData.color = fromHueToColor(degree / 15.0f);
 
 		degree++;
 	}
@@ -477,10 +455,7 @@ void ButtonShape::InitFadeShapeData()
 {
 	
 	auto rect = m_buttonTable.at(BST::FADE);
-	rect.left += m_fadeShapeMargin;
-	rect.top += m_fadeShapeMargin;
-	rect.right -= m_fadeShapeMargin;
-	rect.bottom -= m_fadeShapeMargin;
+	ShrinkRect(rect, m_fadeShapeMargin);
 
 	const float centerPosX = rect.left + (rect.right - rect.left) / 2.0f;
 	const float centerPosY = rect.top + (rect.bottom - rect.top) / 2.0f;

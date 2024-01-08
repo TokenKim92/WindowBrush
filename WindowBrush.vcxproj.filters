@@ -16,12 +16,15 @@
     <Filter Include="Header Files\base">
       <UniqueIdentifier>{5f756bb6-dc43-4bd0-a05e-13ff4058c605}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Dialog">
+      <UniqueIdentifier>{fd06e43c-5097-4c57-9123-4fe81fed4280}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Dialog">
+      <UniqueIdentifier>{5eaa1e48-21f9-458b-be87-241cc56d3335}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WindowBrush.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\WindowBrushDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ButtonShape.cpp">
@@ -29,6 +32,12 @@
     </ClCompile>
     <ClCompile Include="src\Utility.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WindowBrushDialog.cpp">
+      <Filter>Source Files\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ColorDialog.cpp">
+      <Filter>Source Files\Dialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -56,14 +65,17 @@
     <ClInclude Include="include\base\WindowDialog.h">
       <Filter>Header Files\base</Filter>
     </ClInclude>
-    <ClInclude Include="include\WindowBrushDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\ButtonShape.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Utility.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\WindowBrushDialog.h">
+      <Filter>Header Files\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ColorDialog.h">
+      <Filter>Header Files\Dialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

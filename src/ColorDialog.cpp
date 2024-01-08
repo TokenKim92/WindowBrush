@@ -1,0 +1,299 @@
+#include "ColorDialog.h"
+#include "ColorPalette.h"
+#include "Utility.h"
+
+#ifdef _DEBUG
+#pragma comment (lib, "AppTemplateDebug.lib")
+#else
+#pragma comment (lib, "AppTemplate.lib")     
+#endif
+
+#define INTERVAL		40
+#define COUNT_PER_LINE	5
+#define TEXT_HEIGHT		35
+#define COLOR_RADIUS	10.0f
+
+
+ColorDialog::ColorDialog(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList) :
+	WindowDialog(L"COLORDIALOG", L"ColorDialog"),
+	m_defaultTransparency(0.6f),
+	m_drawTable({
+		{DM::SELECT, &ColorDialog::DrawSelectMode},
+		{DM::ADD, &ColorDialog::DrawAddMode }
+	})
+{
+	const int width = INTERVAL * (COUNT_PER_LINE + 1);
+	SetSize(width, width + TEXT_HEIGHT);
+
+	m_textRect = { 0.0f, 0.0f, static_cast<float>(width), static_cast<float>(TEXT_HEIGHT) };
+	m_drawMode = DM::SELECT;
+	m_hoverIndex = INVALID_INDEX;
+
+	InitColorDataList(a_selectedColor, a_colorList);
+}
+
+ColorDialog::~ColorDialog()
+{
+
+}
+
+void ColorDialog::OnInitDialog()
+{
+	DisableMaximize();
+	DisableMinimize();
+	DisableSize();
+
+	if (THEME_MODE::DARK_MODE == m_themeMode) {
+		m_borderColor = RGB_TO_COLORF(NEUTRAL_300);
+		m_titleColor = RGB_TO_COLORF(NEUTRAL_200);
+		m_textBackgroundColor = RGB_TO_COLORF(NEUTRAL_900);
+
+		mp_direct2d->SetBackgroundColor(RGB_TO_COLORF(NEUTRAL_800));
+	}
+	else {
+		m_borderColor = RGB_TO_COLORF(NEUTRAL_500);
+		m_titleColor = RGB_TO_COLORF(NEUTRAL_700);
+		m_textBackgroundColor = RGB_TO_COLORF(NEUTRAL_200);
+
+		mp_direct2d->SetBackgroundColor(RGB_TO_COLORF(NEUTRAL_50));
+	}
+
+	// create instance of direct2d
+	mp_titleFont = mp_direct2d->CreateTextFormat(DEFAULT_FONT_NAME, 14.0f, DWRITE_FONT_WEIGHT_SEMI_BOLD, DWRITE_FONT_STYLE_NORMAL);
+	mp_titleFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	mp_titleFont->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+	mp_addButtonStroke = mp_direct2d->CreateUserStrokeStyle(D2D1_DASH_STYLE_DASH);
+
+	// add message handlers
+	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&ColorDialog::MouseMoveHandler));
+	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonDownHandler));
+	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonUpHandler));
+	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ColorDialog::KeyDownHandler));
+}
+
+void ColorDialog::OnDestroy()
+{
+	InterfaceRelease(&mp_titleFont);
+	InterfaceRelease(&mp_addButtonStroke);
+}
+
+void ColorDialog::OnPaint()
+{
+	mp_direct2d->Clear();
+
+	// draw objects according to the DRAW_MODE
+	(this->*m_drawTable.at(m_drawMode))();
+}
+
+// to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
+int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
+{
+	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+	for (auto const &[index, colorData] : m_colorDataTable) {
+		if (PointInRect(colorData.rect, pos)) {
+			if (index != m_hoverIndex) {
+				m_hoverIndex = index;
+				Invalidate();
+			}
+
+			return S_OK;
+		}
+	}
+
+	if (PointInRect(m_addButtonData.second, pos)) {
+		if (m_colorDataTable.size() != m_hoverIndex) {
+			m_hoverIndex = m_addButtonData.first;
+			Invalidate();
+		}
+
+		return S_OK;
+	}
+
+	if (INVALID_INDEX != m_hoverIndex) {
+		m_hoverIndex = INVALID_INDEX;
+		Invalidate();
+	}
+
+	return S_OK;
+}
+
+// to handle the WM_LBUTTONDOWN  message that occurs when a window is destroyed
+int ColorDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
+{
+	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+
+	return S_OK;
+}
+
+// to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
+int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
+{
+	
+	return S_OK;
+}
+
+// to handle the WM_KEYDOWN message that occurs when a window is destroyed
+int ColorDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
+{
+	const unsigned char pressedKey = static_cast<unsigned char>(a_wordParam);
+	
+	if (VK_ESCAPE == pressedKey) {
+		::DestroyWindow(mh_window);
+	}
+
+	return S_OK;
+}
+
+void ColorDialog::InitColorDataList(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList)
+{
+	const std::vector<DColor> defaultColorList({
+		RGB_TO_COLORF(NEUTRAL_950), RGB_TO_COLORF(NEUTRAL_500), RGB_TO_COLORF(NEUTRAL_50), RGB_TO_COLORF(RED_500), RGB_TO_COLORF(ORANGE_500),
+		RGB_TO_COLORF(YELLOW_500), RGB_TO_COLORF(GREEN_500), RGB_TO_COLORF(BLUE_500), RGB_TO_COLORF(PURPLE_500), RGB_TO_COLORF(PINK_500)
+	});
+
+	const std::vector<DColor> &tempColorList = 0 == a_colorList.size()
+		? defaultColorList
+		: a_colorList;
+	
+	size_t i = 0;
+	float posX, posY;
+	// init color data about color and rect
+	for (const auto &color : tempColorList) {
+		posX = static_cast<float>(INTERVAL + INTERVAL * (i % COUNT_PER_LINE));
+		posY = static_cast<float>(TEXT_HEIGHT + INTERVAL + INTERVAL * (i / COUNT_PER_LINE));
+		m_colorDataTable.insert({ 
+			i, 
+			{color, { posX - COLOR_RADIUS, posY - COLOR_RADIUS, posX + COLOR_RADIUS, posY + COLOR_RADIUS }}
+		});
+
+		i++;
+	}
+
+	// init add button rect
+	UpdateAddButtonRect();
+
+	// set selected color index and data
+	m_selectedColorData = { INVALID_INDEX, {} };
+	for (const auto &colorData : m_colorDataTable) {
+		if (IsSameColor(colorData.second.color, a_selectedColor)) {
+			m_selectedColorData = colorData;
+			break;
+		}
+	}
+}
+
+void ColorDialog::UpdateAddButtonRect()
+{
+	const float posX = static_cast<float>(INTERVAL + INTERVAL * (m_colorDataTable.size() % COUNT_PER_LINE));
+	const float posY = static_cast<float>(TEXT_HEIGHT + INTERVAL + INTERVAL * (m_colorDataTable.size() / COUNT_PER_LINE));
+
+	m_addButtonData.first = m_colorDataTable.size();
+	m_addButtonData.second = { posX - COLOR_RADIUS, posY - COLOR_RADIUS, posX + COLOR_RADIUS, posY + COLOR_RADIUS };
+}
+
+void ColorDialog::DrawSelectMode()
+{
+	DrawTitle(DM::SELECT);
+
+	mp_direct2d->SetStrokeWidth(2.0f);
+
+	// draw all color
+	DRect rect;
+	for (auto const &[index, colorData] : m_colorDataTable) {
+		rect = colorData.rect;
+		// draw a large circle where the mouse is located
+		if (index == m_hoverIndex) {
+			ExpandRect(rect, 2.0f);
+		}
+
+		mp_direct2d->SetBrushColor(m_borderColor);
+		mp_direct2d->DrawEllipse(rect);
+		mp_direct2d->SetBrushColor(colorData.color);
+		mp_direct2d->FillEllipse(rect);
+	}
+
+	// draw selected color
+	if (INVALID_INDEX != m_selectedColorData.first) {
+		rect = m_selectedColorData.second.rect;
+		
+		// draw border
+		ExpandRect(rect, 4.0f);
+		mp_direct2d->SetBrushColor(m_borderColor);
+		mp_direct2d->FillEllipse(rect);
+
+		// draw color circle
+		const float offset = m_selectedColorData.first == m_hoverIndex
+			? 2.0f
+			: 4.0f;
+
+		ShrinkRect(rect, offset);
+		mp_direct2d->SetBrushColor(m_selectedColorData.second.color);
+		mp_direct2d->FillEllipse(rect);
+	}
+
+	mp_direct2d->SetStrokeWidth(1.0f);
+	
+	DrawAddButton(DM::SELECT);
+}
+
+void ColorDialog::DrawAddMode()
+{
+	DrawTitle(DM::ADD);
+
+}
+
+void ColorDialog::DrawTitle(const DM &a_mode)
+{
+	const std::wstring title = DM::SELECT == a_mode 
+		? L"Select Color" 
+		: L"Add Color";
+
+	// draw background
+	mp_direct2d->SetBrushColor(m_textBackgroundColor);
+	mp_direct2d->FillRectangle(m_textRect);
+	// draw title
+
+	auto prevTextFormat = mp_direct2d->SetTextFormat(mp_titleFont);
+	mp_direct2d->SetBrushColor(m_titleColor);
+	mp_direct2d->DrawUserText(title.c_str(), m_textRect);
+	mp_direct2d->SetTextFormat(prevTextFormat);
+}
+
+void ColorDialog::DrawAddButton(const DM &a_mode)
+{
+	// draw main circle
+	DRect mainRect = m_addButtonData.second;
+	if (m_addButtonData.first == m_hoverIndex) {
+		ExpandRect(mainRect, 2.0f);
+	}
+	ID2D1StrokeStyle *p_prevStrokeStyle = mp_direct2d->SetStrokeStyle(mp_addButtonStroke);
+	mp_direct2d->SetBrushColor(m_titleColor);
+	mp_direct2d->DrawEllipse(mainRect);
+	mp_direct2d->SetStrokeStyle(p_prevStrokeStyle);
+	
+	// draw small circle
+	const float SMALL_RADIUS = 7.0f;
+	float offset = 2.0f;
+	const DRect smallRect = {
+		mainRect.right - SMALL_RADIUS - offset, mainRect.top + SMALL_RADIUS + offset,
+		mainRect.right + SMALL_RADIUS - offset, mainRect.top - SMALL_RADIUS + offset,
+	};
+	mp_direct2d->FillEllipse(smallRect);
+
+	// draw + on small circle
+	offset = 3.0f;
+	const float centerPosX = (smallRect.left + smallRect.right) / 2.0f;
+	const float centerPosY = (smallRect.top + smallRect.bottom) / 2.0f;
+
+	DPoint startPos = { smallRect.left + offset, centerPosY };
+	DPoint endPos = { smallRect.right - offset, centerPosY };
+	mp_direct2d->SetStrokeWidth(2.0f);
+	mp_direct2d->SetBrushColor(m_textBackgroundColor);
+	mp_direct2d->DrawLine(startPos, endPos);
+
+	startPos = { centerPosX, smallRect.top - offset };
+	endPos = { centerPosX, smallRect.bottom + offset };
+	mp_direct2d->DrawLine(startPos, endPos);
+	mp_direct2d->SetStrokeWidth(1.0f);
+}

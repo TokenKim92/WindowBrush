@@ -3,6 +3,8 @@
 
 #include <d2d1.h>
 
+const size_t INVALID_INDEX = static_cast<size_t>(-1);
+
 typedef enum class BUTTON_SHAPE_TYPE
 {
 	NONE = -1,
@@ -24,7 +26,10 @@ typedef struct BUTTON_SHAPE_DATA
 	bool isFadeMode;
 } BSD;
 
-D2D1_COLOR_F fromHueToColorF(const float hue);
-bool PointInRectF(const D2D1_RECT_F &ap_rect, const POINT &ap_pos);
+D2D1_COLOR_F fromHueToColor(const float hue);
+bool PointInRect(const D2D1_RECT_F &a_rect, const POINT &a_pos);
+bool IsSameColor(const D2D1_COLOR_F &a_color1, const D2D1_COLOR_F &a_color2);
+void ExpandRect(D2D1_RECT_F &a_rect, const float a_offset);
+void ShrinkRect(D2D1_RECT_F &a_rect, const float a_offset);
 
 #endif //_UTILITY_H_
