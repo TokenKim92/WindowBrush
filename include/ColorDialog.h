@@ -51,7 +51,6 @@ protected:
 	bool isInitializedAddMode;
 	std::vector<std::pair<DPoint, DPoint>> m_returnIconPoints;
 	std::map<BT, DRect> m_buttonTable;
-	std::vector<std::pair<DColor, std::pair<DPoint, DPoint>>> m_hueDataList;
 	BT m_hoverButton;
 	BT m_clickedButton;
 

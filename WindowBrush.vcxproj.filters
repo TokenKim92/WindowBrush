@@ -45,6 +45,9 @@
     <ClCompile Include="src\ButtonShape.cpp">
       <Filter>Source Files\WindowBrushDialog</Filter>
     </ClCompile>
+    <ClCompile Include="src\ColorD2D.cpp">
+      <Filter>Source Files\ColorDialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\framework.h">
@@ -82,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="include\ButtonShape.h">
       <Filter>Header Files\WindowBrushDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ColorD2D.h">
+      <Filter>Header Files\ColorDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

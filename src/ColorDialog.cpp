@@ -1,6 +1,7 @@
 #include "ColorDialog.h"
 #include "ColorPalette.h"
 #include "Utility.h"
+#include "ColorD2D.h"
 
 #ifdef _DEBUG
 #pragma comment (lib, "AppTemplateDebug.lib")
@@ -76,6 +77,10 @@ void ColorDialog::OnInitDialog()
 	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonDownHandler));
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonUpHandler));
 	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ColorDialog::KeyDownHandler));
+
+	auto p_direct2d = new ColorD2D(mh_window, &m_viewRect);
+	p_direct2d->Create();
+	InheritDirect2D(p_direct2d);
 }
 
 void ColorDialog::OnDestroy()
@@ -334,44 +339,9 @@ void ColorDialog::UpdateAddButtonRect()
 
 void ColorDialog::InitOnAddMode()
 {
-	const auto InitHueDataList = [](std::vector<std::pair<DColor, std::pair<DPoint, DPoint>>> &a_hueDataList, const SIZE &a_dialogSize)
-	{
-		const float STROKE_WIDTH = 2.5f;
-
-		const float radius = a_dialogSize.cx * 0.33f;
-		const float startHueRadius = radius - STROKE_WIDTH;
-		const float endHueRadius = radius + STROKE_WIDTH;
-		const float centerPosX = a_dialogSize.cx / 2.0f;
-		const float centerPosY = (a_dialogSize.cy + TEXT_HEIGHT) / 2.0f - INDICATE_HEIGHT;
-
-		a_hueDataList.resize(720);
-
-		double radian;
-		unsigned int degree = 0;
-		for (auto &hueData : a_hueDataList) {
-			radian = PI * degree / 360;
-
-			// set strat point
-			hueData.second.first = {
-				static_cast<float>(centerPosX + startHueRadius * cos(radian)),
-				static_cast<float>(centerPosY + startHueRadius * sin(radian))
-			};
-			// set end point
-			hueData.second.second = {
-				static_cast<float>(centerPosX + endHueRadius * cos(radian)),
-				static_cast<float>(centerPosY + endHueRadius * sin(radian))
-			};
-			// set color
-			hueData.first = FromHueToColor(degree / 120.0f);;
-
-			degree++;
-		}
-	};
-
-	////////////////////////////////////////////////////////////////
-	// implementation
-	////////////////////////////////////////////////////////////////
-	InitHueDataList(m_hueDataList, GetSize());
+	static_cast<ColorD2D *>(mp_direct2d)->InitHueData(
+		DRect{ 0.0f, TEXT_HEIGHT, static_cast<float>(GetSize().cx), static_cast<float>(GetSize().cy) - INDICATE_HEIGHT}
+	);
 
 	m_returnIconPoints = {
 		{{ 14.0f, TEXT_HEIGHT / 2.0f }, { TEXT_HEIGHT - 14.0f, 10.0f }},
@@ -443,11 +413,8 @@ void ColorDialog::DrawAddMode()
 	mp_direct2d->DrawLine(m_returnIconPoints[1].first, m_returnIconPoints[1].second);
 	mp_direct2d->SetStrokeWidth(1.0f);
 
-	// draw the hue circle
-	for (const auto &hueData : m_hueDataList) {
-		mp_direct2d->SetBrushColor(hueData.first);
-		mp_direct2d->DrawLine(hueData.second.first, hueData.second.second);
-	}
+	static_cast<ColorD2D *>(mp_direct2d)->DrawHueCircle();
+	static_cast<ColorD2D *>(mp_direct2d)->DrawLightnessCircle();
 }
 
 void ColorDialog::DrawTitle(const DM &a_mode)
