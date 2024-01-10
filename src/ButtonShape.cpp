@@ -7,7 +7,7 @@
 
 extern ApplicationCore *gp_appCore;
 
-ButtonShape::ButtonShape(Direct2DEx *const ap_direct2d, const std::map<BST, DRect> &a_buttonTable, const WindowDialog::THEME_MODE &a_mode) :
+ButtonShape::ButtonShape(Direct2DEx *const ap_direct2d, const std::map<BST, DRect> &a_buttonTable, const CM &a_mode) :
 	mp_direct2d(ap_direct2d),
 	m_buttonTable(a_buttonTable),
 	m_defaultTransparency(0.6f)
@@ -40,9 +40,9 @@ ButtonShape::~ButtonShape()
 	InterfaceRelease(&mp_curveGeometry);
 }
 
-void ButtonShape::SetColorMode(const WindowDialog::THEME_MODE &a_mode)
+void ButtonShape::SetColorMode(const CM &a_mode)
 {
-	if (WindowDialog::THEME_MODE::LIGHT_MODE == a_mode) {
+	if (CM::LIGHT == a_mode) {
 		m_textColor = RGB_TO_COLORF(NEUTRAL_600);
 		m_highlightColor = RGB_TO_COLORF(ORANGE_400);
 	}

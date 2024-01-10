@@ -89,6 +89,9 @@
     <ClInclude Include="include\ColorD2D.h">
       <Filter>Header Files\ColorDialog</Filter>
     </ClInclude>
+    <ClInclude Include="include\ColorModel.h">
+      <Filter>Header Files\ColorDialog</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WindowBrush.rc">

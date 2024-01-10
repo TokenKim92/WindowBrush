@@ -3,7 +3,6 @@
 
 #include <d2d1.h>
 
-const size_t INVALID_INDEX = static_cast<size_t>(-1);
 const double PI = 3.14159265358979;
 
 typedef enum class BUTTON_SHAPE_TYPE

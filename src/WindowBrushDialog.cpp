@@ -112,7 +112,7 @@ void WindowBrushDialog::OnSetThemeMode()
 {
 	const auto colorMode = GetThemeMode();
 	DColor backgroundColor;
-	if (THEME_MODE::DARK_MODE == colorMode) {
+	if (CM::DARK == colorMode) {
 		backgroundColor = RGB_TO_COLORF(NEUTRAL_800);
 	}
 	else {
@@ -171,7 +171,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			a_buttonShapeData.drawMode = BST::NONE;;
 		}
 	};
-	static const auto OnColorButtonUp = [](const HWND &ah_parentWindow, DColor &a_selectedColor, const THEME_MODE &a_mode, const std::unique_ptr<ButtonShape> &ap_buttonShape)
+	static const auto OnColorButtonUp = [](const HWND &ah_parentWindow, DColor &a_selectedColor, const CM &a_mode, const std::unique_ptr<ButtonShape> &ap_buttonShape)
 	{
 		RECT rect;
 		::GetWindowRect(ah_parentWindow, &rect);

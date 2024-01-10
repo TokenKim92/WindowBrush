@@ -2,57 +2,26 @@
 #define _COLOR_DIALOG_H_
 
 #include "WindowDialog.h"
+#include "ColorD2D.h"
+#include "ColorModel.h"
 #include <vector>
 
 class ColorDialog : public WindowDialog
 {
 protected:
-	typedef enum class DRAW_MODE
-	{
-		SELECT,
-		ADD
-	}DM;
-
-	typedef struct COLOR_DATA
-	{
-		DColor color;
-		DRect rect;
-	} CD;
-
-	typedef enum class BUTTON_TYPE
-	{
-		NONE,
-		RETURN,
-		HUE,
-		LIGHTNESS,
-		ADD
-	}BT;
-
-protected:
-	const std::map<DM, void (ColorDialog:: *)()> m_drawTable;
-	IDWriteTextFormat *mp_titleFont;
-	ID2D1StrokeStyle *mp_addButtonStroke;
 	DM m_drawMode;
-
-	DRect m_textRect;
-	DColor m_titleColor;
-	DColor m_textBackgroundColor;
-	DColor m_borderColor;
-	const float m_defaultTransparency;
+	MD m_modelData;
 
 	// variables for select mode
-	std::map<size_t, CD> m_colorDataTable;		// key is a index
-	std::pair<size_t, CD> m_selectedColorData;	// first data of pair is a index
-	std::pair<size_t, DRect> m_addButtonData;	// first data of pair is a index
-	size_t m_hoverIndex;
-	size_t m_clickedIndex;
+	std::vector<DColor> m_colorList;
+	std::map<size_t, DRect> m_colorDataTable;		// key is a index
+	std::pair<size_t, DRect> m_addButtonData;		// first data of pair is a index
+	const DColor m_previousSelectedColor;
+	size_t m_selectedColorIndex;
 
 	// variables for add mode
 	bool isInitializedAddMode;
-	std::vector<std::pair<DPoint, DPoint>> m_returnIconPoints;
 	std::map<BT, DRect> m_buttonTable;
-	BT m_hoverButton;
-	BT m_clickedButton;
 
 public:
 	ColorDialog(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList);
@@ -75,18 +44,7 @@ protected:
 	int KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
 
 private:
-	void InitColorDataTable(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList);
-	void InitOnAddMode();
-	void UpdateAddButtonRect();
-
-	void DrawSelectMode();
-	void DrawAddMode();
-
-	void DrawTitle(const DM &a_mode);
-	void DrawAddButton(const DM &a_mode);
-
-	void ChangeToAddMode();
-	void ChangeToSelectMode();
+	void ChangeMode(const DM &a_drawModw);
 };
 
 #endif //_COLOR_DIALOG_H_

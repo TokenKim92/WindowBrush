@@ -17,13 +17,6 @@ typedef int (WindowDialog:: *MessageHandler)(WPARAM, LPARAM);
 
 class WindowDialog
 {
-public:
-    enum THEME_MODE
-    {
-        LIGHT_MODE = 0,
-        DARK_MODE
-    };
-
 protected:
     wchar_t *mp_windowClass;                // name of window class
     wchar_t *mp_title;                      // title of the application
@@ -33,7 +26,7 @@ protected:
     std::map<unsigned int, MessageHandler> m_messageMap;
 
     Direct2DEx *mp_direct2d;
-    THEME_MODE m_themeMode;
+    CM m_themeMode;
     RECT m_viewRect;
     int m_width;
     int m_height;
@@ -60,12 +53,12 @@ public:
     void SetSize(int a_width, int a_height);
     void SetStyle(const unsigned long a_tyle);
     void SetExtendStyle(const unsigned long a_extendStyle);
-    int SetThemeMode(const THEME_MODE a_mode);
+    int SetThemeMode(const CM a_mode);
     void InheritDirect2D(Direct2DEx *const ap_direct2d);
 
     HWND GetWidnowHandle();
     SIZE GetSize();
-    const THEME_MODE GetThemeMode();
+    const CM GetThemeMode();
 
     void DisableMove();
     void DisableSize();

@@ -35,10 +35,10 @@ private:
 	const float m_fadeShapeMargin = 10.0f;
 
 public:
-	ButtonShape(Direct2DEx * const ap_direct2d, const std::map<BST, DRect> &a_buttonTable, const WindowDialog::THEME_MODE &a_mode);
+	ButtonShape(Direct2DEx * const ap_direct2d, const std::map<BST, DRect> &a_buttonTable, const CM &a_mode);
 	virtual ~ButtonShape();
 
-	void SetColorMode(const WindowDialog::THEME_MODE &a_mode);
+	void SetColorMode(const CM &a_mode);
 	void DrawButton(const BST &a_type, const BSD &a_data);
 	void UpdateColorSymbolBrush(const DColor &a_color);
 	

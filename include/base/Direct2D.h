@@ -8,6 +8,12 @@
 #define DColor	D2D1_COLOR_F
 #define DSize	D2D1_SIZE_F
 
+typedef enum class COLOR_MODE
+{
+	LIGHT,
+	DARK
+}CM;
+
 class Direct2D
 {
 protected:
