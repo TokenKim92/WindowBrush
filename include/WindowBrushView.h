@@ -45,15 +45,6 @@ public:
 	void UpdateColorSymbolBrush(const DColor &a_color);
 
 private:
-	void InitButtonRects();
-	void InitDivider();
-
-	void InitCurveShapeData();
-	void InitStrokyShapeData();
-	void InitGradiationShapeData();
-	void InitColorShapeData();
-	void InitFadeShapeData();
-
 	void UpdateTextColorOnHover(const WBBT &a_type, const WBMD &a_data);
 
 	void DrawCurveShape(const WBMD &a_data);
