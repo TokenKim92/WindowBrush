@@ -2,15 +2,14 @@
 #define _COLOR_DIALOG_H_
 
 #include "WindowDialog.h"
-#include "ColorView.h"
 #include "ColorModel.h"
 #include <vector>
 
 class ColorDialog : public WindowDialog
 {
 protected:
-	DM m_drawMode;
-	MD m_modelData;
+	CDM m_drawMode;
+	CMD m_modelData;
 
 	// variables for select mode
 	std::vector<DColor> m_colorList;
@@ -21,7 +20,7 @@ protected:
 
 	// variables for add mode
 	bool isInitializedAddMode;
-	std::map<BT, DRect> m_buttonTable;
+	std::map<CBT, DRect> m_buttonTable;
 
 public:
 	ColorDialog(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList);
@@ -44,7 +43,7 @@ protected:
 	int KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
 
 private:
-	void ChangeMode(const DM &a_drawModw);
+	void ChangeMode(const CDM &a_drawModw);
 };
 
 #endif //_COLOR_DIALOG_H_

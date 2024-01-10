@@ -42,7 +42,7 @@
     <ClCompile Include="src\ColorDialog.cpp">
       <Filter>Source Files\ColorDialog</Filter>
     </ClCompile>
-    <ClCompile Include="src\ButtonShape.cpp">
+    <ClCompile Include="src\WindowBrushView.cpp">
       <Filter>Source Files\WindowBrushDialog</Filter>
     </ClCompile>
     <ClCompile Include="src\ColorView.cpp">
@@ -83,7 +83,7 @@
     <ClInclude Include="include\ColorDialog.h">
       <Filter>Header Files\ColorDialog</Filter>
     </ClInclude>
-    <ClInclude Include="include\ButtonShape.h">
+    <ClInclude Include="include\WindowBrushView.h">
       <Filter>Header Files\WindowBrushDialog</Filter>
     </ClInclude>
     <ClInclude Include="include\ColorView.h">
@@ -91,6 +91,9 @@
     </ClInclude>
     <ClInclude Include="include\ColorModel.h">
       <Filter>Header Files\ColorDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\WindowBrushModel.h">
+      <Filter>Header Files\WindowBrushDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,4 +1,5 @@
 #include "ColorDialog.h"
+#include "ColorView.h"
 #include "ColorPalette.h"
 #include "Utility.h"
 
@@ -14,9 +15,9 @@ ColorDialog::ColorDialog(const DColor &a_selectedColor, const std::vector<DColor
 {
 	SetSize(240, 275);
 
-	m_drawMode = DM::SELECT;
+	m_drawMode = CDM::SELECT;
 	m_modelData = {
-		INVALID_INDEX, INVALID_INDEX, BT::NONE, BT::NONE
+		INVALID_INDEX, INVALID_INDEX, CBT::NONE, CBT::NONE
 	};
 
 	isInitializedAddMode = false;
@@ -40,12 +41,10 @@ void ColorDialog::OnInitDialog()
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonUpHandler));
 	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ColorDialog::KeyDownHandler));
 
-	auto p_direct2d = new ColorView(mh_window, m_previousSelectedColor, m_colorList, GetThemeMode());
-	p_direct2d->Create();
-	InheritDirect2D(p_direct2d);
-
-	m_colorDataTable = static_cast<ColorView *>(p_direct2d)->GetColorDataTable();
-	m_addButtonData = static_cast<ColorView *>(p_direct2d)->GetAddButtonData();
+	InheritDirect2D(new ColorView(mh_window, m_previousSelectedColor, m_colorList, GetThemeMode()));
+	mp_direct2d->Create();
+	m_colorDataTable = static_cast<ColorView *>(mp_direct2d)->GetColorDataTable();
+	m_addButtonData = static_cast<ColorView *>(mp_direct2d)->GetAddButtonData();
 }
 
 void ColorDialog::OnDestroy()
@@ -101,7 +100,7 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
-	if (DM::SELECT == m_drawMode) {
+	if (CDM::SELECT == m_drawMode) {
 		OnSelectMode(m_colorDataTable, m_addButtonData, this, m_modelData.hoverIndex, pos);
 	}
 	else {
@@ -116,8 +115,8 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 			}
 		}
 
-		if (BT::NONE != m_modelData.hoverButton) {
-			m_modelData.hoverButton = BT::NONE;
+		if (CBT::NONE != m_modelData.hoverButton) {
+			m_modelData.hoverButton = CBT::NONE;
 			Invalidate();
 		}
 	}
@@ -156,7 +155,7 @@ int ColorDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPar
 
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
-	if (DM::SELECT == m_drawMode) {
+	if (CDM::SELECT == m_drawMode) {
 		OnSelectMode(m_colorDataTable, m_addButtonData, this, m_modelData.clickedIndex, pos);
 	}
 	else {
@@ -198,7 +197,7 @@ int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 
 		if (PointInRect(a_addButtonData.second, pos)) {
 			if (a_addButtonData.first == a_clickedIndex) {
-				a_dialog->ChangeMode(DM::ADD);
+				a_dialog->ChangeMode(CDM::ADD);
 			}
 			else {
 				a_clickedIndex = INVALID_INDEX;
@@ -218,24 +217,24 @@ int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
-	if (DM::SELECT == m_drawMode) {
+	if (CDM::SELECT == m_drawMode) {
 		OnSelectMode(m_colorDataTable, m_addButtonData, m_selectedColorIndex, this, m_modelData.clickedIndex, pos);
 	}
 	else {
 		for (auto const &[type, rect] : m_buttonTable) {
 			if (PointInRect(rect, pos)) {
 				if (type == m_modelData.clickedButton) {
-					ChangeMode(DM::SELECT);
+					ChangeMode(CDM::SELECT);
 				}
 				else {
-					m_modelData.clickedButton = BT::NONE;
+					m_modelData.clickedButton = CBT::NONE;
 				}
 
 				return S_OK;
 			}
 		}
 
-		m_modelData.clickedButton = BT::NONE;
+		m_modelData.clickedButton = CBT::NONE;
 		Invalidate();
 	}
 
@@ -254,14 +253,14 @@ int ColorDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	return S_OK;
 }
 
-void ColorDialog::ChangeMode(const DM &a_drawModw)
+void ColorDialog::ChangeMode(const CDM &a_drawModw)
 {
 	m_drawMode = a_drawModw;
 	m_modelData = {
-		INVALID_INDEX, INVALID_INDEX, BT::NONE, BT::NONE
+		INVALID_INDEX, INVALID_INDEX, CBT::NONE, CBT::NONE
 	};
 
-	if (DM::ADD == a_drawModw && !isInitializedAddMode) {
+	if (CDM::ADD == a_drawModw && !isInitializedAddMode) {
 		isInitializedAddMode = true;
 
 		static_cast<ColorView *>(mp_direct2d)->InitAddMode();

@@ -2,26 +2,17 @@
 #define _WINDOW_BRUSH_DIALOG_H_
 
 #include "WindowDialog.h"
-#include "ButtonShape.h"
-#include <memory>
+#include "WindowBrushModel.h"
 
 class WindowBrushDialog : public WindowDialog
 {
 protected:
-	std::map<BST, DRect> m_buttonTable;
-	std::vector<DRect> m_dividerList;
-	std::unique_ptr<ButtonShape> mp_buttonsShape;
-
-	BSD m_buttonShapeData;;
-	DColor m_selectedColor;
+	std::map<WBBT, DRect> m_buttonTable;
+	WBMD m_modelData;
 
 public:
 	WindowBrushDialog();
 	virtual ~WindowBrushDialog();
-
-private:
-	void InitButtonRects();
-	void InitDivider();
 
 protected:
 	virtual void OnInitDialog() override;
@@ -35,8 +26,6 @@ protected:
 	int MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
 	// to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
 	int MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_MOUSEWHEEL  message that occurs when a window is destroyed
-	int MouseWheelHandler(WPARAM a_wordParam, LPARAM a_longParam);
 };
 
 #endif //_WINDOW_BRUSH_DIALOG_H_

@@ -2,28 +2,31 @@
 #define _COLOR_MODEL_H_
 
 const size_t INVALID_INDEX = static_cast<size_t>(-1);
+const size_t INTERVAL = 40;
+const size_t TEXT_HEIGHT = 35;
+const size_t INDICATE_HEIGHT = 25;
 
-typedef enum class DRAW_MODE
+typedef enum class COLOR_DRAW_MODE
 {
 	SELECT,
 	ADD
-}DM;
+}CDM;
 
-typedef enum class BUTTON_TYPE
+typedef enum class COLOR_BUTTON_TYPE
 {
 	NONE,
 	RETURN,
 	HUE,
 	LIGHTNESS,
 	ADD
-}BT;
+}CBT;
 
-typedef struct MODEL_DATA
+typedef struct COLOR_MODEL_DATA
 {
 	size_t hoverIndex;
 	size_t clickedIndex;
-	BT hoverButton;
-	BT clickedButton;
-}MD;
+	CBT hoverButton;
+	CBT clickedButton;
+}CMD;
 
 #endif //!_COLOR_MODEL_H_

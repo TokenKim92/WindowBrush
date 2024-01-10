@@ -42,7 +42,7 @@ protected:
 
 	std::vector<std::pair<DColor, std::pair<DPoint, DPoint>>> m_hueDataList;
 	std::vector<std::pair<DPoint, DPoint>> m_returnIconPoints;
-	std::map<BT, DRect> m_buttonTable;
+	std::map<CBT, DRect> m_buttonTable;
 
 	// interface
 	ID2D1LinearGradientBrush *mp_lightnessGradientBrush;
@@ -60,12 +60,12 @@ public:
 	virtual ~ColorView();
 
 	virtual int Create() override;
-	void Paint(const DM &a_drawModw, const MD &a_modelData);
+	void Paint(const CDM &a_drawModw, const CMD &a_modelData);
 
 	DColor GetColor(const size_t &a_index);
 	const std::map<size_t, DRect> GetColorDataTable();
 	const std::pair<size_t, DRect> &GetAddButtonData();
-	const std::map<BT, DRect> &GetButtonTable();
+	const std::map<CBT, DRect> &GetButtonTable();
 
 	void InitAddMode();
 	void UpdateLightnessData(const DColor &a_hue);
@@ -75,11 +75,11 @@ protected:
 
 	void InitSelectMode();
 
-	void PaintOnSelectMode(const MD &a_modelData);
-	void PaintOnAddMode(const MD &a_modelData);
+	void PaintOnSelectMode(const CMD &a_modelData);
+	void PaintOnAddMode(const CMD &a_modelData);
 
-	void DrawTitle(const DM &a_mode);
-	void DrawAddButton(const MD &a_modelData);
+	void DrawTitle(const CDM &a_mode);
+	void DrawAddButton(const CMD &a_modelData);
 	void DrawHueCircle();
 	void DrawLightnessCircle();
 };

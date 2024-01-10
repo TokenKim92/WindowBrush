@@ -139,7 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\ButtonShape.cpp" />
+    <ClCompile Include="src\WindowBrushView.cpp" />
     <ClCompile Include="src\ColorDialog.cpp" />
     <ClCompile Include="src\ColorView.cpp" />
     <ClCompile Include="src\Utility.cpp" />
@@ -152,7 +152,7 @@
     <ClInclude Include="include\base\Direct2D.h" />
     <ClInclude Include="include\base\Direct2DEx.h" />
     <ClInclude Include="include\base\WindowDialog.h" />
-    <ClInclude Include="include\ButtonShape.h" />
+    <ClInclude Include="include\WindowBrushView.h" />
     <ClInclude Include="include\ColorDialog.h" />
     <ClInclude Include="include\ColorModel.h" />
     <ClInclude Include="include\framework.h" />
@@ -161,6 +161,7 @@
     <ClInclude Include="include\targetver.h" />
     <ClInclude Include="include\Utility.h" />
     <ClInclude Include="include\WindowBrushDialog.h" />
+    <ClInclude Include="include\WindowBrushModel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WindowBrush.rc" />

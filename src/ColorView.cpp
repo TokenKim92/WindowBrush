@@ -2,10 +2,6 @@
 #include "Utility.h"
 #include "ColorPalette.h"
 
-#define INTERVAL			40
-#define TEXT_HEIGHT			35
-#define INDICATE_HEIGHT		25
-
 extern ApplicationCore *gp_appCore;
 
 ColorView::ColorView(
@@ -13,7 +9,7 @@ ColorView::ColorView(
 	const CM &a_mode, const RECT *const ap_viewRect
 ) :
 	Direct2DEx(ah_window, ap_viewRect),
-	m_defaultTransparency(0.6f),	
+	m_defaultTransparency(0.6f),
 	m_colorList(a_colorList)
 {
 	memset(&m_textRect, 0, sizeof(DRect));
@@ -87,14 +83,14 @@ DColor ColorView::GetColor(const size_t &a_index)
 	if (INVALID_INDEX != a_index || m_colorDataTable.size() > a_index) {
 		return m_colorDataTable.at(a_index).first;
 	}
-	
-	return DColor({0.0f, 0.0f, 0.0f, 1.0f});
+
+	return DColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 }
 
 const std::map<size_t, DRect> ColorView::GetColorDataTable()
 {
 	std::map<size_t, DRect> tempMap;
-	
+
 	for (auto &[index, data] : m_colorDataTable) {
 		tempMap.insert({ index, data.second });
 	}
@@ -107,7 +103,7 @@ const std::pair<size_t, DRect> &ColorView::GetAddButtonData()
 	return m_addButtonData;
 }
 
-const std::map<BT, DRect> &ColorView::GetButtonTable()
+const std::map<CBT, DRect> &ColorView::GetButtonTable()
 {
 	return m_buttonTable;
 }
@@ -258,7 +254,7 @@ void ColorView::InitAddMode()
 		{{ 14.0f, TEXT_HEIGHT / 2.0f }, { TEXT_HEIGHT - 14.0f, TEXT_HEIGHT - 10.0f }}
 	};
 
-	m_buttonTable.insert({ BT::RETURN, { 10.0f, 10.0f, TEXT_HEIGHT - 10.0f, TEXT_HEIGHT - 10.0f } });
+	m_buttonTable.insert({ CBT::RETURN, { 10.0f, 10.0f, TEXT_HEIGHT - 10.0f, TEXT_HEIGHT - 10.0f } });
 
 	return;
 }
@@ -314,9 +310,14 @@ void ColorView::UpdateLightnessData(const DColor &a_hue)
 	// update memory pattern
 	////////////////////////////////////////////////////////////////
 	WICRect wicRect = {
-		mp_viewRect->left, mp_viewRect->top, m_viewSize.cx, m_viewSize.cy - TEXT_HEIGHT - INDICATE_HEIGHT
+		static_cast<int>(mp_viewRect->left), static_cast<int>(mp_viewRect->top),
+		static_cast<int>(m_viewSize.cx), static_cast<int>(m_viewSize.cy - TEXT_HEIGHT - INDICATE_HEIGHT)
 	};
 	IWICBitmapLock *p_lock = nullptr;
+
+	if (nullptr == mp_memoryBitmap) {
+		return;
+	}
 
 	if (S_OK == mp_memoryBitmap->Lock(&wicRect, WICBITMAPLOCKFLAGS_FORCE_DWORD, &p_lock)) {
 		unsigned int bufferSize = 0;
@@ -335,9 +336,9 @@ void ColorView::UpdateLightnessData(const DColor &a_hue)
 	}
 }
 
-void ColorView::Paint(const DM &a_drawModw, const MD &a_modelData)
+void ColorView::Paint(const CDM &a_drawModw, const CMD &a_modelData)
 {
-	if (DM::SELECT == a_drawModw) {
+	if (CDM::SELECT == a_drawModw) {
 		PaintOnSelectMode(a_modelData);
 	}
 	else {
@@ -345,9 +346,9 @@ void ColorView::Paint(const DM &a_drawModw, const MD &a_modelData)
 	}
 }
 
-void ColorView::PaintOnSelectMode(const MD &a_modelData)
+void ColorView::PaintOnSelectMode(const CMD &a_modelData)
 {
-	DrawTitle(DM::SELECT);
+	DrawTitle(CDM::SELECT);
 
 	SetStrokeWidth(2.0f);
 
@@ -393,13 +394,13 @@ void ColorView::PaintOnSelectMode(const MD &a_modelData)
 	DrawAddButton(a_modelData);
 }
 
-void ColorView::PaintOnAddMode(const MD &a_modelData)
+void ColorView::PaintOnAddMode(const CMD &a_modelData)
 {
-	DrawTitle(DM::ADD);
+	DrawTitle(CDM::ADD);
 
 	// draw return button
 	DColor color = m_titleColor;
-	if (BT::RETURN == a_modelData.clickedButton || BT::RETURN != a_modelData.hoverButton) {
+	if (CBT::RETURN == a_modelData.clickedButton || CBT::RETURN != a_modelData.hoverButton) {
 		color.a = m_defaultTransparency;
 	}
 	SetBrushColor(color);
@@ -412,9 +413,9 @@ void ColorView::PaintOnAddMode(const MD &a_modelData)
 	DrawLightnessCircle();
 }
 
-void ColorView::DrawTitle(const DM &a_mode)
+void ColorView::DrawTitle(const CDM &a_mode)
 {
-	const std::wstring title = DM::SELECT == a_mode
+	const std::wstring title = CDM::SELECT == a_mode
 		? L"Select Color"
 		: L"Add Color";
 
@@ -423,14 +424,16 @@ void ColorView::DrawTitle(const DM &a_mode)
 	FillRectangle(m_textRect);
 	// draw title
 
-	auto prevTextFormat = SetTextFormat(mp_titleFont);
-	SetBrushColor(m_titleColor);
-	DrawUserText(title.c_str(), m_textRect);
-	SetTextFormat(prevTextFormat);
+	if (nullptr != mp_titleFont) {
+		auto prevTextFormat = SetTextFormat(mp_titleFont);
+		SetBrushColor(m_titleColor);
+		DrawUserText(title.c_str(), m_textRect);
+		SetTextFormat(prevTextFormat);
+	}
 }
 
 
-void ColorView::DrawAddButton(const MD &a_modelData)
+void ColorView::DrawAddButton(const CMD &a_modelData)
 {
 	// draw main circle
 	DRect mainRect = m_addButtonData.second;
@@ -441,10 +444,16 @@ void ColorView::DrawAddButton(const MD &a_modelData)
 		ExpandRect(mainRect, 2.0f);
 	}
 
-	ID2D1StrokeStyle *p_prevStrokeStyle = SetStrokeStyle(mp_addButtonStroke);
-	SetBrushColor(m_titleColor);
-	DrawEllipse(mainRect);
-	SetStrokeStyle(p_prevStrokeStyle);
+	if (nullptr != mp_addButtonStroke) {
+		ID2D1StrokeStyle *p_prevStrokeStyle = SetStrokeStyle(mp_addButtonStroke);
+		SetBrushColor(m_titleColor);
+		DrawEllipse(mainRect);
+		SetStrokeStyle(p_prevStrokeStyle);
+	}
+	else {
+		SetBrushColor(m_titleColor);
+		DrawEllipse(mainRect);
+	}
 
 	// draw small circle
 	const float SMALL_RADIUS = 7.0f;
@@ -482,6 +491,12 @@ void ColorView::DrawHueCircle()
 
 void ColorView::DrawLightnessCircle()
 {
+	if (nullptr == mp_lightnessGradientBrush) {
+		FillEllipse(m_lightnessRect);
+
+		return;
+	}
+
 	auto p_previousBrush = SetBrush(mp_lightnessGradientBrush);
 	FillEllipse(m_lightnessRect);
 	SetBrush(p_previousBrush);
