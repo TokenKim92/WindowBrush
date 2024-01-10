@@ -32,16 +32,16 @@ ColorSelectView::~ColorSelectView()
 	InterfaceRelease(&mp_addButtonStroke);
 }
 
-void ColorSelectView::Init(const SIZE &a_viswSize)
+void ColorSelectView::Init(const SIZE &a_viewSize)
 {
-	const int height = a_viswSize.cy - TEXT_HEIGHT;
-	size_t offset = a_viswSize.cx % INTERVAL ? 0 : 1;
-	m_colorCountPerWidth = a_viswSize.cx / INTERVAL - offset;
+	const int height = a_viewSize.cy - TEXT_HEIGHT;
+	size_t offset = a_viewSize.cx % INTERVAL ? 0 : 1;
+	m_colorCountPerWidth = a_viewSize.cx / INTERVAL - offset;
 	offset = height % INTERVAL ? 0 : 1;
 	m_colorCountPerHeight = height / INTERVAL - offset;
 
 	m_colorCircleStartPoint = {
-		(a_viswSize.cx - (m_colorCountPerWidth - 1) * INTERVAL) / 2.0f,
+		(a_viewSize.cx - (m_colorCountPerWidth - 1) * INTERVAL) / 2.0f,
 		TEXT_HEIGHT + (height - (m_colorCountPerHeight - 1) * INTERVAL) / 2.0f
 	};
 

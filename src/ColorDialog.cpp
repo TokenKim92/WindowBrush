@@ -264,7 +264,7 @@ void ColorDialog::ChangeMode(const CDM &a_drawModw)
 	if (CDM::ADD == a_drawModw && !isInitializedAddMode) {
 		isInitializedAddMode = true;
 
-		static_cast<ColorView *>(mp_direct2d)->InitAddMode();
+		static_cast<ColorView *>(mp_direct2d)->InitColorAddView();
 		m_buttonTable = static_cast<ColorView *>(mp_direct2d)->GetButtonTable();
 	}
 

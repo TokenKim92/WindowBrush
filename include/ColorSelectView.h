@@ -29,7 +29,7 @@ public:
 	ColorSelectView(Direct2DEx *const ap_direct2d, const DColor &a_selectedColor, const std::vector<DColor> &a_colorList, const CM &a_mode);
 	virtual ~ColorSelectView();
 
-	void Init(const SIZE &a_viswSize);
+	void Init(const SIZE &a_viewSize);
 	void Paint(const CMD &a_modelData);
 
 	DColor GetColor(const size_t &a_index);

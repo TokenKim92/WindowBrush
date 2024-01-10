@@ -51,6 +51,9 @@
     <ClCompile Include="src\ColorSelectView.cpp">
       <Filter>Source Files\ColorDialog</Filter>
     </ClCompile>
+    <ClCompile Include="src\ColorAddView.cpp">
+      <Filter>Source Files\ColorDialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\framework.h">
@@ -99,6 +102,9 @@
       <Filter>Header Files\WindowBrushDialog</Filter>
     </ClInclude>
     <ClInclude Include="include\ColorSelectView.h">
+      <Filter>Header Files\ColorDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ColorAddView.h">
       <Filter>Header Files\ColorDialog</Filter>
     </ClInclude>
   </ItemGroup>
