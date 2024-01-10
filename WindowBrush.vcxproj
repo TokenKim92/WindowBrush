@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ColorSelectView.cpp" />
     <ClCompile Include="src\WindowBrushView.cpp" />
     <ClCompile Include="src\ColorDialog.cpp" />
     <ClCompile Include="src\ColorView.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="include\base\Direct2D.h" />
     <ClInclude Include="include\base\Direct2DEx.h" />
     <ClInclude Include="include\base\WindowDialog.h" />
+    <ClInclude Include="include\ColorSelectView.h" />
     <ClInclude Include="include\WindowBrushView.h" />
     <ClInclude Include="include\ColorDialog.h" />
     <ClInclude Include="include\ColorModel.h" />

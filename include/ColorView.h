@@ -3,6 +3,7 @@
 
 #include "Direct2DEx.h"
 #include "ColorModel.h"
+#include "ColorSelectView.h"
 #include <memory>
 #include <vector>
 #include <map>
@@ -10,29 +11,17 @@
 class ColorView : public Direct2DEx
 {
 protected:
+	ColorSelectView m_selectView;
+
 	SIZE m_viewSize;
-	DRect m_textRect;
+	DRect m_titleRect;
 	DColor m_titleColor;
 	DColor m_textBackgroundColor;
 	DColor m_borderColor;
 	const float m_defaultTransparency;
 
 	IDWriteTextFormat *mp_titleFont;
-	ID2D1StrokeStyle *mp_addButtonStroke;
-
-	////////////////////////////////////////////////////////////////
-	// variables for select mode
-	////////////////////////////////////////////////////////////////
-	const std::vector<DColor> &m_colorList;
-	size_t m_colorCountPerWidth;
-	size_t m_colorCountPerHeight;
-	DPoint m_colorCircleStartPoint;
-	size_t m_maxColorDataSize;
-
-	std::map<size_t, std::pair<DColor, DRect>> m_colorDataTable;	// key is a index
-	std::pair<size_t, DColor> m_selectedColorData;					// first data of pair is a index
-	std::pair<size_t, DRect> m_addButtonData;						// first data of pair is a index
-
+	
 	////////////////////////////////////////////////////////////////
 	// variable for add mode
 	////////////////////////////////////////////////////////////////
@@ -71,15 +60,9 @@ public:
 	void UpdateLightnessData(const DColor &a_hue);
 
 protected:
-	const DRect GetColorRect(const size_t a_index);
-
-	void InitSelectMode();
-
-	void PaintOnSelectMode(const CMD &a_modelData);
 	void PaintOnAddMode(const CMD &a_modelData);
 
 	void DrawTitle(const CDM &a_mode);
-	void DrawAddButton(const CMD &a_modelData);
 	void DrawHueCircle();
 	void DrawLightnessCircle();
 };

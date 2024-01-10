@@ -9,10 +9,10 @@ ColorView::ColorView(
 	const CM &a_mode, const RECT *const ap_viewRect
 ) :
 	Direct2DEx(ah_window, ap_viewRect),
-	m_defaultTransparency(0.6f),
-	m_colorList(a_colorList)
+	m_selectView(this, a_selectedColor, a_colorList, a_mode),
+	m_defaultTransparency(0.6f)
 {
-	memset(&m_textRect, 0, sizeof(DRect));
+	memset(&m_titleRect, 0, sizeof(DRect));
 	if (CM::DARK == a_mode) {
 		m_titleColor = RGB_TO_COLORF(NEUTRAL_200);
 		m_textBackgroundColor = RGB_TO_COLORF(NEUTRAL_900);
@@ -29,13 +29,6 @@ ColorView::ColorView(
 	}
 
 	mp_titleFont = nullptr;
-	mp_addButtonStroke = nullptr;
-
-	m_selectedColorData.second = a_selectedColor;
-	m_colorCountPerWidth = 0;
-	m_colorCountPerHeight = 0;
-	memset(&m_colorCircleStartPoint, 0, sizeof(DPoint));
-	m_maxColorDataSize = 0;
 
 	m_selectedHue = RGB_TO_COLORF((COLORREF)0x0100e3);
 	m_selectedLightness = m_selectedHue;
@@ -50,7 +43,6 @@ ColorView::ColorView(
 ColorView::~ColorView()
 {
 	InterfaceRelease(&mp_titleFont);
-	InterfaceRelease(&mp_addButtonStroke);
 
 	InterfaceRelease(&mp_lightnessGradientBrush);
 	InterfaceRelease(&mp_memoryBitmap);
@@ -65,102 +57,36 @@ int ColorView::Create()
 	}
 
 	m_viewSize = { mp_viewRect->right - mp_viewRect->left, mp_viewRect->bottom - mp_viewRect->top };
-
-	InitSelectMode();
-
+	
+	m_titleRect = { 0.0f, 0.0f, static_cast<float>(m_viewSize.cx), static_cast<float>(TEXT_HEIGHT) };
 	// create instance of direct2d
 	mp_titleFont = CreateTextFormat(DEFAULT_FONT_NAME, 14.0f, DWRITE_FONT_WEIGHT_SEMI_BOLD, DWRITE_FONT_STYLE_NORMAL);
 	mp_titleFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	mp_titleFont->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
-	mp_addButtonStroke = CreateUserStrokeStyle(D2D1_DASH_STYLE_DASH);
+	m_selectView.Init(m_viewSize);
 
 	return S_OK;
 }
 
 DColor ColorView::GetColor(const size_t &a_index)
 {
-	if (INVALID_INDEX != a_index || m_colorDataTable.size() > a_index) {
-		return m_colorDataTable.at(a_index).first;
-	}
-
-	return DColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+	return m_selectView.GetColor(a_index);
 }
 
 const std::map<size_t, DRect> ColorView::GetColorDataTable()
 {
-	std::map<size_t, DRect> tempMap;
-
-	for (auto &[index, data] : m_colorDataTable) {
-		tempMap.insert({ index, data.second });
-	}
-
-	return tempMap;
+	return m_selectView.GetColorDataTable();
 }
 
 const std::pair<size_t, DRect> &ColorView::GetAddButtonData()
 {
-	return m_addButtonData;
+	return m_selectView.GetAddButtonData();
 }
 
 const std::map<CBT, DRect> &ColorView::GetButtonTable()
 {
 	return m_buttonTable;
-}
-
-void ColorView::InitSelectMode()
-{
-	m_textRect = { 0.0f, 0.0f, static_cast<float>(m_viewSize.cx), static_cast<float>(TEXT_HEIGHT) };
-
-	const int height = m_viewSize.cy - TEXT_HEIGHT;
-	size_t offset = m_viewSize.cx % INTERVAL ? 0 : 1;
-	m_colorCountPerWidth = m_viewSize.cx / INTERVAL - offset;
-	offset = height % INTERVAL ? 0 : 1;
-	m_colorCountPerHeight = height / INTERVAL - offset;
-
-	m_colorCircleStartPoint = {
-		(m_viewSize.cx - (m_colorCountPerWidth - 1) * INTERVAL) / 2.0f,
-		TEXT_HEIGHT + (height - (m_colorCountPerHeight - 1) * INTERVAL) / 2.0f
-	};
-
-	m_maxColorDataSize = m_colorCountPerWidth * m_colorCountPerHeight;
-
-	// init color data about color and rect
-	const std::vector<DColor> defaultColorList({
-		RGB_TO_COLORF(NEUTRAL_950), RGB_TO_COLORF(NEUTRAL_500), RGB_TO_COLORF(NEUTRAL_50), RGB_TO_COLORF(RED_500), RGB_TO_COLORF(ORANGE_500),
-		RGB_TO_COLORF(YELLOW_500), RGB_TO_COLORF(GREEN_500), RGB_TO_COLORF(BLUE_500), RGB_TO_COLORF(PURPLE_500), RGB_TO_COLORF(PINK_500)
-		});
-	std::vector<DColor> tempColorList = 0 == m_colorList.size()
-		? defaultColorList
-		: m_colorList;
-	if (tempColorList.size() >= m_maxColorDataSize) {
-		tempColorList.resize(m_maxColorDataSize - 1); // -1 for add button
-	}
-
-	size_t i = 0;
-	for (const auto &color : tempColorList) {
-		m_colorDataTable.insert({ i, {color, GetColorRect(i)} });
-		i++;
-	}
-
-	// init add button rect
-	m_addButtonData = { m_colorDataTable.size() , GetColorRect(m_colorDataTable.size()) };
-
-	for (const auto &[index, colorData] : m_colorDataTable) {
-		if (IsSameColor(colorData.first, m_selectedColorData.second)) {
-			m_selectedColorData.first = index;
-			break;
-		}
-	}
-}
-
-const DRect ColorView::GetColorRect(const size_t a_index)
-{
-	const float COLOR_RADIUS = 10.0f;
-	const float posX = static_cast<float>(m_colorCircleStartPoint.x + INTERVAL * (a_index % m_colorCountPerWidth));
-	const float posY = static_cast<float>(m_colorCircleStartPoint.y + INTERVAL * (a_index / m_colorCountPerHeight));
-
-	return DRect({ posX - COLOR_RADIUS, posY - COLOR_RADIUS, posX + COLOR_RADIUS, posY + COLOR_RADIUS });
 }
 
 void ColorView::InitAddMode()
@@ -338,60 +264,13 @@ void ColorView::UpdateLightnessData(const DColor &a_hue)
 
 void ColorView::Paint(const CDM &a_drawModw, const CMD &a_modelData)
 {
+	DrawTitle(a_drawModw);
 	if (CDM::SELECT == a_drawModw) {
-		PaintOnSelectMode(a_modelData);
+		m_selectView.Paint(a_modelData);
 	}
 	else {
 		PaintOnAddMode(a_modelData);
 	}
-}
-
-void ColorView::PaintOnSelectMode(const CMD &a_modelData)
-{
-	DrawTitle(CDM::SELECT);
-
-	SetStrokeWidth(2.0f);
-
-	// draw all color
-	DRect rect;
-	for (auto const &[index, colorData] : m_colorDataTable) {
-		rect = colorData.second;
-		// draw a large circle where the mouse is located
-		if (index == a_modelData.clickedIndex) {
-			ShrinkRect(rect, 1.0f);
-		}
-		else if (index == a_modelData.hoverIndex) {
-			ExpandRect(rect, 2.0f);
-		}
-
-		SetBrushColor(m_borderColor);
-		DrawEllipse(rect);
-		SetBrushColor(colorData.first);
-		FillEllipse(rect);
-	}
-
-	// draw selected color
-	const size_t selectedColorIndex = m_selectedColorData.first;
-	if (INVALID_INDEX != selectedColorIndex) {
-		rect = m_colorDataTable.at(selectedColorIndex).second;
-
-		// draw border
-		const bool isClicked = selectedColorIndex == a_modelData.clickedIndex;
-		float offset = isClicked ? 2.0f : 4.0f;
-		ExpandRect(rect, offset);
-		SetBrushColor(m_borderColor);
-		FillEllipse(rect);
-
-		// draw color circle
-		offset = !isClicked && selectedColorIndex == a_modelData.hoverIndex ? 2.0f : 4.0f;
-		ShrinkRect(rect, offset);
-		SetBrushColor(m_selectedColorData.second);
-		FillEllipse(rect);
-	}
-
-	SetStrokeWidth(1.0f);
-
-	DrawAddButton(a_modelData);
 }
 
 void ColorView::PaintOnAddMode(const CMD &a_modelData)
@@ -421,64 +300,15 @@ void ColorView::DrawTitle(const CDM &a_mode)
 
 	// draw background
 	SetBrushColor(m_textBackgroundColor);
-	FillRectangle(m_textRect);
+	FillRectangle(m_titleRect);
 	// draw title
 
 	if (nullptr != mp_titleFont) {
 		auto prevTextFormat = SetTextFormat(mp_titleFont);
 		SetBrushColor(m_titleColor);
-		DrawUserText(title.c_str(), m_textRect);
+		DrawUserText(title.c_str(), m_titleRect);
 		SetTextFormat(prevTextFormat);
 	}
-}
-
-
-void ColorView::DrawAddButton(const CMD &a_modelData)
-{
-	// draw main circle
-	DRect mainRect = m_addButtonData.second;
-	if (m_addButtonData.first == a_modelData.clickedIndex) {
-		ShrinkRect(mainRect, 1.0f);
-	}
-	else if (m_addButtonData.first == a_modelData.hoverIndex) {
-		ExpandRect(mainRect, 2.0f);
-	}
-
-	if (nullptr != mp_addButtonStroke) {
-		ID2D1StrokeStyle *p_prevStrokeStyle = SetStrokeStyle(mp_addButtonStroke);
-		SetBrushColor(m_titleColor);
-		DrawEllipse(mainRect);
-		SetStrokeStyle(p_prevStrokeStyle);
-	}
-	else {
-		SetBrushColor(m_titleColor);
-		DrawEllipse(mainRect);
-	}
-
-	// draw small circle
-	const float SMALL_RADIUS = 7.0f;
-	float offset = 2.0f;
-	const DRect smallRect = {
-		mainRect.right - SMALL_RADIUS - offset, mainRect.top + SMALL_RADIUS + offset,
-		mainRect.right + SMALL_RADIUS - offset, mainRect.top - SMALL_RADIUS + offset,
-	};
-	FillEllipse(smallRect);
-
-	// draw + on small circle
-	offset = 3.0f;
-	const float centerPosX = (smallRect.left + smallRect.right) / 2.0f;
-	const float centerPosY = (smallRect.top + smallRect.bottom) / 2.0f;
-
-	DPoint startPos = { smallRect.left + offset, centerPosY };
-	DPoint endPos = { smallRect.right - offset, centerPosY };
-	SetStrokeWidth(2.0f);
-	SetBrushColor(m_textBackgroundColor);
-	DrawLine(startPos, endPos);
-
-	startPos = { centerPosX, smallRect.top - offset };
-	endPos = { centerPosX, smallRect.bottom + offset };
-	DrawLine(startPos, endPos);
-	SetStrokeWidth(1.0f);
 }
 
 void ColorView::DrawHueCircle()
