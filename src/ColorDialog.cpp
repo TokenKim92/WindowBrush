@@ -41,10 +41,11 @@ void ColorDialog::OnInitDialog()
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonUpHandler));
 	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ColorDialog::KeyDownHandler));
 
-	InheritDirect2D(new ColorView(mh_window, m_previousSelectedColor, m_colorList, GetThemeMode()));
-	mp_direct2d->Create();
-	m_colorDataTable = static_cast<ColorView *>(mp_direct2d)->GetColorDataTable();
-	m_addButtonData = static_cast<ColorView *>(mp_direct2d)->GetAddButtonData();
+	const auto p_view = new ColorView(mh_window, m_previousSelectedColor, m_colorList, GetThemeMode());
+	InheritDirect2D(p_view);
+	p_view->Create();
+	m_colorDataTable = p_view->GetColorDataTable();
+	m_addButtonData = p_view->GetAddButtonData();
 }
 
 void ColorDialog::OnDestroy()

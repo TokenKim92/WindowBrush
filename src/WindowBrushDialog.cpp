@@ -37,9 +37,11 @@ void WindowBrushDialog::OnInitDialog()
 	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&WindowBrushDialog::MouseMoveHandler));
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&WindowBrushDialog::MouseLeftButtonUpHandler));
 
-	InheritDirect2D(new WindowBrushView(mh_window, GetThemeMode()));
-	mp_direct2d->Create();
-	m_buttonTable = static_cast<WindowBrushView *>(mp_direct2d)->GetButtonTable();
+	const auto p_view = new WindowBrushView(mh_window, GetThemeMode());
+	InheritDirect2D(p_view);
+	p_view->Create();
+	p_view->UpdateColorSymbolBrush(m_modelData.selectedColor);
+	m_buttonTable = p_view->GetButtonTable();
 }
 
 void WindowBrushDialog::OnDestroy()

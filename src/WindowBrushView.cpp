@@ -79,23 +79,6 @@ void WindowBrushView::Paint(const WBMD &a_modelData)
 	}
 }
 
-void WindowBrushView::SetColorMode(const CM &a_mode)
-{
-	if (CM::LIGHT == a_mode) {
-		m_textColor = RGB_TO_COLORF(NEUTRAL_600);
-		m_highlightColor = RGB_TO_COLORF(ORANGE_400);
-		SetBackgroundColor(RGB_TO_COLORF(NEUTRAL_100));
-	}
-	else {
-		m_textColor = RGB_TO_COLORF(NEUTRAL_200);
-		m_highlightColor = RGB_TO_COLORF(VIOLET_600);
-		SetBackgroundColor(RGB_TO_COLORF(NEUTRAL_800));
-	}
-
-	m_textColor.a = m_defaultTransparency;
-	m_highlightColor.a = m_defaultTransparency;
-}
-
 void WindowBrushView::InitButtonRects()
 {
 	const float margin = 10.0f;
@@ -501,27 +484,6 @@ void WindowBrushView::InitColorShapeData()
 
 		degree++;
 	}
-
-	//----------------------------------------
-	// init the gradient color of color symbol
-	//----------------------------------------
-	UpdateColorSymbolBrush(RGB_TO_COLORF(RED_400));
-}
-
-void WindowBrushView::UpdateColorSymbolBrush(const DColor &a_color)
-{
-	const unsigned int gradientCount = 3;
-	const D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES gradientData = { {14.0f, 303.0f}, {42.0f, 275.0f} };
-	D2D1_GRADIENT_STOP gradientStopList[gradientCount] = {
-		{0.177777f, {0.0f, 0.0f, 0.0f, 1.0f}},
-		{0.5f, a_color},
-		{0.833333f, { 1.0f, 1.0f, 1.0f, 1.0f }},
-	};
-
-	if (nullptr != mp_colorShapeBrush) {
-		InterfaceRelease(&mp_colorShapeBrush);
-	}
-	mp_colorShapeBrush = CreateLinearGradientBrush(gradientStopList, gradientCount, &gradientData);
 }
 
 void WindowBrushView::InitFadeShapeData()
@@ -563,4 +525,38 @@ void WindowBrushView::InitFadeShapeData()
 const std::map<WBBT, DRect> WindowBrushView::GetButtonTable()
 {
 	return m_buttonTable;
+}
+
+void WindowBrushView::SetColorMode(const CM &a_mode)
+{
+	if (CM::LIGHT == a_mode) {
+		m_textColor = RGB_TO_COLORF(NEUTRAL_600);
+		m_highlightColor = RGB_TO_COLORF(ORANGE_400);
+		SetBackgroundColor(RGB_TO_COLORF(NEUTRAL_100));
+	}
+	else {
+		m_textColor = RGB_TO_COLORF(NEUTRAL_200);
+		m_highlightColor = RGB_TO_COLORF(VIOLET_600);
+		SetBackgroundColor(RGB_TO_COLORF(NEUTRAL_800));
+	}
+
+	m_textColor.a = m_defaultTransparency;
+	m_highlightColor.a = m_defaultTransparency;
+}
+
+void WindowBrushView::UpdateColorSymbolBrush(const DColor &a_color)
+{
+	// update the gradient color of color symbol
+	const unsigned int gradientCount = 3;
+	const D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES gradientData = { {14.0f, 303.0f}, {42.0f, 275.0f} };
+	D2D1_GRADIENT_STOP gradientStopList[gradientCount] = {
+		{0.177777f, {0.0f, 0.0f, 0.0f, 1.0f}},
+		{0.5f, a_color},
+		{0.833333f, { 1.0f, 1.0f, 1.0f, 1.0f }},
+	};
+
+	if (nullptr != mp_colorShapeBrush) {
+		InterfaceRelease(&mp_colorShapeBrush);
+	}
+	mp_colorShapeBrush = CreateLinearGradientBrush(gradientStopList, gradientCount, &gradientData);
 }
