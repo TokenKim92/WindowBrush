@@ -141,7 +141,7 @@
   <ItemGroup>
     <ClCompile Include="src\ButtonShape.cpp" />
     <ClCompile Include="src\ColorDialog.cpp" />
-    <ClCompile Include="src\ColorD2D.cpp" />
+    <ClCompile Include="src\ColorView.cpp" />
     <ClCompile Include="src\Utility.cpp" />
     <ClCompile Include="src\WindowBrush.cpp" />
     <ClCompile Include="src\WindowBrushDialog.cpp" />
@@ -156,7 +156,7 @@
     <ClInclude Include="include\ColorDialog.h" />
     <ClInclude Include="include\ColorModel.h" />
     <ClInclude Include="include\framework.h" />
-    <ClInclude Include="include\ColorD2D.h" />
+    <ClInclude Include="include\ColorView.h" />
     <ClInclude Include="include\Resource.h" />
     <ClInclude Include="include\targetver.h" />
     <ClInclude Include="include\Utility.h" />

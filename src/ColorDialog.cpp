@@ -40,12 +40,12 @@ void ColorDialog::OnInitDialog()
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonUpHandler));
 	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ColorDialog::KeyDownHandler));
 
-	auto p_direct2d = new ColorD2D(mh_window, m_previousSelectedColor, m_colorList, GetThemeMode());
+	auto p_direct2d = new ColorView(mh_window, m_previousSelectedColor, m_colorList, GetThemeMode());
 	p_direct2d->Create();
 	InheritDirect2D(p_direct2d);
 
-	m_colorDataTable = static_cast<ColorD2D *>(p_direct2d)->GetColorDataTable();
-	m_addButtonData = static_cast<ColorD2D *>(p_direct2d)->GetAddButtonData();
+	m_colorDataTable = static_cast<ColorView *>(p_direct2d)->GetColorDataTable();
+	m_addButtonData = static_cast<ColorView *>(p_direct2d)->GetAddButtonData();
 }
 
 void ColorDialog::OnDestroy()
@@ -58,7 +58,7 @@ void ColorDialog::OnPaint()
 	mp_direct2d->Clear();
 
 	// draw objects according to the DRAW_MODE
-	static_cast<ColorD2D *>(mp_direct2d)->Paint(m_drawMode, m_modelData);
+	static_cast<ColorView *>(mp_direct2d)->Paint(m_drawMode, m_modelData);
 }
 
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
@@ -264,8 +264,8 @@ void ColorDialog::ChangeMode(const DM &a_drawModw)
 	if (DM::ADD == a_drawModw && !isInitializedAddMode) {
 		isInitializedAddMode = true;
 
-		static_cast<ColorD2D *>(mp_direct2d)->InitAddMode();
-		m_buttonTable = static_cast<ColorD2D *>(mp_direct2d)->GetButtonTable();
+		static_cast<ColorView *>(mp_direct2d)->InitAddMode();
+		m_buttonTable = static_cast<ColorView *>(mp_direct2d)->GetButtonTable();
 	}
 
 	Invalidate();
@@ -277,5 +277,5 @@ DColor ColorDialog::GetSelectedColor()
 		return m_previousSelectedColor;
 	}
 
-	return static_cast<ColorD2D *>(mp_direct2d)->GetColor(m_selectedColorIndex);
+	return static_cast<ColorView *>(mp_direct2d)->GetColor(m_selectedColorIndex);
 }

@@ -1,4 +1,4 @@
-#include "ColorD2D.h"
+#include "ColorView.h"
 #include "Utility.h"
 #include "ColorPalette.h"
 
@@ -8,7 +8,7 @@
 
 extern ApplicationCore *gp_appCore;
 
-ColorD2D::ColorD2D(
+ColorView::ColorView(
 	const HWND ah_window, const DColor &a_selectedColor, const std::vector<DColor> &a_colorList,
 	const CM &a_mode, const RECT *const ap_viewRect
 ) :
@@ -51,7 +51,7 @@ ColorD2D::ColorD2D(
 	mp_memoryTarget = nullptr;
 }
 
-ColorD2D::~ColorD2D()
+ColorView::~ColorView()
 {
 	InterfaceRelease(&mp_titleFont);
 	InterfaceRelease(&mp_addButtonStroke);
@@ -61,7 +61,7 @@ ColorD2D::~ColorD2D()
 	InterfaceRelease(&mp_memoryTarget);
 }
 
-int ColorD2D::Create()
+int ColorView::Create()
 {
 	auto result = ::Direct2D::Create();
 	if (S_OK != result) {
@@ -82,7 +82,7 @@ int ColorD2D::Create()
 	return S_OK;
 }
 
-DColor ColorD2D::GetColor(const size_t &a_index)
+DColor ColorView::GetColor(const size_t &a_index)
 {
 	if (INVALID_INDEX != a_index || m_colorDataTable.size() > a_index) {
 		return m_colorDataTable.at(a_index).first;
@@ -91,7 +91,7 @@ DColor ColorD2D::GetColor(const size_t &a_index)
 	return DColor({0.0f, 0.0f, 0.0f, 1.0f});
 }
 
-const std::map<size_t, DRect> ColorD2D::GetColorDataTable()
+const std::map<size_t, DRect> ColorView::GetColorDataTable()
 {
 	std::map<size_t, DRect> tempMap;
 	
@@ -102,17 +102,17 @@ const std::map<size_t, DRect> ColorD2D::GetColorDataTable()
 	return tempMap;
 }
 
-const std::pair<size_t, DRect> &ColorD2D::GetAddButtonData()
+const std::pair<size_t, DRect> &ColorView::GetAddButtonData()
 {
 	return m_addButtonData;
 }
 
-const std::map<BT, DRect> &ColorD2D::GetButtonTable()
+const std::map<BT, DRect> &ColorView::GetButtonTable()
 {
 	return m_buttonTable;
 }
 
-void ColorD2D::InitSelectMode()
+void ColorView::InitSelectMode()
 {
 	m_textRect = { 0.0f, 0.0f, static_cast<float>(m_viewSize.cx), static_cast<float>(TEXT_HEIGHT) };
 
@@ -158,7 +158,7 @@ void ColorD2D::InitSelectMode()
 	}
 }
 
-const DRect ColorD2D::GetColorRect(const size_t a_index)
+const DRect ColorView::GetColorRect(const size_t a_index)
 {
 	const float COLOR_RADIUS = 10.0f;
 	const float posX = static_cast<float>(m_colorCircleStartPoint.x + INTERVAL * (a_index % m_colorCountPerWidth));
@@ -167,7 +167,7 @@ const DRect ColorD2D::GetColorRect(const size_t a_index)
 	return DRect({ posX - COLOR_RADIUS, posY - COLOR_RADIUS, posX + COLOR_RADIUS, posY + COLOR_RADIUS });
 }
 
-void ColorD2D::InitAddMode()
+void ColorView::InitAddMode()
 {
 	const auto InitHueDataList = [](
 		const float a_radius, const float &a_centerPosX, const float &a_centerPosY,
@@ -263,7 +263,7 @@ void ColorD2D::InitAddMode()
 	return;
 }
 
-void ColorD2D::UpdateLightnessData(const DColor &a_hue)
+void ColorView::UpdateLightnessData(const DColor &a_hue)
 {
 	////////////////////////////////////////////////////////////////
 	// update memory render target
@@ -335,7 +335,7 @@ void ColorD2D::UpdateLightnessData(const DColor &a_hue)
 	}
 }
 
-void ColorD2D::Paint(const DM &a_drawModw, const MD &a_modelData)
+void ColorView::Paint(const DM &a_drawModw, const MD &a_modelData)
 {
 	if (DM::SELECT == a_drawModw) {
 		PaintOnSelectMode(a_modelData);
@@ -345,7 +345,7 @@ void ColorD2D::Paint(const DM &a_drawModw, const MD &a_modelData)
 	}
 }
 
-void ColorD2D::PaintOnSelectMode(const MD &a_modelData)
+void ColorView::PaintOnSelectMode(const MD &a_modelData)
 {
 	DrawTitle(DM::SELECT);
 
@@ -393,7 +393,7 @@ void ColorD2D::PaintOnSelectMode(const MD &a_modelData)
 	DrawAddButton(a_modelData);
 }
 
-void ColorD2D::PaintOnAddMode(const MD &a_modelData)
+void ColorView::PaintOnAddMode(const MD &a_modelData)
 {
 	DrawTitle(DM::ADD);
 
@@ -412,7 +412,7 @@ void ColorD2D::PaintOnAddMode(const MD &a_modelData)
 	DrawLightnessCircle();
 }
 
-void ColorD2D::DrawTitle(const DM &a_mode)
+void ColorView::DrawTitle(const DM &a_mode)
 {
 	const std::wstring title = DM::SELECT == a_mode
 		? L"Select Color"
@@ -430,7 +430,7 @@ void ColorD2D::DrawTitle(const DM &a_mode)
 }
 
 
-void ColorD2D::DrawAddButton(const MD &a_modelData)
+void ColorView::DrawAddButton(const MD &a_modelData)
 {
 	// draw main circle
 	DRect mainRect = m_addButtonData.second;
@@ -472,7 +472,7 @@ void ColorD2D::DrawAddButton(const MD &a_modelData)
 	SetStrokeWidth(1.0f);
 }
 
-void ColorD2D::DrawHueCircle()
+void ColorView::DrawHueCircle()
 {
 	for (const auto &hueData : m_hueDataList) {
 		SetBrushColor(hueData.first);
@@ -480,7 +480,7 @@ void ColorD2D::DrawHueCircle()
 	}
 }
 
-void ColorD2D::DrawLightnessCircle()
+void ColorView::DrawLightnessCircle()
 {
 	auto p_previousBrush = SetBrush(mp_lightnessGradientBrush);
 	FillEllipse(m_lightnessRect);

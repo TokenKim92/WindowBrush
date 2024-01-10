@@ -45,7 +45,7 @@
     <ClCompile Include="src\ButtonShape.cpp">
       <Filter>Source Files\WindowBrushDialog</Filter>
     </ClCompile>
-    <ClCompile Include="src\ColorD2D.cpp">
+    <ClCompile Include="src\ColorView.cpp">
       <Filter>Source Files\ColorDialog</Filter>
     </ClCompile>
   </ItemGroup>
@@ -86,7 +86,7 @@
     <ClInclude Include="include\ButtonShape.h">
       <Filter>Header Files\WindowBrushDialog</Filter>
     </ClInclude>
-    <ClInclude Include="include\ColorD2D.h">
+    <ClInclude Include="include\ColorView.h">
       <Filter>Header Files\ColorDialog</Filter>
     </ClInclude>
     <ClInclude Include="include\ColorModel.h">

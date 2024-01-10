@@ -2,7 +2,7 @@
 #define _COLOR_DIALOG_H_
 
 #include "WindowDialog.h"
-#include "ColorD2D.h"
+#include "ColorView.h"
 #include "ColorModel.h"
 #include <vector>
 

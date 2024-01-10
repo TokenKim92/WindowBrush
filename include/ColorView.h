@@ -1,5 +1,5 @@
-#ifndef _HUE_D2D_H_
-#define _HUE_D2D_H_
+#ifndef _COLOR_VIEW_H_
+#define _COLOR_VIEW_H_
 
 #include "Direct2DEx.h"
 #include "ColorModel.h"
@@ -7,7 +7,7 @@
 #include <vector>
 #include <map>
 
-class ColorD2D : public Direct2DEx
+class ColorView : public Direct2DEx
 {
 protected:
 	SIZE m_viewSize;
@@ -53,11 +53,11 @@ protected:
 	std::unique_ptr<unsigned char[]> mp_memoryPattern; // the first address of memory bitmap to access color pixel
 
 public:
-	ColorD2D(
+	ColorView(
 		const HWND ah_window, const DColor &a_selectedColor, const std::vector<DColor> &a_colorList,
 		const CM &a_mode, const RECT *const ap_viewRect = nullptr
 	);
-	virtual ~ColorD2D();
+	virtual ~ColorView();
 
 	virtual int Create() override;
 	void Paint(const DM &a_drawModw, const MD &a_modelData);
@@ -84,4 +84,4 @@ protected:
 	void DrawLightnessCircle();
 };
 
-#endif // !_HUE_D2D_H_
+#endif // !_COLOR_VIEW_H_
