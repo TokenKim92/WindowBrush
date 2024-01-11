@@ -34,7 +34,7 @@ ColorSelectView::~ColorSelectView()
 
 void ColorSelectView::Init(const SIZE &a_viewSize)
 {
-	const int height = a_viewSize.cy - TEXT_HEIGHT;
+	const int height = a_viewSize.cy - TITLE_HEIGHT;
 	size_t offset = a_viewSize.cx % INTERVAL ? 0 : 1;
 	m_colorCountPerWidth = a_viewSize.cx / INTERVAL - offset;
 	offset = height % INTERVAL ? 0 : 1;
@@ -42,7 +42,7 @@ void ColorSelectView::Init(const SIZE &a_viewSize)
 
 	m_colorCircleStartPoint = {
 		(a_viewSize.cx - (m_colorCountPerWidth - 1) * INTERVAL) / 2.0f,
-		TEXT_HEIGHT + (height - (m_colorCountPerHeight - 1) * INTERVAL) / 2.0f
+		TITLE_HEIGHT + (height - (m_colorCountPerHeight - 1) * INTERVAL) / 2.0f
 	};
 
 	m_maxColorDataSize = m_colorCountPerWidth * m_colorCountPerHeight;

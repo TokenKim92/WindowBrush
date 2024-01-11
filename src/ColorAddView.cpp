@@ -7,17 +7,17 @@ extern ApplicationCore *gp_appCore;
 ColorAddView::ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode) :
 	mp_direct2d(ap_direct2d)
 {
-	memset(&m_viewRect, 0, sizeof(RECT));
 	memset(&m_viewSize, 0, sizeof(SIZE));
 
 	if (CM::DARK == a_mode) {
-		m_mainColor = RGB_TO_COLORF(NEUTRAL_300);
+		m_mainColor = RGB_TO_COLORF(NEUTRAL_100);
+		m_oppositeColor = RGB_TO_COLORF(NEUTRAL_900);
 	}
 	else {
 		m_mainColor = RGB_TO_COLORF(NEUTRAL_600);
+		m_oppositeColor = RGB_TO_COLORF(NEUTRAL_200);
 	}
-	m_selectedHue = RGB_TO_COLORF((COLORREF)0x0100e3);
-	m_selectedLightness = m_selectedHue;
+
 	memset(&m_lightnessRect, 0, sizeof(DRect));
 
 	mp_lightnessGradientBrush = nullptr;
@@ -33,7 +33,7 @@ ColorAddView::~ColorAddView()
 	InterfaceRelease(&mp_memoryTarget);
 }
 
-void ColorAddView::Init(const RECT &a_viewRect, const SIZE &a_viewSize)
+void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 {
 	const auto InitHueDataList = [](
 		const float a_radius, const float &a_centerPosX, const float &a_centerPosY,
@@ -91,17 +91,10 @@ void ColorAddView::Init(const RECT &a_viewRect, const SIZE &a_viewSize)
 	////////////////////////////////////////////////////////////////
 	// implementation
 	////////////////////////////////////////////////////////////////
-	m_viewRect = a_viewRect;
 	m_viewSize = a_viewSize;
-
-	const int height = a_viewSize.cy - TEXT_HEIGHT - INDICATE_HEIGHT;
-	const float radius = a_viewSize.cx * 0.2f;
-	const float centerPosX = a_viewRect.left + a_viewSize.cx / 2.0f;
-	const float centerPosY = TEXT_HEIGHT + a_viewRect.top + height / 2.0f;
-
 	m_lightnessRect = {
-		centerPosX - radius, centerPosY - radius,
-		centerPosX + radius, centerPosY + radius
+		a_centerPoint.x - LIHTNESS_CIRCLE_RADIUS, a_centerPoint.y - LIHTNESS_CIRCLE_RADIUS,
+		a_centerPoint.x + LIHTNESS_CIRCLE_RADIUS, a_centerPoint.y + LIHTNESS_CIRCLE_RADIUS
 	};
 
 	auto result = gp_appCore->GetWICFactory()->CreateBitmap(
@@ -116,17 +109,15 @@ void ColorAddView::Init(const RECT &a_viewRect, const SIZE &a_viewSize)
 		return;
 	}
 
-	InitHueDataList(a_viewSize.cx * 0.33f, centerPosX, centerPosY, m_hueDataList);
+	InitHueDataList(HUE_CIRCLE_RADIUS, a_centerPoint.x, a_centerPoint.y, m_hueDataList);
 	UpdateMemoryHueCircle(mp_memoryTarget, m_hueDataList);
-	UpdateLightnessData(m_selectedHue);
-
 
 	m_returnIconPoints = {
-		{{ 14.0f, TEXT_HEIGHT / 2.0f }, { TEXT_HEIGHT - 14.0f, 10.0f }},
-		{{ 14.0f, TEXT_HEIGHT / 2.0f }, { TEXT_HEIGHT - 14.0f, TEXT_HEIGHT - 10.0f }}
+		{{ 14.0f, TITLE_HEIGHT / 2.0f }, { TITLE_HEIGHT - 14.0f, 10.0f }},
+		{{ 14.0f, TITLE_HEIGHT / 2.0f }, { TITLE_HEIGHT - 14.0f, TITLE_HEIGHT - 10.0f }}
 	};
 
-	m_buttonTable.insert({ CBT::RETURN, { 10.0f, 10.0f, TEXT_HEIGHT - 10.0f, TEXT_HEIGHT - 10.0f } });
+	m_buttonTable.insert({ CBT::RETURN, { 10.0f, 10.0f, TITLE_HEIGHT - 10.0f, TITLE_HEIGHT - 10.0f } });
 
 	return;
 }
@@ -139,7 +130,7 @@ void ColorAddView::Paint(const CMD &a_modelData)
 	{
 
 		DColor color = a_mainColor;
-		if (CBT::RETURN == a_modelData.clickedButton || CBT::RETURN != a_modelData.hoverButton) {
+		if (CBT::RETURN == a_modelData.clickedButtonType || CBT::RETURN != a_modelData.hoverButtonType) {
 			color.a = DEFAULT_TRANSPARENCY;
 		}
 		ap_direct2d->SetBrushColor(color);
@@ -171,12 +162,27 @@ void ColorAddView::Paint(const CMD &a_modelData)
 		ap_direct2d->FillEllipse(a_lightnessRect);
 		ap_direct2d->SetBrush(p_previousBrush);
 	};
+	static const auto DrawHueButton = [](Direct2DEx *const ap_direct2d, const DColor &a_mainColor, const CMD &a_modelData)
+	{
+		DColor color = a_mainColor;
+		if (CBT::HUE != a_modelData.hoverButtonType) {
+			color.a = DEFAULT_TRANSPARENCY;
+		}
 
+		// draw the circle to show the current color
+		ap_direct2d->SetBrushColor(color);
+		ap_direct2d->FillEllipse(a_modelData.hueButtonRect);
+	};
 
-	// draw return button
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
 
 	DrawReturnButton(mp_direct2d, m_mainColor, m_returnIconPoints, a_modelData);
+
 	DrawHueCircle(mp_direct2d, m_hueDataList);
+	DrawHueButton(mp_direct2d, m_mainColor, a_modelData);
+
 	DrawLightnessCircle(mp_direct2d, mp_lightnessGradientBrush, m_lightnessRect);
 }
 
@@ -211,7 +217,7 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 		return;
 	}
 
-	const float radius = m_viewSize.cx / 2.0f;
+	const float radius = (m_lightnessRect.right - m_lightnessRect.left) / 2.0f;
 
 	mp_memoryTarget->BeginDraw();
 	// draw lightness circle
@@ -230,10 +236,7 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 	////////////////////////////////////////////////////////////////
 	// update memory pattern
 	////////////////////////////////////////////////////////////////
-	WICRect wicRect = {
-		static_cast<int>(m_viewRect.left), static_cast<int>(m_viewRect.top),
-		static_cast<int>(m_viewSize.cx), static_cast<int>(m_viewSize.cy - TEXT_HEIGHT - INDICATE_HEIGHT)
-	};
+	WICRect wicRect = { 0, 0, COLOR_DIALOG_WIDTH, COLOR_DIALOG_HEGIHT };
 	IWICBitmapLock *p_lock = nullptr;
 
 	if (nullptr == mp_memoryBitmap) {
@@ -243,13 +246,12 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 	if (S_OK == mp_memoryBitmap->Lock(&wicRect, WICBITMAPLOCKFLAGS_FORCE_DWORD, &p_lock)) {
 		unsigned int bufferSize = 0;
 		unsigned int stride = 0;
-		unsigned char *p_pattern = nullptr;
-
+		WICInProcPointer p_pattern = nullptr;
+		
 		if (S_OK == p_lock->GetStride(&stride)) {
 			if (S_OK == p_lock->GetDataPointer(&bufferSize, &p_pattern)) {
 				if (p_pattern) {
-					mp_memoryPattern = std::make_unique<unsigned char[]>(bufferSize);
-					memcpy(mp_memoryPattern.get(), p_pattern, bufferSize);
+					memcpy(m_memoryPattern, p_pattern, bufferSize);
 				}
 			}
 		}
@@ -260,4 +262,11 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 const std::map<CBT, DRect> &ColorAddView::GetButtonTable()
 {
 	return m_buttonTable;
+}
+
+DColor ColorAddView::GetPixelColorOnPoint(const DPoint &a_point)
+{
+	const auto memoryIndex = COLOR_DIALOG_WIDTH * static_cast<unsigned int>(a_point.y) + static_cast<unsigned int>(a_point.x);
+	const auto p_color = reinterpret_cast<COLORREF *>(m_memoryPattern) + memoryIndex;
+	return RGB_TO_COLORF(*p_color);
 }

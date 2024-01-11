@@ -17,6 +17,8 @@ protected:
 	DColor m_titleColor;
 	DColor m_textBackgroundColor;
 
+	DColor m_selectedHue;
+
 public:
 	ColorView(
 		const HWND ah_window, const DColor &a_selectedColor, const std::vector<DColor> &a_colorList,
@@ -27,7 +29,8 @@ public:
 	virtual int Create() override;
 	void Paint(const CDM &a_drawModw, const CMD &a_modelData);
 
-	void InitColorAddView();
+	void InitColorAddView(const DPoint &a_centerPoint);
+	void UpdateLightnessCircle(const DPoint &a_point);
 
 	DColor GetColor(const size_t &a_index);
 	const std::map<size_t, DRect> GetColorDataTable();

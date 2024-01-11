@@ -27,6 +27,7 @@ ColorView::ColorView(
 	}
 
 	mp_titleFont = nullptr;
+	m_selectedHue = RGB_TO_COLORF((COLORREF)0x0100e3);
 }
 
 ColorView::~ColorView()
@@ -43,7 +44,7 @@ int ColorView::Create()
 
 	m_viewSize = { mp_viewRect->right - mp_viewRect->left, mp_viewRect->bottom - mp_viewRect->top };
 
-	m_titleRect = { 0.0f, 0.0f, static_cast<float>(m_viewSize.cx), static_cast<float>(TEXT_HEIGHT) };
+	m_titleRect = { 0.0f, 0.0f, static_cast<float>(m_viewSize.cx), static_cast<float>(TITLE_HEIGHT) };
 	// create instance of direct2d
 	mp_titleFont = CreateTextFormat(DEFAULT_FONT_NAME, 14.0f, DWRITE_FONT_WEIGHT_SEMI_BOLD, DWRITE_FONT_STYLE_NORMAL);
 	mp_titleFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -52,6 +53,53 @@ int ColorView::Create()
 	m_selectView.Init(m_viewSize);
 
 	return S_OK;
+}
+
+void ColorView::Paint(const CDM &a_drawModw, const CMD &a_modelData)
+{
+	DrawTitle(a_drawModw);
+	
+	if (CDM::SELECT == a_drawModw) {
+		m_selectView.Paint(a_modelData);
+
+		return;
+	}
+		
+	m_addView.Paint(a_modelData);
+}
+
+void ColorView::DrawTitle(const CDM &a_mode)
+{
+	const std::wstring title = CDM::SELECT == a_mode
+		? L"Select Color"
+		: L"Add Color";
+
+	// draw background
+	SetBrushColor(m_textBackgroundColor);
+	FillRectangle(m_titleRect);
+	// draw title
+
+	if (nullptr != mp_titleFont) {
+		auto prevTextFormat = SetTextFormat(mp_titleFont);
+		SetBrushColor(m_titleColor);
+		DrawUserText(title.c_str(), m_titleRect);
+		SetTextFormat(prevTextFormat);
+	}
+}
+
+void ColorView::InitColorAddView(const DPoint &a_centerPoint)
+{
+	m_addView.Init(a_centerPoint, m_viewSize);
+	m_addView.UpdateLightnessData(m_selectedHue);
+}
+
+void ColorView::UpdateLightnessCircle(const DPoint &a_point)
+{
+	const auto color = m_addView.GetPixelColorOnPoint(a_point);
+	if (!IsSameColor(color, m_selectedHue)) {
+		m_selectedHue = color;
+		m_addView.UpdateLightnessData(color);
+	}
 }
 
 DColor ColorView::GetColor(const size_t &a_index)
@@ -72,39 +120,4 @@ const std::pair<size_t, DRect> &ColorView::GetAddButtonData()
 const std::map<CBT, DRect> &ColorView::GetButtonTable()
 {
 	return m_addView.GetButtonTable();
-}
-
-void ColorView::Paint(const CDM &a_drawModw, const CMD &a_modelData)
-{
-	DrawTitle(a_drawModw);
-	if (CDM::SELECT == a_drawModw) {
-		m_selectView.Paint(a_modelData);
-	}
-	else {
-		m_addView.Paint(a_modelData);
-	}
-}
-
-void ColorView::InitColorAddView()
-{
-	m_addView.Init(*mp_viewRect, m_viewSize);
-}
-
-void ColorView::DrawTitle(const CDM &a_mode)
-{
-	const std::wstring title = CDM::SELECT == a_mode
-		? L"Select Color"
-		: L"Add Color";
-
-	// draw background
-	SetBrushColor(m_textBackgroundColor);
-	FillRectangle(m_titleRect);
-	// draw title
-
-	if (nullptr != mp_titleFont) {
-		auto prevTextFormat = SetTextFormat(mp_titleFont);
-		SetBrushColor(m_titleColor);
-		DrawUserText(title.c_str(), m_titleRect);
-		SetTextFormat(prevTextFormat);
-	}
 }
