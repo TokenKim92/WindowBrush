@@ -21,6 +21,7 @@ ColorAddView::ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode) :
 	memset(&m_lightnessRect, 0, sizeof(DRect));
 
 	mp_lightnessGradientBrush = nullptr;
+	mp_indicateFont = nullptr;
 
 	mp_memoryBitmap = nullptr;
 	mp_memoryTarget = nullptr;
@@ -29,6 +30,7 @@ ColorAddView::ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode) :
 ColorAddView::~ColorAddView()
 {
 	InterfaceRelease(&mp_lightnessGradientBrush);
+	InterfaceRelease(&mp_indicateFont);
 	InterfaceRelease(&mp_memoryBitmap);
 	InterfaceRelease(&mp_memoryTarget);
 }
@@ -113,11 +115,27 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 	UpdateMemoryHueCircle(mp_memoryTarget, m_hueDataList);
 
 	m_returnIconPoints = {
-		{{ 14.0f, TITLE_HEIGHT / 2.0f }, { TITLE_HEIGHT - 14.0f, 10.0f }},
-		{{ 14.0f, TITLE_HEIGHT / 2.0f }, { TITLE_HEIGHT - 14.0f, TITLE_HEIGHT - 10.0f }}
+	{{ 14.0f, TITLE_HEIGHT / 2.0f }, { TITLE_HEIGHT - 14.0f, 10.0f }},
+	{{ 14.0f, TITLE_HEIGHT / 2.0f }, { TITLE_HEIGHT - 14.0f, TITLE_HEIGHT - 10.0f }}
 	};
 
-	m_buttonTable.insert({ CBT::RETURN, { 10.0f, 10.0f, TITLE_HEIGHT - 10.0f, TITLE_HEIGHT - 10.0f } });
+	const float margin = 10.0f;
+	const DSize indicateButtonSize = { 100.0f, 35.0f };
+	m_buttonTable = {
+		{ CBT::RETURN, { 10.0f, 10.0f, TITLE_HEIGHT - 10.0f, TITLE_HEIGHT - 10.0f } },
+		{
+			CBT::INDICATE,
+			{
+				COLOR_DIALOG_WIDTH - indicateButtonSize.width - margin, COLOR_DIALOG_HEIGHT - indicateButtonSize.height - margin,
+				COLOR_DIALOG_WIDTH - margin, COLOR_DIALOG_HEIGHT - margin
+			}
+
+		}
+	};
+
+	mp_indicateFont = mp_direct2d->CreateTextFormat(DEFAULT_FONT_NAME, 14.0f, DWRITE_FONT_WEIGHT_SEMI_BOLD, DWRITE_FONT_STYLE_NORMAL);
+	mp_indicateFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	mp_indicateFont->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
 	return;
 }
@@ -162,9 +180,9 @@ void ColorAddView::Paint(const CMD &a_modelData)
 		ap_direct2d->FillEllipse(a_lightnessRect);
 		ap_direct2d->SetBrush(p_previousBrush);
 	};
-	static const auto DrawHueButton = [](Direct2DEx *const ap_direct2d, const DColor &a_mainColor, const CMD &a_modelData)
+	static const auto DrawHueButton = [](Direct2DEx *const ap_direct2d, const DColor &a_buttonColor, const CMD &a_modelData)
 	{
-		DColor color = a_mainColor;
+		DColor color = a_buttonColor;
 		if (CBT::HUE != a_modelData.hoverButtonType) {
 			color.a = DEFAULT_TRANSPARENCY;
 		}
@@ -172,6 +190,60 @@ void ColorAddView::Paint(const CMD &a_modelData)
 		// draw the circle to show the current color
 		ap_direct2d->SetBrushColor(color);
 		ap_direct2d->FillEllipse(a_modelData.hueButtonRect);
+	};
+	static const auto DrawLightnessButton = [](ColorAddView *const ap_view, Direct2DEx *const ap_direct2d, const CMD &a_modelData)
+	{
+		auto rect = a_modelData.lightnessButtonRect;
+		const DPoint centerPos = {
+			rect.left + (rect.right - rect.left) / 2.0f ,rect.top + (rect.bottom - rect.top) / 2.0f
+		};
+		if (CBT::LIGHTNESS == a_modelData.clickedButtonType) {
+			ExpandRect(rect, BUTTON_RADIUS);
+		}
+
+		// fill button
+		const DColor colorOnPoint = ap_view->GetPixelColorOnPoint(centerPos);
+		ap_direct2d->SetBrushColor(colorOnPoint);
+		ap_direct2d->FillEllipse(rect);
+
+		// draw border button
+		DColor color;
+		if (0.5f > GetBrightness(colorOnPoint)) {
+			color = RGB_TO_COLORF(NEUTRAL_100);
+		}
+		else {
+			color = RGB_TO_COLORF(NEUTRAL_900);
+		}
+
+		if (CBT::LIGHTNESS != a_modelData.hoverButtonType) {
+			color.a = DEFAULT_TRANSPARENCY;
+		}
+
+		ap_direct2d->SetStrokeWidth(2.0f);
+		ap_direct2d->SetBrushColor(color);
+		ap_direct2d->DrawEllipse(rect);
+		ap_direct2d->SetStrokeWidth(1.0f);
+
+		return colorOnPoint;
+	};
+	static const auto DrawIndicate = [](
+		Direct2DEx *const ap_direct2d, IDWriteTextFormat *const ap_font, const std::map<CBT, DRect> &a_buttonTable, 
+		const DColor &a_lightness, const DColor &a_backgroundColor, const DColor &a_textColor
+		)
+	{
+		const auto rect = a_buttonTable.at(CBT::INDICATE);
+		std::wstring rgbText = L"HEX: " +
+			FloatToHexWString(a_lightness.r) +
+			FloatToHexWString(a_lightness.g) +
+			FloatToHexWString(a_lightness.b);
+
+		ap_direct2d->SetBrushColor(a_backgroundColor);
+		ap_direct2d->FillRoundedRectangle(rect, 3.0f);
+
+		auto previousFont = ap_direct2d->SetTextFormat(ap_font);
+		ap_direct2d->SetBrushColor(a_textColor);
+		ap_direct2d->DrawUserText(rgbText.c_str(), rect);
+		ap_direct2d->SetTextFormat(previousFont);
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -184,6 +256,9 @@ void ColorAddView::Paint(const CMD &a_modelData)
 	DrawHueButton(mp_direct2d, m_mainColor, a_modelData);
 
 	DrawLightnessCircle(mp_direct2d, mp_lightnessGradientBrush, m_lightnessRect);
+	const DColor lightness = DrawLightnessButton(this, mp_direct2d, a_modelData);
+	
+	DrawIndicate(mp_direct2d, mp_indicateFont, m_buttonTable, lightness, m_oppositeColor, m_mainColor);
 }
 
 void ColorAddView::UpdateLightnessData(const DColor &a_hue)
@@ -236,7 +311,7 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 	////////////////////////////////////////////////////////////////
 	// update memory pattern
 	////////////////////////////////////////////////////////////////
-	WICRect wicRect = { 0, 0, COLOR_DIALOG_WIDTH, COLOR_DIALOG_HEGIHT };
+	WICRect wicRect = { 0, 0, COLOR_DIALOG_WIDTH, COLOR_DIALOG_HEIGHT };
 	IWICBitmapLock *p_lock = nullptr;
 
 	if (nullptr == mp_memoryBitmap) {
@@ -247,7 +322,7 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 		unsigned int bufferSize = 0;
 		unsigned int stride = 0;
 		WICInProcPointer p_pattern = nullptr;
-		
+
 		if (S_OK == p_lock->GetStride(&stride)) {
 			if (S_OK == p_lock->GetDataPointer(&bufferSize, &p_pattern)) {
 				if (p_pattern) {

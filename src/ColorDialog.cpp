@@ -13,14 +13,14 @@ ColorDialog::ColorDialog(const DColor &a_selectedColor, const std::vector<DColor
 	WindowDialog(L"COLORDIALOG", L"ColorDialog"),
 	m_previousSelectedColor(a_selectedColor)
 {
-	SetSize(COLOR_DILAOG_SIZE.cx, COLOR_DILAOG_SIZE.cy);
+	SetSize(COLOR_DIALOG_WIDTH, COLOR_DIALOG_HEIGHT);
 
 	m_drawMode = CDM::SELECT;
 	m_modelData = {
 		INVALID_INDEX, INVALID_INDEX, CBT::NONE, CBT::NONE, {0, }
 	};
 
-	memset(&m_centerPoint, 0, sizeof(DPoint));
+	memset(&m_colorCenterPoint, 0, sizeof(DPoint));
 	isInitializedAddMode = false;
 	m_selectedColorIndex = INVALID_INDEX;
 }
@@ -107,11 +107,34 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		const auto y = static_cast<float>(a_centerPoint.y + sin(theta) * HUE_CIRCLE_RADIUS * sign);
 
 		a_modelData.hueButtonRect = {
-			x - HUE_BUTTON_RADIUS, y - HUE_BUTTON_RADIUS,
-			x + HUE_BUTTON_RADIUS, y + HUE_BUTTON_RADIUS
+			x - BUTTON_RADIUS, y - BUTTON_RADIUS,
+			x + BUTTON_RADIUS, y + BUTTON_RADIUS
 		};
 
 		p_view->UpdateLightnessCircle(DPoint({ x, y }));
+	};
+	static const auto OnClickedLightnessButton = [](const POINT &a_point, const DPoint &a_centerPoint, CMD &a_modelData)
+	{
+		const float dx = a_point.x - a_centerPoint.x;
+		const float dy = a_point.y - a_centerPoint.y;
+
+		float x, y;
+		if (dx * dx + dy * dy < LIHTNESS_CIRCLE_RADIUS * LIHTNESS_CIRCLE_RADIUS) {
+			x = static_cast<float>(a_point.x);
+			y = static_cast<float>(a_point.y);
+		}
+		else {
+			double theta = atan(dy / dx);
+			int sign = dx >= 0 ? 1 : -1;
+
+			x = static_cast<float>(a_centerPoint.x + cos(theta) * (LIHTNESS_CIRCLE_RADIUS - 1.0f) * sign);
+			y = static_cast<float>(a_centerPoint.y + sin(theta) * (LIHTNESS_CIRCLE_RADIUS - 1.0f) * sign);
+		}
+
+		a_modelData.lightnessButtonRect = {
+			x - BUTTON_RADIUS, y - BUTTON_RADIUS,
+			x + BUTTON_RADIUS, y + BUTTON_RADIUS
+		};
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -127,8 +150,16 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	}
 
 	if (CBT::HUE == m_modelData.clickedButtonType) {
-		OnClickedHueButton(static_cast<ColorView *>(mp_direct2d), point, m_centerPoint, m_modelData);
+		OnClickedHueButton(static_cast<ColorView *>(mp_direct2d), point, m_colorCenterPoint, m_modelData);
 		Invalidate();
+		
+		return S_OK;
+	}
+
+	if (CBT::LIGHTNESS == m_modelData.clickedButtonType) {
+		OnClickedLightnessButton(point, m_colorCenterPoint, m_modelData);
+		Invalidate();
+
 		return S_OK;
 	}
 
@@ -145,15 +176,12 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 
 	if (PointInRect(m_modelData.hueButtonRect, point)) {
 		m_modelData.hoverButtonType = CBT::HUE;
-		Invalidate();
-
-		return S_OK;
-	}
-
-	if (CBT::NONE != m_modelData.hoverButtonType) {
+	} else if (PointInRect(m_modelData.lightnessButtonRect, point)) {
+		m_modelData.hoverButtonType = CBT::LIGHTNESS;
+	} else if (CBT::NONE != m_modelData.hoverButtonType) {
 		m_modelData.hoverButtonType = CBT::NONE;
-		Invalidate();
 	}
+	Invalidate();
 
 	return S_OK;
 }
@@ -187,16 +215,16 @@ int ColorDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPar
 	// implementation
 	////////////////////////////////////////////////////////////////
 
-	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
 	if (CDM::SELECT == m_drawMode) {
-		OnSelectMode(m_colorDataTable, m_addButtonData, this, m_modelData.clickedIndex, pos);
+		OnSelectMode(m_colorDataTable, m_addButtonData, this, m_modelData.clickedIndex, point);
 
 		return S_OK;
 	}
 
 	for (auto const &[type, rect] : m_buttonTable) {
-		if (PointInRect(rect, pos)) {
+		if (PointInRect(rect, point)) {
 			m_modelData.clickedButtonType = type;
 			Invalidate();
 
@@ -204,10 +232,11 @@ int ColorDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPar
 		}
 	}
 
-	if (PointInRect(m_modelData.hueButtonRect, pos)) {
+	if (PointInRect(m_modelData.hueButtonRect, point)) {
 		m_modelData.clickedButtonType = CBT::HUE;
-
-		return S_OK;
+	} else if (PointInRect(m_modelData.lightnessButtonRect, point)) {
+		m_modelData.clickedButtonType = CBT::LIGHTNESS;
+		Invalidate();
 	}
 
 	return S_OK;
@@ -256,16 +285,16 @@ int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 	// implementation
 	////////////////////////////////////////////////////////////////
 
-	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
 	if (CDM::SELECT == m_drawMode) {
-		OnSelectMode(m_colorDataTable, m_addButtonData, m_selectedColorIndex, this, m_modelData.clickedIndex, pos);
+		OnSelectMode(m_colorDataTable, m_addButtonData, m_selectedColorIndex, this, m_modelData.clickedIndex, point);
 
 		return S_OK;
 	}
 
 	for (auto const &[type, rect] : m_buttonTable) {
-		if (PointInRect(rect, pos)) {
+		if (PointInRect(rect, point)) {
 			if (type == m_modelData.clickedButtonType) {
 				ChangeMode(CDM::SELECT);
 			}
@@ -307,16 +336,21 @@ void ColorDialog::ChangeMode(const CDM &a_drawModw)
 	if (CDM::ADD == a_drawModw && !isInitializedAddMode) {
 		isInitializedAddMode = true;
 
-		m_centerPoint = {
-			COLOR_DILAOG_SIZE.cx / 2.0f, TITLE_HEIGHT + (COLOR_DILAOG_SIZE.cy - TITLE_HEIGHT - INDICATE_HEIGHT) / 2.0f
+		m_colorCenterPoint = {
+			COLOR_DIALOG_WIDTH / 2.0f, TITLE_HEIGHT + (COLOR_DIALOG_HEIGHT - TITLE_HEIGHT - INDICATE_HEIGHT) / 2.0f - 10.0f
 		};
 
 		m_modelData.hueButtonRect = {
-			m_centerPoint.x + HUE_CIRCLE_RADIUS - HUE_BUTTON_RADIUS, m_centerPoint.y - HUE_BUTTON_RADIUS,
-			m_centerPoint.x + HUE_CIRCLE_RADIUS + HUE_BUTTON_RADIUS, m_centerPoint.y + HUE_BUTTON_RADIUS
+			m_colorCenterPoint.x + HUE_CIRCLE_RADIUS - BUTTON_RADIUS, m_colorCenterPoint.y - BUTTON_RADIUS,
+			m_colorCenterPoint.x + HUE_CIRCLE_RADIUS + BUTTON_RADIUS, m_colorCenterPoint.y + BUTTON_RADIUS
 		};
 
-		static_cast<ColorView *>(mp_direct2d)->InitColorAddView(m_centerPoint);
+		m_modelData.lightnessButtonRect = {
+			m_colorCenterPoint.x - BUTTON_RADIUS, m_colorCenterPoint.y - BUTTON_RADIUS,
+			m_colorCenterPoint.x + BUTTON_RADIUS, m_colorCenterPoint.y + BUTTON_RADIUS
+		};
+
+		static_cast<ColorView *>(mp_direct2d)->InitColorAddView(m_colorCenterPoint);
 		m_buttonTable = static_cast<ColorView *>(mp_direct2d)->GetButtonTable();
 	}
 

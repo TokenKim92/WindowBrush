@@ -24,12 +24,13 @@ protected:
 
 	// interface
 	ID2D1LinearGradientBrush *mp_lightnessGradientBrush;
+	IDWriteTextFormat *mp_indicateFont;
 
 	// memory interface
 	IWICBitmap *mp_memoryBitmap;
 	ID2D1RenderTarget *mp_memoryTarget;
 	// values of memory bitmap to access color pixel
-	unsigned char m_memoryPattern[COLOR_DIALOG_WIDTH * COLOR_DIALOG_HEGIHT * sizeof(unsigned int)];
+	unsigned char m_memoryPattern[COLOR_DIALOG_WIDTH * COLOR_DIALOG_HEIGHT * sizeof(unsigned int)];
 
 public:
 	ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode);

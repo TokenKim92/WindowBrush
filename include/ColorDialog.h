@@ -19,7 +19,7 @@ protected:
 	size_t m_selectedColorIndex;
 
 	// variables for add mode
-	DPoint m_centerPoint;
+	DPoint m_colorCenterPoint;
 	bool isInitializedAddMode;
 	std::map<CBT, DRect> m_buttonTable;
 
