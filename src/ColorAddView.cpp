@@ -17,8 +17,15 @@ ColorAddView::ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode) :
 		m_mainColor = RGB_TO_COLORF(NEUTRAL_600);
 		m_oppositeColor = RGB_TO_COLORF(NEUTRAL_200);
 	}
+	memset(&m_currentLightness, 0, sizeof(DColor));
 
 	memset(&m_lightnessRect, 0, sizeof(DRect));
+	const float margin = 10.0f;
+	const DSize indicateButtonSize = { 100.0f, 35.0f };
+	m_indicateRect = {
+		COLOR_DIALOG_WIDTH - indicateButtonSize.width - margin, COLOR_DIALOG_HEIGHT - indicateButtonSize.height - margin,
+		COLOR_DIALOG_WIDTH - margin, COLOR_DIALOG_HEIGHT - margin
+	};
 
 	mp_lightnessGradientBrush = nullptr;
 	mp_indicateFont = nullptr;
@@ -119,21 +126,24 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 	{{ 14.0f, TITLE_HEIGHT / 2.0f }, { TITLE_HEIGHT - 14.0f, TITLE_HEIGHT - 10.0f }}
 	};
 
-	const float margin = 10.0f;
-	const DSize indicateButtonSize = { 100.0f, 35.0f };
+	const float margin = 20.0f;
+	const float addButtonSize = 20.0f;
 	m_buttonTable = {
-		{ CBT::RETURN, { 10.0f, 10.0f, TITLE_HEIGHT - 10.0f, TITLE_HEIGHT - 10.0f } },
 		{
-			CBT::INDICATE,
+			CBT::RETURN,
+			{ 10.0f, 10.0f, TITLE_HEIGHT - 10.0f, TITLE_HEIGHT - 10.0f }
+		},
+		{
+			CBT::ADD,
 			{
-				COLOR_DIALOG_WIDTH - indicateButtonSize.width - margin, COLOR_DIALOG_HEIGHT - indicateButtonSize.height - margin,
-				COLOR_DIALOG_WIDTH - margin, COLOR_DIALOG_HEIGHT - margin
+				margin, COLOR_DIALOG_HEIGHT - addButtonSize - margin,
+				addButtonSize + margin, COLOR_DIALOG_HEIGHT - margin
 			}
 
 		}
 	};
 
-	mp_indicateFont = mp_direct2d->CreateTextFormat(DEFAULT_FONT_NAME, 14.0f, DWRITE_FONT_WEIGHT_SEMI_BOLD, DWRITE_FONT_STYLE_NORMAL);
+	mp_indicateFont = mp_direct2d->CreateTextFormat(DEFAULT_FONT_NAME, 13.0f, DWRITE_FONT_WEIGHT_SEMI_BOLD, DWRITE_FONT_STYLE_NORMAL);
 	mp_indicateFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	mp_indicateFont->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
@@ -226,23 +236,77 @@ void ColorAddView::Paint(const CMD &a_modelData)
 
 		return colorOnPoint;
 	};
+	static const auto DrawAddButton = [](
+		Direct2DEx *const ap_direct2d, IDWriteTextFormat *const ap_font, const DRect &a_rect, const DColor &a_color,
+		const DColor &a_borderColor, const DColor &a_oppositeColor, const CMD &a_modelData
+		)
+	{
+		// draw main circle
+		DRect mainRect = a_rect;
+		if (CBT::ADD == a_modelData.clickedButtonType) {
+			ShrinkRect(mainRect, 1.0f);
+		}
+		else if (CBT::ADD == a_modelData.hoverButtonType) {
+			ExpandRect(mainRect, 2.0f);
+		}
+
+		ap_direct2d->SetBrushColor(a_color);
+		ap_direct2d->FillEllipse(mainRect);
+		ap_direct2d->SetBrushColor(a_borderColor);
+		ap_direct2d->DrawEllipse(mainRect);
+
+		// draw small circle
+		const float SMALL_RADIUS = 7.0f;
+		float offset = 2.0f;
+		const DRect smallRect = {
+			mainRect.right - SMALL_RADIUS - offset, mainRect.top + SMALL_RADIUS + offset,
+			mainRect.right + SMALL_RADIUS - offset, mainRect.top - SMALL_RADIUS + offset,
+		};
+		ap_direct2d->FillEllipse(smallRect);
+
+		// draw + on small circle
+		offset = 3.0f;
+		const float centerPosX = (smallRect.left + smallRect.right) / 2.0f;
+		const float centerPosY = (smallRect.top + smallRect.bottom) / 2.0f;
+
+		DPoint startPos = { smallRect.left + offset, centerPosY };
+		DPoint endPos = { smallRect.right - offset, centerPosY };
+		ap_direct2d->SetStrokeWidth(2.0f);
+		ap_direct2d->SetBrushColor(a_oppositeColor);
+		ap_direct2d->DrawLine(startPos, endPos);
+
+		startPos = { centerPosX, smallRect.top - offset };
+		endPos = { centerPosX, smallRect.bottom + offset };
+		ap_direct2d->DrawLine(startPos, endPos);
+		ap_direct2d->SetStrokeWidth(1.0f);
+
+		// draw title
+		const DRect titleRect = {
+			a_rect.right, a_rect.top,
+			a_rect.right + 80.0f, a_rect.bottom
+		};
+
+		auto previousFont = ap_direct2d->SetTextFormat(ap_font);
+		ap_direct2d->SetBrushColor(a_borderColor);
+		ap_direct2d->DrawUserText(L"Add color", titleRect);
+		ap_direct2d->SetTextFormat(previousFont);
+	};
 	static const auto DrawIndicate = [](
-		Direct2DEx *const ap_direct2d, IDWriteTextFormat *const ap_font, const std::map<CBT, DRect> &a_buttonTable, 
+		Direct2DEx *const ap_direct2d, IDWriteTextFormat *const ap_font, const DRect &a_rect,
 		const DColor &a_lightness, const DColor &a_backgroundColor, const DColor &a_textColor
 		)
 	{
-		const auto rect = a_buttonTable.at(CBT::INDICATE);
 		std::wstring rgbText = L"HEX: " +
 			FloatToHexWString(a_lightness.r) +
 			FloatToHexWString(a_lightness.g) +
 			FloatToHexWString(a_lightness.b);
 
 		ap_direct2d->SetBrushColor(a_backgroundColor);
-		ap_direct2d->FillRoundedRectangle(rect, 3.0f);
+		ap_direct2d->FillRoundedRectangle(a_rect, 3.0f);
 
 		auto previousFont = ap_direct2d->SetTextFormat(ap_font);
 		ap_direct2d->SetBrushColor(a_textColor);
-		ap_direct2d->DrawUserText(rgbText.c_str(), rect);
+		ap_direct2d->DrawUserText(rgbText.c_str(), a_rect);
 		ap_direct2d->SetTextFormat(previousFont);
 	};
 
@@ -256,9 +320,10 @@ void ColorAddView::Paint(const CMD &a_modelData)
 	DrawHueButton(mp_direct2d, m_mainColor, a_modelData);
 
 	DrawLightnessCircle(mp_direct2d, mp_lightnessGradientBrush, m_lightnessRect);
-	const DColor lightness = DrawLightnessButton(this, mp_direct2d, a_modelData);
-	
-	DrawIndicate(mp_direct2d, mp_indicateFont, m_buttonTable, lightness, m_oppositeColor, m_mainColor);
+	m_currentLightness = DrawLightnessButton(this, mp_direct2d, a_modelData);
+
+	DrawAddButton(mp_direct2d, mp_indicateFont, m_buttonTable.at(CBT::ADD), m_currentLightness, m_mainColor, m_oppositeColor, a_modelData);
+	DrawIndicate(mp_direct2d, mp_indicateFont, m_indicateRect, m_currentLightness, m_oppositeColor, m_mainColor);
 }
 
 void ColorAddView::UpdateLightnessData(const DColor &a_hue)
@@ -344,4 +409,9 @@ DColor ColorAddView::GetPixelColorOnPoint(const DPoint &a_point)
 	const auto memoryIndex = COLOR_DIALOG_WIDTH * static_cast<unsigned int>(a_point.y) + static_cast<unsigned int>(a_point.x);
 	const auto p_color = reinterpret_cast<COLORREF *>(m_memoryPattern) + memoryIndex;
 	return RGB_TO_COLORF(*p_color);
+}
+
+DColor &ColorAddView::GetCurrentLightness()
+{
+	return m_currentLightness;
 }

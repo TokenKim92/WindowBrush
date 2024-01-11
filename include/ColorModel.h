@@ -24,8 +24,7 @@ typedef enum class COLOR_BUTTON_TYPE
 	RETURN,
 	HUE,
 	LIGHTNESS,
-	ADD,
-	INDICATE
+	ADD
 }CBT;
 
 typedef struct COLOR_MODEL_DATA

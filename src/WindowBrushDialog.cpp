@@ -106,7 +106,10 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			a_buttonShapeData.drawMode = WBBT::NONE;;
 		}
 	};
-	static const auto OnColorButtonUp = [](const HWND &ah_parentWindow, WBMD &a_buttonShapeData, const CM &a_mode, Direct2DEx *const ap_direct2d)
+	static const auto OnColorButtonUp = [](
+		const HWND &ah_parentWindow, WBMD &a_buttonShapeData, const CM &a_mode,
+		Direct2DEx *const ap_direct2d, std::vector<DColor> &a_colorList
+		)
 	{
 		RECT rect;
 		::GetWindowRect(ah_parentWindow, &rect);
@@ -114,16 +117,16 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
 		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
 
-		std::vector<DColor> colorList;
-		ColorDialog instanceDialog(a_buttonShapeData.selectedColor, colorList);
+		ColorDialog instanceDialog(a_buttonShapeData.selectedColor, a_colorList);
 		instanceDialog.SetStyle(WS_POPUP | WS_VISIBLE);
 		instanceDialog.SetExtendStyle(WS_EX_TOPMOST);
 		instanceDialog.SetThemeMode(a_mode);
 
 		const SIZE size = instanceDialog.GetSize();
 		instanceDialog.DoModal(ah_parentWindow, centerPosX - size.cx / 2, centerPosY - size.cy / 2);
+		
 		a_buttonShapeData.selectedColor = instanceDialog.GetSelectedColor();
-
+		a_colorList = instanceDialog.GetColorList();
 		static_cast<WindowBrushView *>(ap_direct2d)->UpdateColorSymbolBrush(a_buttonShapeData.selectedColor);
 	};
 	static const auto OnGradientButtonUp = [](WBMD &a_buttonShapeData)
@@ -158,7 +161,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 				OnGradientButtonUp(m_modelData);
 				break;
 			case WBBT::COLOR:
-				OnColorButtonUp(mh_window, m_modelData, GetThemeMode(), mp_direct2d);
+				OnColorButtonUp(mh_window, m_modelData, GetThemeMode(), mp_direct2d, m_colorList);
 				break;
 			case WBBT::FADE:
 				OnFadeButtonUp(m_modelData);

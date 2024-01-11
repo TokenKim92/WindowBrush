@@ -3,12 +3,15 @@
 
 #include "WindowDialog.h"
 #include "WindowBrushModel.h"
+#include <vector>
 
 class WindowBrushDialog : public WindowDialog
 {
 protected:
 	std::map<WBBT, DRect> m_buttonTable;
 	WBMD m_modelData;
+
+	std::vector<DColor> m_colorList;
 
 public:
 	WindowBrushDialog();

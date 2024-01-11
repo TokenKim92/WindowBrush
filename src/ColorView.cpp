@@ -102,9 +102,19 @@ void ColorView::UpdateLightnessCircle(const DPoint &a_point)
 	}
 }
 
+void ColorView::AddCurrentLightness()
+{
+	m_selectView.AddColor(m_addView.GetCurrentLightness());
+}
+
 DColor ColorView::GetColor(const size_t &a_index)
 {
 	return m_selectView.GetColor(a_index);
+}
+
+std::vector<DColor> ColorView::GetColorList()
+{
+	return m_selectView.GetColorList();
 }
 
 const std::map<size_t, DRect> ColorView::GetColorDataTable()

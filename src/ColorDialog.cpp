@@ -11,7 +11,8 @@
 
 ColorDialog::ColorDialog(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList) :
 	WindowDialog(L"COLORDIALOG", L"ColorDialog"),
-	m_previousSelectedColor(a_selectedColor)
+	m_previousSelectedColor(a_selectedColor),
+	m_colorList(a_colorList)
 {
 	SetSize(COLOR_DIALOG_WIDTH, COLOR_DIALOG_HEIGHT);
 
@@ -136,6 +137,47 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 			x + BUTTON_RADIUS, y + BUTTON_RADIUS
 		};
 	};
+	static const auto OnAddMode = [](
+		ColorView *const ap_view, ColorDialog *const ap_dialog, const POINT &a_point, const DPoint &a_colorCenterPoint,
+		const std::map<CBT, DRect> &a_buttonTable, CMD &a_modelData
+		)
+	{
+		if (CBT::HUE == a_modelData.clickedButtonType) {
+			OnClickedHueButton(ap_view, a_point, a_colorCenterPoint, a_modelData);
+			ap_dialog->Invalidate();
+
+			return;
+		}
+
+		if (CBT::LIGHTNESS == a_modelData.clickedButtonType) {
+			OnClickedLightnessButton(a_point, a_colorCenterPoint, a_modelData);
+			ap_dialog->Invalidate();
+
+			return;
+		}
+
+		for (auto const &[type, rect] : a_buttonTable) {
+			if (PointInRect(rect, a_point)) {
+				if (type != a_modelData.hoverButtonType) {
+					a_modelData.hoverButtonType = type;
+					ap_dialog->Invalidate();
+				}
+
+				return;
+			}
+		}
+
+		if (PointInRect(a_modelData.hueButtonRect, a_point)) {
+			a_modelData.hoverButtonType = CBT::HUE;
+		}
+		else if (PointInRect(a_modelData.lightnessButtonRect, a_point)) {
+			a_modelData.hoverButtonType = CBT::LIGHTNESS;
+		}
+		else if (CBT::NONE != a_modelData.hoverButtonType) {
+			a_modelData.hoverButtonType = CBT::NONE;
+		}
+		ap_dialog->Invalidate();
+	};
 
 	////////////////////////////////////////////////////////////////
 	// implementation
@@ -145,43 +187,10 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 
 	if (CDM::SELECT == m_drawMode) {
 		OnSelectMode(m_colorDataTable, m_addButtonData, this, m_modelData.hoverIndex, point);
-
-		return S_OK;
 	}
-
-	if (CBT::HUE == m_modelData.clickedButtonType) {
-		OnClickedHueButton(static_cast<ColorView *>(mp_direct2d), point, m_colorCenterPoint, m_modelData);
-		Invalidate();
-		
-		return S_OK;
+	else {
+		OnAddMode(static_cast<ColorView *>(mp_direct2d), this, point, m_colorCenterPoint, m_buttonTable, m_modelData);
 	}
-
-	if (CBT::LIGHTNESS == m_modelData.clickedButtonType) {
-		OnClickedLightnessButton(point, m_colorCenterPoint, m_modelData);
-		Invalidate();
-
-		return S_OK;
-	}
-
-	for (auto const &[type, rect] : m_buttonTable) {
-		if (PointInRect(rect, point)) {
-			if (type != m_modelData.hoverButtonType) {
-				m_modelData.hoverButtonType = type;
-				Invalidate();
-			}
-
-			return S_OK;
-		}
-	}
-
-	if (PointInRect(m_modelData.hueButtonRect, point)) {
-		m_modelData.hoverButtonType = CBT::HUE;
-	} else if (PointInRect(m_modelData.lightnessButtonRect, point)) {
-		m_modelData.hoverButtonType = CBT::LIGHTNESS;
-	} else if (CBT::NONE != m_modelData.hoverButtonType) {
-		m_modelData.hoverButtonType = CBT::NONE;
-	}
-	Invalidate();
 
 	return S_OK;
 }
@@ -210,75 +219,26 @@ int ColorDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPar
 			return;
 		}
 	};
-
-	////////////////////////////////////////////////////////////////
-	// implementation
-	////////////////////////////////////////////////////////////////
-
-	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
-
-	if (CDM::SELECT == m_drawMode) {
-		OnSelectMode(m_colorDataTable, m_addButtonData, this, m_modelData.clickedIndex, point);
-
-		return S_OK;
-	}
-
-	for (auto const &[type, rect] : m_buttonTable) {
-		if (PointInRect(rect, point)) {
-			m_modelData.clickedButtonType = type;
-			Invalidate();
-
-			return S_OK;
-		}
-	}
-
-	if (PointInRect(m_modelData.hueButtonRect, point)) {
-		m_modelData.clickedButtonType = CBT::HUE;
-	} else if (PointInRect(m_modelData.lightnessButtonRect, point)) {
-		m_modelData.clickedButtonType = CBT::LIGHTNESS;
-		Invalidate();
-	}
-
-	return S_OK;
-}
-
-// to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
-int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
-{
-	static const auto OnSelectMode = [](
-		const std::map<size_t, DRect> a_colorDataTable, const std::pair<size_t, DRect> &a_addButtonData,
-		size_t &a_selectedColorIndex, ColorDialog *const a_dialog, size_t &a_clickedIndex, const POINT &pos
+	static const auto OnAddMode = [](
+		ColorDialog *const ap_dialog, const POINT &a_point, const std::map<CBT, DRect> &a_buttonTable, CMD &a_modelData
 		)
 	{
-		for (auto const &[index, rect] : a_colorDataTable) {
-			if (PointInRect(rect, pos)) {
-				if (index == a_clickedIndex) {
-					a_selectedColorIndex = index;
-					::DestroyWindow(a_dialog->GetWidnowHandle());
-				}
-				else {
-					a_clickedIndex = INVALID_INDEX;
-					a_dialog->Invalidate();
-				}
+		for (auto const &[type, rect] : a_buttonTable) {
+			if (PointInRect(rect, a_point)) {
+				a_modelData.clickedButtonType = type;
+				ap_dialog->Invalidate();
 
 				return;
 			}
 		}
 
-		if (PointInRect(a_addButtonData.second, pos)) {
-			if (a_addButtonData.first == a_clickedIndex) {
-				a_dialog->ChangeMode(CDM::ADD);
-			}
-			else {
-				a_clickedIndex = INVALID_INDEX;
-				a_dialog->Invalidate();
-			}
-
-			return;
+		if (PointInRect(a_modelData.hueButtonRect, a_point)) {
+			a_modelData.clickedButtonType = CBT::HUE;
 		}
-
-		a_clickedIndex = INVALID_INDEX;
-		a_dialog->Invalidate();
+		else if (PointInRect(a_modelData.lightnessButtonRect, a_point)) {
+			a_modelData.clickedButtonType = CBT::LIGHTNESS;
+			ap_dialog->Invalidate();
+		}
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -288,26 +248,89 @@ int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
 	if (CDM::SELECT == m_drawMode) {
-		OnSelectMode(m_colorDataTable, m_addButtonData, m_selectedColorIndex, this, m_modelData.clickedIndex, point);
-
-		return S_OK;
+		OnSelectMode(m_colorDataTable, m_addButtonData, this, m_modelData.clickedIndex, point);
+	}
+	else {
+		OnAddMode(this, point, m_buttonTable, m_modelData);
 	}
 
-	for (auto const &[type, rect] : m_buttonTable) {
-		if (PointInRect(rect, point)) {
-			if (type == m_modelData.clickedButtonType) {
-				ChangeMode(CDM::SELECT);
+	return S_OK;
+}
+
+// to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
+int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
+{
+	static const auto OnSelectMode = [](
+		ColorDialog *const ap_dialog, const POINT &point, const std::map<size_t, DRect> a_colorDataTable,
+		const std::pair<size_t, DRect> &a_addButtonData, size_t &a_selectedColorIndex, CMD &a_modelData
+		)
+	{
+		for (auto const &[index, rect] : a_colorDataTable) {
+			if (PointInRect(rect, point)) {
+				if (index == a_modelData.clickedIndex) {
+					a_selectedColorIndex = index;
+					::DestroyWindow(ap_dialog->GetWidnowHandle());
+				}
+				else {
+					a_modelData.clickedIndex = INVALID_INDEX;
+					ap_dialog->Invalidate();
+				}
+
+				return;
+			}
+		}
+
+		if (PointInRect(a_addButtonData.second, point)) {
+			if (a_addButtonData.first == a_modelData.clickedIndex) {
+				ap_dialog->ChangeMode(CDM::ADD);
 			}
 			else {
-				m_modelData.clickedButtonType = CBT::NONE;
+				a_modelData.clickedIndex = INVALID_INDEX;
 			}
+			ap_dialog->Invalidate();
 
-			return S_OK;
+			return;
 		}
-	}
 
-	m_modelData.clickedButtonType = CBT::NONE;
-	Invalidate();
+		a_modelData.clickedIndex = INVALID_INDEX;
+		ap_dialog->Invalidate();
+	};
+	static const auto OnAddMode = [](
+		ColorView *const ap_view, ColorDialog *const ap_dialog, const POINT &a_point, const std::map<CBT, DRect> &a_buttonTable, 
+		std::map<size_t, DRect> &a_colorDataTable, std::pair<size_t, DRect> &a_addButtonData, CMD &a_modelData)
+	{
+		for (auto const &[type, rect] : a_buttonTable) {
+			if (PointInRect(rect, a_point)) {
+				if (type == a_modelData.clickedButtonType) {
+					if (CBT::ADD == type) {
+						ap_view->AddCurrentLightness();
+						a_colorDataTable = ap_view->GetColorDataTable();
+						a_addButtonData = ap_view->GetAddButtonData();
+					}
+
+					ap_dialog->ChangeMode(CDM::SELECT);
+				}
+
+				break;
+			}
+		}
+
+		a_modelData.clickedButtonType = CBT::NONE;
+		ap_dialog->Invalidate();
+	};
+
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
+
+	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
+
+	if (CDM::SELECT == m_drawMode) {
+		OnSelectMode(this, point, m_colorDataTable, m_addButtonData, m_selectedColorIndex, m_modelData);
+	}
+	else {
+		OnAddMode(static_cast<ColorView *>(mp_direct2d), this, point, m_buttonTable, m_colorDataTable, m_addButtonData, m_modelData);
+	}
 
 	return S_OK;
 }
@@ -353,8 +376,6 @@ void ColorDialog::ChangeMode(const CDM &a_drawModw)
 		static_cast<ColorView *>(mp_direct2d)->InitColorAddView(m_colorCenterPoint);
 		m_buttonTable = static_cast<ColorView *>(mp_direct2d)->GetButtonTable();
 	}
-
-	Invalidate();
 }
 
 DColor ColorDialog::GetSelectedColor()
@@ -366,3 +387,7 @@ DColor ColorDialog::GetSelectedColor()
 	return static_cast<ColorView *>(mp_direct2d)->GetColor(m_selectedColorIndex);
 }
 
+std::vector<DColor> ColorDialog::GetColorList()
+{
+	return static_cast<ColorView *>(mp_direct2d)->GetColorList();
+}

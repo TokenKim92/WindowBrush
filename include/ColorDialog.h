@@ -12,7 +12,7 @@ protected:
 	CMD m_modelData;
 
 	// variables for select mode
-	std::vector<DColor> m_colorList;
+	const std::vector<DColor> &m_colorList;
 	std::map<size_t, DRect> m_colorDataTable;		// key is a index
 	std::pair<size_t, DRect> m_addButtonData;		// first data of pair is a index
 	const DColor m_previousSelectedColor;
@@ -28,6 +28,7 @@ public:
 	virtual ~ColorDialog();
 
 	DColor GetSelectedColor();
+	std::vector<DColor> GetColorList();
 
 protected:
 	virtual void OnInitDialog() override;

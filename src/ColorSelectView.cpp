@@ -195,10 +195,18 @@ void ColorSelectView::Paint(const CMD &a_modelData)
 
 	DrawColorItems(mp_direct2d, m_mainColor, m_colorDataTable, a_modelData);
 	DrawSelectedColorItem(mp_direct2d, m_mainColor, m_selectedColorData, m_colorDataTable, a_modelData);
-	
+
 	mp_direct2d->SetStrokeWidth(1.0f);
 
 	DrawAddButton(mp_direct2d, m_mainColor, m_oppositeColor, mp_addButtonStroke, m_addButtonData, a_modelData);
+}
+
+void ColorSelectView::AddColor(const DColor &a_color)
+{
+	const size_t index = m_colorDataTable.size();
+	m_colorDataTable.insert({ index, { a_color, GetColorRect(index) } });
+
+	m_addButtonData = { index + 1, GetColorRect(index + 1) };
 }
 
 DColor ColorSelectView::GetColor(const size_t &a_index)
@@ -208,6 +216,16 @@ DColor ColorSelectView::GetColor(const size_t &a_index)
 	}
 
 	return DColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+}
+
+std::vector<DColor> ColorSelectView::GetColorList()
+{
+	std::vector<DColor> tempVec;
+	for (auto &[index, data] : m_colorDataTable) {
+		tempVec.push_back(data.first);
+	}
+
+	return tempVec;
 }
 
 const std::map<size_t, DRect> ColorSelectView::GetColorDataTable()

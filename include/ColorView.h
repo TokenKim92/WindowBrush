@@ -32,7 +32,11 @@ public:
 	void InitColorAddView(const DPoint &a_centerPoint);
 	void UpdateLightnessCircle(const DPoint &a_point);
 
+	void AddCurrentLightness();
+
 	DColor GetColor(const size_t &a_index);
+	std::vector<DColor> GetColorList();
+
 	const std::map<size_t, DRect> GetColorDataTable();
 	const std::pair<size_t, DRect> &GetAddButtonData();
 	const std::map<CBT, DRect> &GetButtonTable();

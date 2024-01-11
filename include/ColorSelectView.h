@@ -32,7 +32,10 @@ public:
 	void Init(const SIZE &a_viewSize);
 	void Paint(const CMD &a_modelData);
 
+	void AddColor(const DColor &a_color);
+
 	DColor GetColor(const size_t &a_index);
+	std::vector<DColor> GetColorList();
 	const std::map<size_t, DRect> GetColorDataTable();
 	const std::pair<size_t, DRect> &GetAddButtonData();
 
