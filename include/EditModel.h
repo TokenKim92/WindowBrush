@@ -1,0 +1,59 @@
+#ifndef _EDIT_MODEL_H_
+#define _EDIT_MODEL_H_
+
+namespace EDIT {
+	//////////////////
+	//TODO::
+	const unsigned int MIN_VALIE_VALUE = 1;
+	const unsigned int MAX_VALIE_VALUE = 100;
+	//////////////////
+
+	const unsigned int DIALOG_WIDTH = 300;
+	const unsigned int DIALOG_HEIGHT = 230;
+
+	const float DEFAULT_TRANSPARENCY = 0.8f;
+
+	const float TITLE_FONT_SIZE = 20.0f;
+	const float TEXT_FONT_SIZE = 14.0f;
+
+	const float TITLE_HEIGHT = 60.0f;
+
+	const float EDIT_MARGIN = 20.0f;
+	const float EDIT_WIDTH = 150;
+	const float EDIT_HEIGHT = 35.0;
+	const float EDIT_TITLE_HEIGHT = 22.0f;
+
+	const float WARNING_HEIGHT = 35.0;
+
+	const float BUTTON_MARGIN = 10.0f;
+	const float BUTTON_HEIGHT = 35.0f;
+
+	typedef enum class BUTTON_TPYE
+	{
+		NONE,
+		EDIT,
+		SAVE,
+		CANCEL
+	}BT;
+
+	typedef struct EDIT_DATA
+	{
+		std::wstring title;
+		DRect rect;
+		unsigned int value;
+	}ED;
+
+	typedef struct MODEL_DATA
+	{
+		BT hoverButtonType;
+		BT clickedButtonType;
+	}MD;
+
+	struct RANGE
+	{
+		unsigned int min;
+		unsigned int max;
+	};
+}
+
+#endif //!_EDIT_MODEL_H_

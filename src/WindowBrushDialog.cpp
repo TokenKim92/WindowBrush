@@ -1,6 +1,7 @@
 #include "WindowBrushDialog.h"
 #include "WindowBrushView.h"
 #include "ColorDialog.h"
+#include "EditDialog.h"
 #include "ColorPalette.h"
 #include "Utility.h"
 
@@ -26,7 +27,7 @@ WindowBrushDialog::~WindowBrushDialog()
 {
 
 }
-
+#include <vector>
 void WindowBrushDialog::OnInitDialog()
 {
 	DisableMaximize();
@@ -42,6 +43,28 @@ void WindowBrushDialog::OnInitDialog()
 	p_view->Create();
 	p_view->UpdateColorSymbolBrush(m_modelData.selectedColor);
 	m_buttonTable = p_view->GetButtonTable();
+
+	///////////////////////////////////////////////////////////////
+	// TODO:: Test Edit Dialog
+	///////////////////////////////////////////////////////////////
+	RECT rect;
+	::GetWindowRect(mh_window, &rect);
+
+	const int centerPosX = rect.left + (rect.right - rect.left) / 2;
+	const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
+
+	const std::vector<std::pair<std::wstring, unsigned int>> itemList = {
+		{ L"stroke width(px)", 10 },
+		{ L"font size(px)", 10 }
+	};
+
+	EditDialog instanceDialog(L"Stroke Width", itemList, EDIT::RANGE({1, 100}));
+	instanceDialog.SetStyle(WS_POPUP | WS_VISIBLE);
+	instanceDialog.SetExtendStyle(WS_EX_TOPMOST);
+	instanceDialog.SetThemeMode(GetThemeMode());
+
+	const SIZE size = instanceDialog.GetSize();
+	instanceDialog.DoModal(mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2);
 }
 
 void WindowBrushDialog::OnDestroy()

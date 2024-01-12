@@ -28,6 +28,12 @@
     <Filter Include="Header Files\ColorDialog">
       <UniqueIdentifier>{aa850421-18f4-4e16-b13f-d1b4814b5d3d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\EditDialog">
+      <UniqueIdentifier>{396c7987-7eba-4e7d-af5d-f2541e0430c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\EditDialog">
+      <UniqueIdentifier>{6a8a8efa-0b13-47d1-bbff-e72231ebcfc6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WindowBrush.cpp">
@@ -53,6 +59,12 @@
     </ClCompile>
     <ClCompile Include="src\ColorAddView.cpp">
       <Filter>Source Files\ColorDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EditDialog.cpp">
+      <Filter>Source Files\EditDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EditView.cpp">
+      <Filter>Source Files\EditDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +118,15 @@
     </ClInclude>
     <ClInclude Include="include\ColorAddView.h">
       <Filter>Header Files\ColorDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\EditDialog.h">
+      <Filter>Header Files\EditDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\EditView.h">
+      <Filter>Header Files\EditDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\EditModel.h">
+      <Filter>Header Files\EditDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

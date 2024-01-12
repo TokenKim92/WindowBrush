@@ -141,6 +141,8 @@
   <ItemGroup>
     <ClCompile Include="src\ColorAddView.cpp" />
     <ClCompile Include="src\ColorSelectView.cpp" />
+    <ClCompile Include="src\EditDialog.cpp" />
+    <ClCompile Include="src\EditView.cpp" />
     <ClCompile Include="src\WindowBrushView.cpp" />
     <ClCompile Include="src\ColorDialog.cpp" />
     <ClCompile Include="src\ColorView.cpp" />
@@ -156,6 +158,9 @@
     <ClInclude Include="include\base\WindowDialog.h" />
     <ClInclude Include="include\ColorAddView.h" />
     <ClInclude Include="include\ColorSelectView.h" />
+    <ClInclude Include="include\EditDialog.h" />
+    <ClInclude Include="include\EditModel.h" />
+    <ClInclude Include="include\EditView.h" />
     <ClInclude Include="include\WindowBrushView.h" />
     <ClInclude Include="include\ColorDialog.h" />
     <ClInclude Include="include\ColorModel.h" />
