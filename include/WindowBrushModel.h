@@ -20,7 +20,7 @@ namespace WINDOW_BRUSH {
 		FADE
 	} BT;
 
-	typedef struct WINDOW_BRUSH_MODEL_DATA
+	typedef struct MODEL_DATA
 	{
 		BT hoverArea;
 		BT drawMode;

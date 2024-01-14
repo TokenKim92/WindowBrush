@@ -23,8 +23,8 @@ ColorAddView::ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode) :
 	const float margin = 10.0f;
 	const DSize indicateButtonSize = { 100.0f, 35.0f };
 	m_indicateRect = {
-		COLOR_DIALOG_WIDTH - indicateButtonSize.width - margin, COLOR_DIALOG_HEIGHT - indicateButtonSize.height - margin,
-		COLOR_DIALOG_WIDTH - margin, COLOR_DIALOG_HEIGHT - margin
+		COLOR::DIALOG_WIDTH - indicateButtonSize.width - margin, COLOR::DIALOG_HEIGHT - indicateButtonSize.height - margin,
+		COLOR::DIALOG_WIDTH - margin, COLOR::DIALOG_HEIGHT - margin
 	};
 
 	mp_lightnessGradientBrush = nullptr;
@@ -102,8 +102,8 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 	////////////////////////////////////////////////////////////////
 	m_viewSize = a_viewSize;
 	m_lightnessRect = {
-		a_centerPoint.x - LIHTNESS_CIRCLE_RADIUS, a_centerPoint.y - LIHTNESS_CIRCLE_RADIUS,
-		a_centerPoint.x + LIHTNESS_CIRCLE_RADIUS, a_centerPoint.y + LIHTNESS_CIRCLE_RADIUS
+		a_centerPoint.x - COLOR::LIHTNESS_CIRCLE_RADIUS, a_centerPoint.y - COLOR::LIHTNESS_CIRCLE_RADIUS,
+		a_centerPoint.x + COLOR::LIHTNESS_CIRCLE_RADIUS, a_centerPoint.y + COLOR::LIHTNESS_CIRCLE_RADIUS
 	};
 
 	auto result = gp_appCore->GetWICFactory()->CreateBitmap(
@@ -118,26 +118,26 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 		return;
 	}
 
-	InitHueDataList(HUE_CIRCLE_RADIUS, a_centerPoint.x, a_centerPoint.y, m_hueDataList);
+	InitHueDataList(COLOR::HUE_CIRCLE_RADIUS, a_centerPoint.x, a_centerPoint.y, m_hueDataList);
 	UpdateMemoryHueCircle(mp_memoryTarget, m_hueDataList);
 
 	m_returnIconPoints = {
-	{{ 14.0f, TITLE_HEIGHT / 2.0f }, { TITLE_HEIGHT - 14.0f, 10.0f }},
-	{{ 14.0f, TITLE_HEIGHT / 2.0f }, { TITLE_HEIGHT - 14.0f, TITLE_HEIGHT - 10.0f }}
+	{{ 14.0f, COLOR::TITLE_HEIGHT / 2.0f }, { COLOR::TITLE_HEIGHT - 14.0f, 10.0f }},
+	{{ 14.0f, COLOR::TITLE_HEIGHT / 2.0f }, { COLOR::TITLE_HEIGHT - 14.0f, COLOR::TITLE_HEIGHT - 10.0f }}
 	};
 
 	const float margin = 20.0f;
 	const float addButtonSize = 20.0f;
 	m_buttonTable = {
 		{
-			CBT::RETURN,
-			{ 10.0f, 10.0f, TITLE_HEIGHT - 10.0f, TITLE_HEIGHT - 10.0f }
+			COLOR::BT::RETURN,
+			{ 10.0f, 10.0f, COLOR::TITLE_HEIGHT - 10.0f, COLOR::TITLE_HEIGHT - 10.0f }
 		},
 		{
-			CBT::ADD,
+			COLOR::BT::ADD,
 			{
-				margin, COLOR_DIALOG_HEIGHT - addButtonSize - margin,
-				addButtonSize + margin, COLOR_DIALOG_HEIGHT - margin
+				margin, COLOR::DIALOG_HEIGHT - addButtonSize - margin,
+				addButtonSize + margin, COLOR::DIALOG_HEIGHT - margin
 			}
 
 		}
@@ -150,16 +150,16 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 	return;
 }
 
-void ColorAddView::Paint(const CMD &a_modelData)
+void ColorAddView::Paint(const COLOR::MD &a_modelData)
 {
 	static const auto DrawReturnButton = [](
-		Direct2DEx *const ap_direct2d, const DColor &a_mainColor, std::vector<std::pair<DPoint, DPoint>> &a_returnIconPoints, const CMD &a_modelData
+		Direct2DEx *const ap_direct2d, const DColor &a_mainColor, std::vector<std::pair<DPoint, DPoint>> &a_returnIconPoints, const COLOR::MD &a_modelData
 		)
 	{
 
 		DColor color = a_mainColor;
-		if (CBT::RETURN == a_modelData.clickedButtonType || CBT::RETURN != a_modelData.hoverButtonType) {
-			color.a = DEFAULT_TRANSPARENCY;
+		if (COLOR::BT::RETURN == a_modelData.clickedButtonType || COLOR::BT::RETURN != a_modelData.hoverButtonType) {
+			color.a = COLOR::DEFAULT_TRANSPARENCY;
 		}
 		ap_direct2d->SetBrushColor(color);
 		ap_direct2d->SetStrokeWidth(3.0f);
@@ -190,25 +190,25 @@ void ColorAddView::Paint(const CMD &a_modelData)
 		ap_direct2d->FillEllipse(a_lightnessRect);
 		ap_direct2d->SetBrush(p_previousBrush);
 	};
-	static const auto DrawHueButton = [](Direct2DEx *const ap_direct2d, const DColor &a_buttonColor, const CMD &a_modelData)
+	static const auto DrawHueButton = [](Direct2DEx *const ap_direct2d, const DColor &a_buttonColor, const COLOR::MD &a_modelData)
 	{
 		DColor color = a_buttonColor;
-		if (CBT::HUE != a_modelData.hoverButtonType) {
-			color.a = DEFAULT_TRANSPARENCY;
+		if (COLOR::BT::HUE != a_modelData.hoverButtonType) {
+			color.a = COLOR::DEFAULT_TRANSPARENCY;
 		}
 
 		// draw the circle to show the current color
 		ap_direct2d->SetBrushColor(color);
 		ap_direct2d->FillEllipse(a_modelData.hueButtonRect);
 	};
-	static const auto DrawLightnessButton = [](ColorAddView *const ap_view, Direct2DEx *const ap_direct2d, const CMD &a_modelData)
+	static const auto DrawLightnessButton = [](ColorAddView *const ap_view, Direct2DEx *const ap_direct2d, const COLOR::MD &a_modelData)
 	{
 		auto rect = a_modelData.lightnessButtonRect;
 		const DPoint centerPos = {
 			rect.left + (rect.right - rect.left) / 2.0f ,rect.top + (rect.bottom - rect.top) / 2.0f
 		};
-		if (CBT::LIGHTNESS == a_modelData.clickedButtonType) {
-			ExpandRect(rect, BUTTON_RADIUS);
+		if (COLOR::BT::LIGHTNESS == a_modelData.clickedButtonType) {
+			ExpandRect(rect, COLOR::BUTTON_RADIUS);
 		}
 
 		// fill button
@@ -225,8 +225,8 @@ void ColorAddView::Paint(const CMD &a_modelData)
 			color = RGB_TO_COLORF(NEUTRAL_900);
 		}
 
-		if (CBT::LIGHTNESS != a_modelData.hoverButtonType) {
-			color.a = DEFAULT_TRANSPARENCY;
+		if (COLOR::BT::LIGHTNESS != a_modelData.hoverButtonType) {
+			color.a = COLOR::DEFAULT_TRANSPARENCY;
 		}
 
 		ap_direct2d->SetStrokeWidth(2.0f);
@@ -238,15 +238,15 @@ void ColorAddView::Paint(const CMD &a_modelData)
 	};
 	static const auto DrawAddButton = [](
 		Direct2DEx *const ap_direct2d, IDWriteTextFormat *const ap_font, const DRect &a_rect, const DColor &a_color,
-		const DColor &a_borderColor, const DColor &a_oppositeColor, const CMD &a_modelData
+		const DColor &a_borderColor, const DColor &a_oppositeColor, const COLOR::MD &a_modelData
 		)
 	{
 		// draw main circle
 		DRect mainRect = a_rect;
-		if (CBT::ADD == a_modelData.clickedButtonType) {
+		if (COLOR::BT::ADD == a_modelData.clickedButtonType) {
 			ShrinkRect(mainRect, 1.0f);
 		}
-		else if (CBT::ADD == a_modelData.hoverButtonType) {
+		else if (COLOR::BT::ADD == a_modelData.hoverButtonType) {
 			ExpandRect(mainRect, 2.0f);
 		}
 
@@ -322,7 +322,7 @@ void ColorAddView::Paint(const CMD &a_modelData)
 	DrawLightnessCircle(mp_direct2d, mp_lightnessGradientBrush, m_lightnessRect);
 	m_currentLightness = DrawLightnessButton(this, mp_direct2d, a_modelData);
 
-	DrawAddButton(mp_direct2d, mp_indicateFont, m_buttonTable.at(CBT::ADD), m_currentLightness, m_mainColor, m_oppositeColor, a_modelData);
+	DrawAddButton(mp_direct2d, mp_indicateFont, m_buttonTable.at(COLOR::BT::ADD), m_currentLightness, m_mainColor, m_oppositeColor, a_modelData);
 	DrawIndicate(mp_direct2d, mp_indicateFont, m_indicateRect, m_currentLightness, m_oppositeColor, m_mainColor);
 }
 
@@ -376,7 +376,7 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 	////////////////////////////////////////////////////////////////
 	// update memory pattern
 	////////////////////////////////////////////////////////////////
-	WICRect wicRect = { 0, 0, COLOR_DIALOG_WIDTH, COLOR_DIALOG_HEIGHT };
+	WICRect wicRect = { 0, 0, COLOR::DIALOG_WIDTH, COLOR::DIALOG_HEIGHT };
 	IWICBitmapLock *p_lock = nullptr;
 
 	if (nullptr == mp_memoryBitmap) {
@@ -399,14 +399,14 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 	}
 }
 
-const std::map<CBT, DRect> &ColorAddView::GetButtonTable()
+const std::map<COLOR::BT, DRect> &ColorAddView::GetButtonTable()
 {
 	return m_buttonTable;
 }
 
 DColor ColorAddView::GetPixelColorOnPoint(const DPoint &a_point)
 {
-	const auto memoryIndex = COLOR_DIALOG_WIDTH * static_cast<unsigned int>(a_point.y) + static_cast<unsigned int>(a_point.x);
+	const auto memoryIndex = COLOR::DIALOG_WIDTH * static_cast<unsigned int>(a_point.y) + static_cast<unsigned int>(a_point.x);
 	const auto p_color = reinterpret_cast<COLORREF *>(m_memoryPattern) + memoryIndex;
 	return RGB_TO_COLORF(*p_color);
 }

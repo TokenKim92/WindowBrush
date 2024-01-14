@@ -34,15 +34,15 @@ ColorSelectView::~ColorSelectView()
 
 void ColorSelectView::Init(const SIZE &a_viewSize)
 {
-	const int height = a_viewSize.cy - TITLE_HEIGHT;
-	size_t offset = a_viewSize.cx % INTERVAL ? 0 : 1;
-	m_colorCountPerWidth = a_viewSize.cx / INTERVAL - offset;
-	offset = height % INTERVAL ? 0 : 1;
-	m_colorCountPerHeight = height / INTERVAL - offset;
+	const int height = a_viewSize.cy - COLOR::TITLE_HEIGHT;
+	size_t offset = a_viewSize.cx % COLOR::INTERVAL ? 0 : 1;
+	m_colorCountPerWidth = a_viewSize.cx / COLOR::INTERVAL - offset;
+	offset = height % COLOR::INTERVAL ? 0 : 1;
+	m_colorCountPerHeight = height / COLOR::INTERVAL - offset;
 
 	m_colorCircleStartPoint = {
-		(a_viewSize.cx - (m_colorCountPerWidth - 1) * INTERVAL) / 2.0f,
-		TITLE_HEIGHT + (height - (m_colorCountPerHeight - 1) * INTERVAL) / 2.0f
+		(a_viewSize.cx - (m_colorCountPerWidth - 1) * COLOR::INTERVAL) / 2.0f,
+		COLOR::TITLE_HEIGHT + (height - (m_colorCountPerHeight - 1) * COLOR::INTERVAL) / 2.0f
 	};
 
 	m_maxColorDataSize = m_colorCountPerWidth * m_colorCountPerHeight;
@@ -82,17 +82,17 @@ void ColorSelectView::Init(const SIZE &a_viewSize)
 const DRect ColorSelectView::GetColorRect(const size_t a_index)
 {
 	const float COLOR_RADIUS = 10.0f;
-	const float posX = static_cast<float>(m_colorCircleStartPoint.x + INTERVAL * (a_index % m_colorCountPerWidth));
-	const float posY = static_cast<float>(m_colorCircleStartPoint.y + INTERVAL * (a_index / m_colorCountPerHeight));
+	const float posX = static_cast<float>(m_colorCircleStartPoint.x + COLOR::INTERVAL * (a_index % m_colorCountPerWidth));
+	const float posY = static_cast<float>(m_colorCircleStartPoint.y + COLOR::INTERVAL * (a_index / m_colorCountPerHeight));
 
 	return DRect({ posX - COLOR_RADIUS, posY - COLOR_RADIUS, posX + COLOR_RADIUS, posY + COLOR_RADIUS });
 }
 
-void ColorSelectView::Paint(const CMD &a_modelData)
+void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 {
 	static const auto DrawColorItems = [](
 		Direct2DEx *const ap_direct2d, const DColor &a_mainColor,
-		const std::map<size_t, std::pair<DColor, DRect>> &a_colorDataTable, const CMD &a_modelData
+		const std::map<size_t, std::pair<DColor, DRect>> &a_colorDataTable, const COLOR::MD &a_modelData
 		)
 	{
 		DRect rect;
@@ -114,12 +114,12 @@ void ColorSelectView::Paint(const CMD &a_modelData)
 	};
 	static const auto DrawSelectedColorItem = [](
 		Direct2DEx *const ap_direct2d, const DColor &a_mainColor, const std::pair<size_t, DColor> &a_selectedColorData,
-		const std::map<size_t, std::pair<DColor, DRect>> &a_colorDataTable, const CMD &a_modelData
+		const std::map<size_t, std::pair<DColor, DRect>> &a_colorDataTable, const COLOR::MD &a_modelData
 		)
 	{
 		DRect rect;
 		const size_t selectedColorIndex = a_selectedColorData.first;
-		if (INVALID_INDEX != selectedColorIndex) {
+		if (COLOR::INVALID_INDEX != selectedColorIndex) {
 			rect = a_colorDataTable.at(selectedColorIndex).second;
 
 			// draw border
@@ -138,7 +138,7 @@ void ColorSelectView::Paint(const CMD &a_modelData)
 	};
 	static const auto DrawAddButton = [](
 		Direct2DEx *const ap_direct2d, const DColor &a_mainColor, const DColor &a_oppositeColor,
-		ID2D1StrokeStyle *const ap_addButtonStroke, const std::pair<size_t, DRect> &a_addButtonData, const CMD &a_modelData
+		ID2D1StrokeStyle *const ap_addButtonStroke, const std::pair<size_t, DRect> &a_addButtonData, const COLOR::MD &a_modelData
 		)
 	{
 		// draw main circle
@@ -211,7 +211,7 @@ void ColorSelectView::AddColor(const DColor &a_color)
 
 DColor ColorSelectView::GetColor(const size_t &a_index)
 {
-	if (INVALID_INDEX != a_index || m_colorDataTable.size() > a_index) {
+	if (COLOR::INVALID_INDEX != a_index || m_colorDataTable.size() > a_index) {
 		return m_colorDataTable.at(a_index).first;
 	}
 

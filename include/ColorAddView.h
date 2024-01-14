@@ -22,7 +22,7 @@ protected:
 
 	std::vector<std::pair<DColor, std::pair<DPoint, DPoint>>> m_hueDataList;
 	std::vector<std::pair<DPoint, DPoint>> m_returnIconPoints;
-	std::map<CBT, DRect> m_buttonTable;
+	std::map<COLOR::BT, DRect> m_buttonTable;
 
 	// interface
 	ID2D1LinearGradientBrush *mp_lightnessGradientBrush;
@@ -32,17 +32,17 @@ protected:
 	IWICBitmap *mp_memoryBitmap;
 	ID2D1RenderTarget *mp_memoryTarget;
 	// values of memory bitmap to access color pixel
-	unsigned char m_memoryPattern[COLOR_DIALOG_WIDTH * COLOR_DIALOG_HEIGHT * sizeof(unsigned int)];
+	unsigned char m_memoryPattern[COLOR::DIALOG_WIDTH * COLOR::DIALOG_HEIGHT * sizeof(unsigned int)];
 
 public:
 	ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode);
 	virtual ~ColorAddView();
 
 	void Init(const DPoint &a_centerPoint, const SIZE &a_viewSize);
-	void Paint(const CMD &a_modelData);
+	void Paint(const COLOR::MD &a_modelData);
 	void UpdateLightnessData(const DColor &a_hue);
 
-	const std::map<CBT, DRect> &GetButtonTable();
+	const std::map<COLOR::BT, DRect> &GetButtonTable();
 	DColor GetPixelColorOnPoint(const DPoint &a_point);
 	DColor &GetCurrentLightness();
 };

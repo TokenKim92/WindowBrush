@@ -8,8 +8,8 @@
 class ColorDialog : public WindowDialog
 {
 protected:
-	CDM m_drawMode;
-	CMD m_modelData;
+	COLOR::DM m_drawMode;
+	COLOR::MD m_modelData;
 
 	// variables for select mode
 	const std::vector<DColor> &m_colorList;
@@ -21,7 +21,7 @@ protected:
 	// variables for add mode
 	DPoint m_colorCenterPoint;
 	bool isInitializedAddMode;
-	std::map<CBT, DRect> m_buttonTable;
+	std::map<COLOR::BT, DRect> m_buttonTable;
 
 public:
 	ColorDialog(const DColor &a_selectedColor, const std::vector<DColor> &a_colorList);
@@ -45,7 +45,7 @@ protected:
 	int KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
 
 private:
-	void ChangeMode(const CDM &a_drawModw);
+	void ChangeMode(const COLOR::DM &a_drawModw);
 };
 
 #endif //_COLOR_DIALOG_H_

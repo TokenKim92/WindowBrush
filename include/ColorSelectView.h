@@ -30,7 +30,7 @@ public:
 	virtual ~ColorSelectView();
 
 	void Init(const SIZE &a_viewSize);
-	void Paint(const CMD &a_modelData);
+	void Paint(const COLOR::MD &a_modelData);
 
 	void AddColor(const DColor &a_color);
 

@@ -27,7 +27,7 @@ public:
 	virtual ~ColorView();
 
 	virtual int Create() override;
-	void Paint(const CDM &a_drawModw, const CMD &a_modelData);
+	void Paint(const COLOR::DM &a_drawModw, const COLOR::MD &a_modelData);
 
 	void InitColorAddView(const DPoint &a_centerPoint);
 	void UpdateLightnessCircle(const DPoint &a_point);
@@ -39,10 +39,10 @@ public:
 
 	const std::map<size_t, DRect> GetColorDataTable();
 	const std::pair<size_t, DRect> &GetAddButtonData();
-	const std::map<CBT, DRect> &GetButtonTable();
+	const std::map<COLOR::BT, DRect> &GetButtonTable();
 
 protected:
-	void DrawTitle(const CDM &a_mode);
+	void DrawTitle(const COLOR::DM &a_mode);
 };
 
 #endif // !_COLOR_VIEW_H_
