@@ -143,6 +143,8 @@
     <ClCompile Include="src\ColorSelectView.cpp" />
     <ClCompile Include="src\EditDialog.cpp" />
     <ClCompile Include="src\EditView.cpp" />
+    <ClCompile Include="src\ScreenDialog.cpp" />
+    <ClCompile Include="src\ScreenView.cpp" />
     <ClCompile Include="src\SliderDialog.cpp" />
     <ClCompile Include="src\SliderView.cpp" />
     <ClCompile Include="src\WindowBrushView.cpp" />
@@ -163,6 +165,9 @@
     <ClInclude Include="include\EditDialog.h" />
     <ClInclude Include="include\EditModel.h" />
     <ClInclude Include="include\EditView.h" />
+    <ClInclude Include="include\ScreenDialog.h" />
+    <ClInclude Include="include\ScreenModel.h" />
+    <ClInclude Include="include\ScreenView.h" />
     <ClInclude Include="include\SliderDialog.h" />
     <ClInclude Include="include\SliderModel.h" />
     <ClInclude Include="include\SliderView.h" />

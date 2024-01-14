@@ -40,6 +40,12 @@
     <Filter Include="Source Files\SliderDialog">
       <UniqueIdentifier>{f16eaba2-fef5-4097-99d7-8b775564d3dc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ScreenDialog">
+      <UniqueIdentifier>{1e0139cc-a986-42fb-847e-a02b9111063f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ScreenDialog">
+      <UniqueIdentifier>{ea36ccd9-1d8e-48e1-875b-2451203467cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WindowBrush.cpp">
@@ -77,6 +83,12 @@
     </ClCompile>
     <ClCompile Include="src\SliderView.cpp">
       <Filter>Source Files\SliderDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ScreenDialog.cpp">
+      <Filter>Source Files\ScreenDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ScreenView.cpp">
+      <Filter>Source Files\ScreenDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -148,6 +160,15 @@
     </ClInclude>
     <ClInclude Include="include\SliderView.h">
       <Filter>Header Files\SliderDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ScreenDialog.h">
+      <Filter>Header Files\ScreenDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ScreenModel.h">
+      <Filter>Header Files\ScreenDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ScreenView.h">
+      <Filter>Header Files\ScreenDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
