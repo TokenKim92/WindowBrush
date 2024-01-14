@@ -8,8 +8,8 @@
 class WindowBrushDialog : public WindowDialog
 {
 protected:
-	std::map<WBBT, DRect> m_buttonTable;
-	WBMD m_modelData;
+	std::map<WINDOW_BRUSH::BT, DRect> m_buttonTable;
+	WINDOW_BRUSH::MD m_modelData;
 
 	std::vector<DColor> m_colorList;
 

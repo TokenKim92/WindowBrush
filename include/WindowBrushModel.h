@@ -3,30 +3,33 @@
 
 #include <d2d1.h>
 
-const double CONVERT_RADIAN = 0.0174532888;
+namespace WINDOW_BRUSH {
 
-typedef enum class WINDOW_BRUSH_BUTTON_TYPE
-{
-	NONE = -1,
-	CURVE = 0,
-	RECTANGLE,
-	CIRCLE,
-	TEXT,
-	STROKE,
-	GRADIATION,
-	COLOR,
-	FADE
-} WBBT;
+	const double CONVERT_RADIAN = 0.0174532888;
 
-typedef struct WINDOW_BRUSH_MODEL_DATA
-{
-	WBBT hoverArea;
-	WBBT drawMode;
-	unsigned int strokeWidth;
-	unsigned int fontSize;
-	bool isGradientMode;
-	D2D1_COLOR_F selectedColor;
-	bool isFadeMode;
-} WBMD;
+	typedef enum class BUTTON_TYPE
+	{
+		NONE = -1,
+		CURVE = 0,
+		RECTANGLE,
+		CIRCLE,
+		TEXT,
+		STROKE,
+		GRADIATION,
+		COLOR,
+		FADE
+	} BT;
 
+	typedef struct WINDOW_BRUSH_MODEL_DATA
+	{
+		BT hoverArea;
+		BT drawMode;
+		unsigned int strokeWidth;
+		unsigned int fontSize;
+		bool isGradientMode;
+		D2D1_COLOR_F selectedColor;
+		bool isFadeMode;
+	} MD;
+
+}
 #endif // !_WINDOW_BRUSH_MODEL_H_

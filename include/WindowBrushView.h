@@ -9,9 +9,9 @@
 class WindowBrushView : public Direct2DEx
 {
 private:
-	std::map<WBBT, DRect> m_buttonTable;
+	std::map<WINDOW_BRUSH::BT, DRect> m_buttonTable;
 	std::vector<DRect> m_dividerList;
-	std::map<WBBT, void (WindowBrushView:: *)(const WBMD &)> m_drawTable;
+	std::map<WINDOW_BRUSH::BT, void (WindowBrushView:: *)(const WINDOW_BRUSH::MD &)> m_drawTable;
 
 	IDWriteTextFormat *mp_textFormat;
 	DColor m_textColor;
@@ -38,23 +38,23 @@ public:
 	virtual ~WindowBrushView();
 
 	virtual int Create() override;
-	void Paint(const WBMD &a_modelData);
+	void Paint(const WINDOW_BRUSH::MD &a_modelData);
 
-	const std::map<WBBT, DRect> GetButtonTable();
+	const std::map<WINDOW_BRUSH::BT, DRect> GetButtonTable();
 	void SetColorMode(const CM &a_mode);
 	void UpdateColorSymbolBrush(const DColor &a_color);
 
 private:
-	void UpdateTextColorOnHover(const WBBT &a_type, const WBMD &a_data);
+	void UpdateTextColorOnHover(const WINDOW_BRUSH::BT &a_type, const WINDOW_BRUSH::MD &a_data);
 
-	void DrawCurveShape(const WBMD &a_data);
-	void DrawRectangleShape(const WBMD &a_data);
-	void DrawCircleShape(const WBMD &a_data);
-	void DrawTextShape(const WBMD &a_data);
-	void DrawStrokeShape(const WBMD &a_data);
-	void DrawGradiationShape(const WBMD &a_data);
-	void DrawColorShape(const WBMD &a_data);
-	void DrawFadeShape(const WBMD &a_data);
+	void DrawCurveShape(const WINDOW_BRUSH::MD &a_data);
+	void DrawRectangleShape(const WINDOW_BRUSH::MD &a_data);
+	void DrawCircleShape(const WINDOW_BRUSH::MD &a_data);
+	void DrawTextShape(const WINDOW_BRUSH::MD &a_data);
+	void DrawStrokeShape(const WINDOW_BRUSH::MD &a_data);
+	void DrawGradiationShape(const WINDOW_BRUSH::MD &a_data);
+	void DrawColorShape(const WINDOW_BRUSH::MD &a_data);
+	void DrawFadeShape(const WINDOW_BRUSH::MD &a_data);
 };
 
 #endif //_BUTTON_SHAPE_H_

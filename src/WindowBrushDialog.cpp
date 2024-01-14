@@ -16,8 +16,8 @@ WindowBrushDialog::WindowBrushDialog() :
 {
 	SetSize(80, 390);
 
-	m_modelData.hoverArea = WBBT::NONE;
-	m_modelData.drawMode = WBBT::NONE;
+	m_modelData.hoverArea = WINDOW_BRUSH::BT::NONE;
+	m_modelData.drawMode = WINDOW_BRUSH::BT::NONE;
 	m_modelData.strokeWidth = 20;
 	m_modelData.fontSize = 20;
 	m_modelData.isGradientMode = false;
@@ -79,8 +79,8 @@ int WindowBrushDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		}
 	}
 
-	if (WBBT::NONE != m_modelData.hoverArea) {
-		m_modelData.hoverArea = WBBT::NONE;
+	if (WINDOW_BRUSH::BT::NONE != m_modelData.hoverArea) {
+		m_modelData.hoverArea = WINDOW_BRUSH::BT::NONE;
 		Invalidate();
 	}
 
@@ -98,7 +98,7 @@ int WindowBrushDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_l
 // to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
 int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static const auto OnDrawButtonUp = [](WBMD &a_buttonShapeData, const WBBT &a_type)
+	static const auto OnDrawButtonUp = [](WINDOW_BRUSH::MD &a_buttonShapeData, const WINDOW_BRUSH::BT &a_type)
 	{
 		if (a_type != a_buttonShapeData.drawMode) {
 			// TODO:: turn on draw mode
@@ -106,10 +106,10 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		}
 		else {
 			// TODO:: turn off draw mode
-			a_buttonShapeData.drawMode = WBBT::NONE;;
+			a_buttonShapeData.drawMode = WINDOW_BRUSH::BT::NONE;;
 		}
 	};
-	static const auto OnStrokeButtonUp = [](const HWND &ah_parentWindow, const CM &a_colorMode, WBMD &a_modelData)
+	static const auto OnStrokeButtonUp = [](const HWND &ah_parentWindow, const CM &a_colorMode, WINDOW_BRUSH::MD &a_modelData)
 	{
 		RECT rect;
 		::GetWindowRect(ah_parentWindow, &rect);
@@ -135,7 +135,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		}
 	};
 	static const auto OnColorButtonUp = [](
-		const HWND &ah_parentWindow, WBMD &a_buttonShapeData, const CM &a_colorMode,
+		const HWND &ah_parentWindow, WINDOW_BRUSH::MD &a_buttonShapeData, const CM &a_colorMode,
 		Direct2DEx *const ap_direct2d, std::vector<DColor> &a_colorList
 		)
 	{
@@ -157,11 +157,11 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			static_cast<WindowBrushView *>(ap_direct2d)->UpdateColorSymbolBrush(a_buttonShapeData.selectedColor);
 		}
 	};
-	static const auto OnGradientButtonUp = [](WBMD &a_buttonShapeData)
+	static const auto OnGradientButtonUp = [](WINDOW_BRUSH::MD &a_buttonShapeData)
 	{
 		a_buttonShapeData.isGradientMode = !a_buttonShapeData.isGradientMode;
 	};
-	static const auto OnFadeButtonUp = [](WBMD &a_buttonShapeData)
+	static const auto OnFadeButtonUp = [](WINDOW_BRUSH::MD &a_buttonShapeData)
 	{
 		a_buttonShapeData.isFadeMode = !a_buttonShapeData.isFadeMode;
 	};
@@ -177,28 +177,29 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		if (PointInRect(rect, pos)) {
 			switch (type)
 			{
-			case WBBT::CURVE:
-			case WBBT::RECTANGLE:
-			case WBBT::CIRCLE:
-			case WBBT::TEXT:
+			case WINDOW_BRUSH::BT::CURVE:
+			case WINDOW_BRUSH::BT::RECTANGLE:
+			case WINDOW_BRUSH::BT::CIRCLE:
+			case WINDOW_BRUSH::BT::TEXT:
 				OnDrawButtonUp(m_modelData, type);
 				break;
-			case WBBT::STROKE:
+			case WINDOW_BRUSH::BT::STROKE:
 				OnStrokeButtonUp(mh_window, GetColorMode(), m_modelData);
 				break;
-			case WBBT::GRADIATION:
+			case WINDOW_BRUSH::BT::GRADIATION:
 				OnGradientButtonUp(m_modelData);
 				break;
-			case WBBT::COLOR:
+			case WINDOW_BRUSH::BT::COLOR:
 				OnColorButtonUp(mh_window, m_modelData, GetColorMode(), mp_direct2d, m_colorList);
 				break;
-			case WBBT::FADE:
+			case WINDOW_BRUSH::BT::FADE:
 				OnFadeButtonUp(m_modelData);
 				break;
 			default:
 				break;
 			}
 
+			m_modelData.hoverArea = WINDOW_BRUSH::BT::NONE;
 			Invalidate();
 
 			return S_OK;
