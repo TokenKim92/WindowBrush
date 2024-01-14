@@ -71,7 +71,7 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 				static_cast<float>(a_centerPosY + endHueRadius * sin(radian))
 			};
 			// set color
-			hueData.first = FromHueToColor(degree / 120.0f);;
+			hueData.first = FromHueToColor(degree / 120.0f);
 
 			degree++;
 		}

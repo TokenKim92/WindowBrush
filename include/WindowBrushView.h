@@ -16,7 +16,6 @@ private:
 	IDWriteTextFormat *mp_textFormat;
 	DColor m_textColor;
 	DColor m_highlightColor;
-	const float m_defaultTransparency;
 
 	// for curve button
 	ID2D1PathGeometry *mp_curveGeometry;

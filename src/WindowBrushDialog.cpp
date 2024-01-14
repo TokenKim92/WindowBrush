@@ -190,8 +190,10 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 				OnGradientButtonUp(m_modelData);
 				break;
 			case WINDOW_BRUSH::BT::COLOR:
-				OnColorButtonUp(mh_window, m_modelData, GetColorMode(), mp_direct2d, m_colorList);
-				break;
+				if (!m_modelData.isGradientMode) {
+					OnColorButtonUp(mh_window, m_modelData, GetColorMode(), mp_direct2d, m_colorList);
+				}
+				return S_OK; // to avoid hoverArea is init
 			case WINDOW_BRUSH::BT::FADE:
 				OnFadeButtonUp(m_modelData);
 				break;

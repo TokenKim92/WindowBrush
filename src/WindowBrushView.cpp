@@ -8,7 +8,6 @@ extern ApplicationCore *gp_appCore;
 
 WindowBrushView::WindowBrushView(const HWND &ah_window, const CM &a_mode, const RECT *const ap_viewRect) :
 	Direct2DEx(ah_window, ap_viewRect),
-	m_defaultTransparency(0.6f),
 	m_colorShapeMargin(12.0f),
 	m_fadeShapeMargin(10.0f)
 {
@@ -274,6 +273,7 @@ int WindowBrushView::Create()
 			hueData.second.y = static_cast<float>(centerPosY - HUE_RADIUS * sin(radian));
 			// convert hue to [0,6]
 			hueData.first = FromHueToColor(degree / 15.0f);
+			hueData.first.a = WINDOW_BRUSH::DEFAULT_TRANSPARENCY;
 
 			degree++;
 		}
@@ -460,7 +460,7 @@ void WindowBrushView::DrawGradiationShape(const WINDOW_BRUSH::MD &a_data)
 		ID2D1Brush *p_prevBrush = SetBrush(mp_gradientBrush);
 		const float transparency = WINDOW_BRUSH::BT::GRADIATION == a_data.hoverArea
 			? 1.0f
-			: m_defaultTransparency;
+			: WINDOW_BRUSH::DEFAULT_TRANSPARENCY;
 		mp_gradientBrush->SetOpacity(transparency);
 
 		for (auto p_geometry : m_gradientGeometries) {
@@ -487,8 +487,13 @@ void WindowBrushView::DrawColorShape(const WINDOW_BRUSH::MD &a_data)
 #endif 
 
 	// draw hue circle
+	DColor color;
 	for (const auto &hueData : m_hueDataList) {
-		SetBrushColor(hueData.first);
+		color = hueData.first;
+		if (WINDOW_BRUSH::BT::COLOR == a_data.hoverArea) {
+			color.a = 1.0f;
+		}
+		SetBrushColor(color);
 		DrawLine(hueData.second, hueData.second);
 	}
 
@@ -501,7 +506,7 @@ void WindowBrushView::DrawColorShape(const WINDOW_BRUSH::MD &a_data)
 		ID2D1Brush *const p_prevBrush = SetBrush(mp_colorShapeBrush);
 		const float transparency = WINDOW_BRUSH::BT::COLOR == a_data.hoverArea
 			? 1.0f
-			: m_defaultTransparency;
+			: WINDOW_BRUSH::DEFAULT_TRANSPARENCY;
 		mp_colorShapeBrush->SetOpacity(transparency);
 
 		FillEllipse(rect);
@@ -550,8 +555,8 @@ void WindowBrushView::SetColorMode(const CM &a_mode)
 		SetBackgroundColor(RGB_TO_COLORF(NEUTRAL_800));
 	}
 
-	m_textColor.a = m_defaultTransparency;
-	m_highlightColor.a = m_defaultTransparency;
+	m_textColor.a = WINDOW_BRUSH::DEFAULT_TRANSPARENCY;
+	m_highlightColor.a = WINDOW_BRUSH::DEFAULT_TRANSPARENCY;
 }
 
 void WindowBrushView::UpdateColorSymbolBrush(const DColor &a_color)
