@@ -147,6 +147,8 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 	mp_indicateFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	mp_indicateFont->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
+	mp_memoryPattern = std::make_unique<unsigned char[]>(COLOR::DIALOG_WIDTH * COLOR::DIALOG_HEIGHT * sizeof(unsigned int));
+
 	return;
 }
 
@@ -391,7 +393,7 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 		if (S_OK == p_lock->GetStride(&stride)) {
 			if (S_OK == p_lock->GetDataPointer(&bufferSize, &p_pattern)) {
 				if (p_pattern) {
-					memcpy(m_memoryPattern, p_pattern, bufferSize);
+					memcpy(mp_memoryPattern.get(), p_pattern, bufferSize);
 				}
 			}
 		}
@@ -407,7 +409,7 @@ const std::map<COLOR::BT, DRect> &ColorAddView::GetButtonTable()
 DColor ColorAddView::GetPixelColorOnPoint(const DPoint &a_point)
 {
 	const auto memoryIndex = COLOR::DIALOG_WIDTH * static_cast<unsigned int>(a_point.y) + static_cast<unsigned int>(a_point.x);
-	const auto p_color = reinterpret_cast<COLORREF *>(m_memoryPattern) + memoryIndex;
+	const auto p_color = reinterpret_cast<COLORREF *>(mp_memoryPattern.get()) + memoryIndex;
 	return RGB_TO_COLORF(*p_color);
 }
 

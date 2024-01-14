@@ -269,6 +269,8 @@ int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 			if (PointInRect(rect, point)) {
 				if (index == a_modelData.clickedIndex) {
 					a_selectedColorIndex = index;
+					auto type = WindowDialog::BT::OK;
+					ap_dialog->SetClickedButtonType(type);
 					::DestroyWindow(ap_dialog->GetWidnowHandle());
 				}
 				else {

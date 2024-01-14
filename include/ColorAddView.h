@@ -32,7 +32,7 @@ protected:
 	IWICBitmap *mp_memoryBitmap;
 	ID2D1RenderTarget *mp_memoryTarget;
 	// values of memory bitmap to access color pixel
-	unsigned char m_memoryPattern[COLOR::DIALOG_WIDTH * COLOR::DIALOG_HEIGHT * sizeof(unsigned int)];
+	std::unique_ptr<unsigned char[]> mp_memoryPattern;
 
 public:
 	ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode);
