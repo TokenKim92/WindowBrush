@@ -3,6 +3,7 @@
 #include "ColorDialog.h"
 #include "EditDialog.h"
 #include "ColorPalette.h"
+#include "SliderDialog.h"
 #include "Utility.h"
 
 #ifdef _DEBUG
@@ -45,6 +46,26 @@ void WindowBrushDialog::OnInitDialog()
 	p_view->Create();
 	p_view->UpdateColorSymbolBrush(m_modelData.selectedColor);
 	m_buttonTable = p_view->GetButtonTable();
+
+	////////////////////////////////////////////////
+	//
+	////////////////////////////////////////////////
+
+	RECT rect;
+	::GetWindowRect(mh_window, &rect);
+
+	const int centerPosX = rect.left + (rect.right - rect.left) / 2;
+	const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
+
+	SliderDialog instanceDialog(L"Fade Speed");
+	instanceDialog.SetStyle(WS_POPUP | WS_VISIBLE);
+	instanceDialog.SetExtendStyle(WS_EX_TOPMOST);
+	instanceDialog.SetThemeMode(GetColorMode());
+
+	const SIZE size = instanceDialog.GetSize();
+	if (BT::OK == instanceDialog.DoModal(mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
+		int a = 0;
+	}
 }
 
 void WindowBrushDialog::OnDestroy()

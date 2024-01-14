@@ -34,6 +34,12 @@
     <Filter Include="Source Files\EditDialog">
       <UniqueIdentifier>{6a8a8efa-0b13-47d1-bbff-e72231ebcfc6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\SliderDialog">
+      <UniqueIdentifier>{75caf9b5-c8a7-4e6c-8081-efe172a53a97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SliderDialog">
+      <UniqueIdentifier>{f16eaba2-fef5-4097-99d7-8b775564d3dc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WindowBrush.cpp">
@@ -65,6 +71,12 @@
     </ClCompile>
     <ClCompile Include="src\EditView.cpp">
       <Filter>Source Files\EditDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SliderDialog.cpp">
+      <Filter>Source Files\SliderDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SliderView.cpp">
+      <Filter>Source Files\SliderDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +139,15 @@
     </ClInclude>
     <ClInclude Include="include\EditModel.h">
       <Filter>Header Files\EditDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SliderDialog.h">
+      <Filter>Header Files\SliderDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SliderModel.h">
+      <Filter>Header Files\SliderDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SliderView.h">
+      <Filter>Header Files\SliderDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
