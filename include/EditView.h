@@ -22,7 +22,7 @@ protected:
 protected:
 	const std::wstring m_title;
 	std::map<EDIT::BT, DRect> m_buttonTable;
-	std::map<size_t, EDIT::ED> m_editTable;
+	std::map<size_t, std::pair< std::wstring, DRect>> m_editTable;
 	const EDIT::RANGE m_range;
 
 	DRect m_titleRect;
@@ -43,6 +43,9 @@ public:
 
 	virtual int Create() override;
 	void Paint(const EDIT::MD &a_modelData);
+
+	const std::map<EDIT::BT, DRect> &GetButtonTable();
+	const std::map<size_t, std::pair< std::wstring, DRect>> &GetEditTable();
 
 protected:
 	void DrawPlainText(const std::wstring &a_text, const DRect &a_rect, IDWriteTextFormat *const ap_textFormat);

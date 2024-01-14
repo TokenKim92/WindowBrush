@@ -22,9 +22,11 @@ typedef struct WINDOW_BRUSH_MODEL_DATA
 {
 	WBBT hoverArea;
 	WBBT drawMode;
+	unsigned int strokeWidth;
+	unsigned int fontSize;
 	bool isGradientMode;
-	bool isFadeMode;
 	D2D1_COLOR_F selectedColor;
+	bool isFadeMode;
 } WBMD;
 
 #endif // !_WINDOW_BRUSH_MODEL_H_

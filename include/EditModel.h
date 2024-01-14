@@ -1,12 +1,10 @@
 #ifndef _EDIT_MODEL_H_
 #define _EDIT_MODEL_H_
 
+#include <vector>
+
 namespace EDIT {
-	//////////////////
-	//TODO::
-	const unsigned int MIN_VALIE_VALUE = 1;
-	const unsigned int MAX_VALIE_VALUE = 100;
-	//////////////////
+	const size_t INVALID_INDEX = static_cast<size_t>(-1);
 
 	const unsigned int DIALOG_WIDTH = 300;
 	const unsigned int DIALOG_HEIGHT = 230;
@@ -28,6 +26,8 @@ namespace EDIT {
 	const float BUTTON_MARGIN = 10.0f;
 	const float BUTTON_HEIGHT = 35.0f;
 
+	const float MAX_DIGIT_LEGNHT = 3;
+
 	typedef enum class BUTTON_TPYE
 	{
 		NONE,
@@ -36,17 +36,14 @@ namespace EDIT {
 		CANCEL
 	}BT;
 
-	typedef struct EDIT_DATA
-	{
-		std::wstring title;
-		DRect rect;
-		unsigned int value;
-	}ED;
-
 	typedef struct MODEL_DATA
 	{
 		BT hoverButtonType;
 		BT clickedButtonType;
+		size_t hoverEditIndex;
+		size_t clickedEditIndex;
+
+		std::vector<unsigned int> valueList;
 	}MD;
 
 	struct RANGE

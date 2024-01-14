@@ -14,9 +14,14 @@ protected:
 	const std::vector<std::pair<std::wstring, unsigned int>> m_itemList; // subtitle and value
 	const EDIT::RANGE m_range;
 
+	std::map<EDIT::BT, DRect> m_buttonTable;
+	std::map<size_t, std::pair< std::wstring, DRect>> m_editTable;
+
 public:
 	EditDialog(const std::wstring &a_title, const std::vector<std::pair<std::wstring, unsigned int>> &a_itemList, const EDIT::RANGE &a_range);
 	virtual ~EditDialog();
+
+	const std::vector<unsigned int> &GetValueList();
 
 protected:
 	virtual void OnInitDialog() override;
@@ -32,6 +37,7 @@ protected:
 	// to handle the WM_KEYDOWN message that occurs when a window is destroyed
 	int KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
 
+	void OnSave();
 };
 
 #endif //_EDIT_DIALOG_H_

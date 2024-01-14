@@ -43,7 +43,7 @@ void ColorDialog::OnInitDialog()
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonUpHandler));
 	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ColorDialog::KeyDownHandler));
 
-	const auto p_view = new ColorView(mh_window, m_previousSelectedColor, m_colorList, GetThemeMode());
+	const auto p_view = new ColorView(mh_window, m_previousSelectedColor, m_colorList, GetColorMode());
 	InheritDirect2D(p_view);
 	p_view->Create();
 	m_colorDataTable = p_view->GetColorDataTable();
@@ -71,7 +71,7 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		ColorDialog *const a_dialog, size_t &a_hoverIndex, const POINT &pos
 		)
 	{
-		for (auto const &[index, rect] : a_colorDataTable) {
+		for (const auto &[index, rect] : a_colorDataTable) {
 			if (PointInRect(rect, pos)) {
 				if (index != a_hoverIndex) {
 					a_hoverIndex = index;

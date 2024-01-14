@@ -8,7 +8,7 @@
 
 // type modifier for message handlers
 #ifndef msg_handler
-#define msg_handler
+    #define msg_handler
 #endif
 
 class WindowDialog; // for typedef of 'MessageHandler'
@@ -17,37 +17,37 @@ typedef int (WindowDialog:: *MessageHandler)(WPARAM, LPARAM);
 
 class WindowDialog
 {
+public:
+    typedef enum BUTTON_TYPE
+    {
+        OK,
+        CANCEL
+    } BT;
+
 protected:
     wchar_t *mp_windowClass;                // name of window class
     wchar_t *mp_title;                      // title of the application
     int m_showType;                         // the initial output state of the application
-
+    
     HWND mh_window;                         // to save the main window handle
     std::map<unsigned int, MessageHandler> m_messageMap;
 
     Direct2DEx *mp_direct2d;
-    CM m_themeMode;
+    CM m_colorMode;
     RECT m_viewRect;
     int m_width;
     int m_height;
     unsigned long m_style;
     unsigned long m_extendStyle;
 
-public:
-    static LRESULT CALLBACK WindowProcedure(HWND ah_window, UINT a_messageID, WPARAM a_wordParam, LPARAM a_longParam);
+    BT m_clickedButtonType;
 
+public:
     WindowDialog(const wchar_t *const ap_windowClass = nullptr, const wchar_t *const ap_title = nullptr);
     virtual ~WindowDialog();
 
-    // window class registration
-    void RegistWindowClass();
-    // allocate and initialize a main window instance
-    bool InitInstance(int a_width = CW_USEDEFAULT, int a_height = 0, int a_x = CW_USEDEFAULT, int a_y = 0);
-    // Functions that handle messages issued to the application
-    int Run();
-
     int Create(int a_x = CW_USEDEFAULT, int a_y = 0);
-    int DoModal(HWND ah_parentWindow, int a_x = CW_USEDEFAULT, int a_y = 0);
+    WindowDialog::BT DoModal(HWND ah_parentWindow, int a_x = CW_USEDEFAULT, int a_y = 0);
     void Invalidate(bool backgroundErase = false);
 
     void SetSize(int a_width, int a_height);
@@ -58,12 +58,22 @@ public:
 
     HWND GetWidnowHandle();
     SIZE GetSize();
-    const CM GetThemeMode();
+    const CM GetColorMode();
 
     void DisableMove();
     void DisableSize();
     void DisableMinimize();
     void DisableMaximize();
+    
+protected:
+    static LRESULT CALLBACK WindowProcedure(HWND ah_window, UINT a_messageID, WPARAM a_wordParam, LPARAM a_longParam);
+
+    // window class registration
+    void RegistWindowClass();
+    // allocate and initialize a main window instance
+    bool InitInstance(int a_width = CW_USEDEFAULT, int a_height = 0, int a_x = CW_USEDEFAULT, int a_y = 0);
+    // Functions that handle messages issued to the application
+    int Run();
 
     // find the message handler for a given message ID.
     MessageHandler GetMessageHandler(unsigned int a_messageID);
@@ -81,6 +91,8 @@ public:
     virtual void OnDestroy();
     virtual void OnPaint();
     virtual void OnSetThemeMode();
+
+    void SetClickedButtonType(BT &a_type);
 };
 
 #endif //_WINDOW_DIALOG_H_ 

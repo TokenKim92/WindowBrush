@@ -12,7 +12,7 @@ EditView::EditView(
 {
 	size_t index = 0;
 	for (const auto &item : a_itemList) {
-		m_editTable.insert({ index, {item.first, {0, }, item.second} });
+		m_editTable.insert({ index, {item.first, {0, }} });
 
 		index++;
 	}
@@ -88,13 +88,13 @@ int EditView::Create()
 	};
 
 	for (auto &[index, editData] : m_editTable) {
-		editData.rect = {
+		editData.second = {
 			EDIT::EDIT_MARGIN + (EDIT::EDIT_WIDTH + EDIT::EDIT_MARGIN) * index, m_titleRect.bottom + EDIT::EDIT_TITLE_HEIGHT,
 			(EDIT::EDIT_WIDTH + EDIT::EDIT_MARGIN) * (index + 1), m_titleRect.bottom + EDIT::EDIT_TITLE_HEIGHT + EDIT::EDIT_HEIGHT
 		};
 	}
 
-	const auto lastEditRect = m_editTable.at(m_editTable.size() - 1).rect;
+	const auto lastEditRect = m_editTable.at(m_editTable.size() - 1).second;
 	m_warningRect = {
 		EDIT::EDIT_MARGIN, lastEditRect.bottom,
 		mp_viewRect->right - EDIT::EDIT_MARGIN, lastEditRect.bottom + EDIT::WARNING_HEIGHT
@@ -119,36 +119,44 @@ int EditView::Create()
 void EditView::Paint(const EDIT::MD &a_modelData)
 {
 	static const auto DrawEdit = [](
-		EditView *const ap_view, IDWriteTextFormat *const ap_font, const  EDIT::ED &a_editData, const CS &a_colorSet, const EDIT::MD &a_modelData
+		EditView *const ap_view, IDWriteTextFormat *const ap_font, const std::pair< std::wstring, DRect> &a_editData,
+		const CS &a_colorSet, const size_t &a_currentIndex, const EDIT::MD &a_modelData
 		)
 	{
 		// draw title of edit
+		const DRect originalRect = a_editData.second;
 		DRect rect = {
-			a_editData.rect.left, a_editData.rect.top - EDIT::EDIT_TITLE_HEIGHT,
-			a_editData.rect.right, a_editData.rect.top
+			originalRect.left, originalRect.top - EDIT::EDIT_TITLE_HEIGHT,
+			originalRect.right, originalRect.top
 		};
-		ap_view->DrawPlainText(a_editData.title, rect, ap_font);
+		ap_view->DrawPlainText(a_editData.first, rect, ap_font);
 
 
-		DColor backgroundColor = EDIT::BT::EDIT == a_modelData.clickedButtonType
+		const bool isClicked = EDIT::BT::EDIT == a_modelData.clickedButtonType && a_currentIndex == a_modelData.clickedEditIndex;
+		const bool isHover = EDIT::BT::EDIT == a_modelData.hoverButtonType && a_currentIndex == a_modelData.hoverEditIndex;
+		DColor backgroundColor = isClicked
 			? a_colorSet.darkBackground
 			: a_colorSet.lightBackground;
-		DColor shadowColor = EDIT::BT::EDIT == a_modelData.clickedButtonType
+		DColor shadowColor = isClicked
 			? a_colorSet.highlight
 			: a_colorSet.shadow;
+		if (isHover) {
+			backgroundColor.a = 1.0f;
+			shadowColor.a = 1.0f;
+		}
 
 		// draw value contents background
-		rect = { a_editData.rect.left, a_editData.rect.bottom - 2.0f, a_editData.rect.right, a_editData.rect.bottom + 2.0f };
+		rect = { originalRect.left, originalRect.bottom - 2.0f, originalRect.right, originalRect.bottom + 2.0f };
 		ap_view->SetBrushColor(shadowColor);
 		ap_view->FillRoundedRectangle(rect, 3.0f);
 
 		ap_view->SetBrushColor(backgroundColor);
-		ap_view->FillRoundedRectangle(a_editData.rect, 3.0f);
+		ap_view->FillRoundedRectangle(originalRect, 3.0f);
 
 		// draw value contents
 		const float margin = 10.0f;
-		rect = { a_editData.rect.left + margin, a_editData.rect.top, a_editData.rect.right - margin, a_editData.rect.bottom };
-		ap_view->DrawPlainText(std::to_wstring(a_editData.value).c_str(), rect, ap_font);
+		rect = { originalRect.left + margin, originalRect.top, originalRect.right - margin, originalRect.bottom };
+		ap_view->DrawPlainText(std::to_wstring(a_modelData.valueList[a_currentIndex]).c_str(), rect, ap_font);
 
 	};
 	static const  auto DrawWarning = [](EditView *const ap_view, IDWriteTextFormat *const ap_font, const DRect &a_rect)
@@ -160,18 +168,18 @@ void EditView::Paint(const EDIT::MD &a_modelData)
 	};
 	static const auto DrawSaveButton = [](
 		EditView *const ap_view, IDWriteTextFormat *const ap_font, const DRect &a_rect,
-		const CS &a_colorSet, const bool notValid, const EDIT::MD &a_modelData
+		const CS &a_colorSet, const bool isValid, const EDIT::MD &a_modelData
 		)
 	{
 		DColor color;
-		if (notValid) {
-			color = a_colorSet.background;
-		}
-		else {
+		if (isValid) {
 			color = a_colorSet.highlight;
-			if (EDIT::BT::SAVE == a_modelData.hoverButtonType && EDIT::BT::SAVE == a_modelData.clickedButtonType) {
+			if (EDIT::BT::SAVE == a_modelData.hoverButtonType && EDIT::BT::SAVE != a_modelData.clickedButtonType) {
 				color.a = 1.0f;
 			}
+		}
+		else {
+			color = a_colorSet.background;
 		}
 
 		ap_view->SetBrushColor(color);
@@ -183,7 +191,7 @@ void EditView::Paint(const EDIT::MD &a_modelData)
 		)
 	{
 		DColor color = a_colorSet.lightBackground;
-		if (EDIT::BT::CANCEL == a_modelData.hoverButtonType && EDIT::BT::CANCEL == a_modelData.clickedButtonType) {
+		if (EDIT::BT::CANCEL == a_modelData.hoverButtonType && EDIT::BT::CANCEL != a_modelData.clickedButtonType) {
 			color.a = 1.0f;
 		}
 
@@ -200,24 +208,26 @@ void EditView::Paint(const EDIT::MD &a_modelData)
 
 	mp_textFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 
-	bool notValid = false;
 	for (const auto &[index, editData] : m_editTable) {
-		DrawEdit(this, mp_textFont, editData, m_colorSet, a_modelData);
+		DrawEdit(this, mp_textFont, editData, m_colorSet, index, a_modelData);
+	}
 
-		if (m_range.min > editData.value || m_range.max < editData.value) {
-			notValid = true;
+	bool isValid = true;
+	for (const auto &value : a_modelData.valueList) {
+		if (m_range.min > value || m_range.max < value) {
+			isValid = false;
+			break;
 		}
 	}
 
-	if (notValid)
-	{
+	if (!isValid) {
 		DrawWarning(this, mp_textFont, m_warningRect);
 	}
 
 	mp_textFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	SetBrushColor(m_colorSet.darkBackground);
 	FillRectangle(m_buttonBackgroundRect);
-	DrawSaveButton(this, mp_textFont, m_buttonTable.at(EDIT::BT::SAVE), m_colorSet, notValid, a_modelData);
+	DrawSaveButton(this, mp_textFont, m_buttonTable.at(EDIT::BT::SAVE), m_colorSet, isValid, a_modelData);
 	DrawCancelButton(this, mp_textFont, m_buttonTable.at(EDIT::BT::CANCEL), m_colorSet, a_modelData);
 }
 
@@ -228,4 +238,14 @@ void EditView::DrawPlainText(const std::wstring &a_text, const DRect &a_rect, ID
 	SetBrushColor(m_colorSet.text);
 	Direct2DEx::DrawUserText(a_text.c_str(), a_rect);
 	SetTextFormat(prevTextFormat);
+}
+
+const std::map<EDIT::BT, DRect> &EditView::GetButtonTable()
+{
+	return m_buttonTable;
+}
+
+const std::map<size_t, std::pair< std::wstring, DRect>> &EditView::GetEditTable()
+{
+	return m_editTable;
 }

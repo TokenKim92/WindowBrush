@@ -434,11 +434,20 @@ void WindowBrushView::DrawStrokeShape(const WBMD &a_data)
 	mp_direct2d->DrawRectangle(m_buttonTable.at(WBBT::STROKE));
 #endif 
 
-	UpdateTextColorOnHover(WBBT::STROKE, a_data);
-
-	for (auto &rect : m_strokShapeRects) {
-		DrawEllipse(rect);
+	DColor color = m_textColor;
+	if (WBBT::STROKE == a_data.hoverArea) {
+		color.a = 1.0f;
 	}
+	SetBrushColor(color);
+	DrawEllipse(m_strokShapeRects.at(0));
+	DrawEllipse(m_strokShapeRects.at(2));
+
+	color = m_highlightColor;
+	if (WBBT::STROKE == a_data.hoverArea) {
+		color.a = 1.0f;
+	}
+	SetBrushColor(color);
+	DrawEllipse(m_strokShapeRects.at(1));
 }
 
 void WindowBrushView::DrawGradiationShape(const WBMD &a_data)
