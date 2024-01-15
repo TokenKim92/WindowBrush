@@ -6,9 +6,12 @@
 #include <map>
 #include <Direct2DEx.h>
 
+#define MENU_DARK_MODE      20000
+#define MENU_LIGHT_MODE     20001
+
 // type modifier for message handlers
 #ifndef msg_handler
-    #define msg_handler
+#define msg_handler
 #endif
 
 class WindowDialog; // for typedef of 'MessageHandler'
@@ -28,7 +31,7 @@ protected:
     wchar_t *mp_windowClass;                // name of window class
     wchar_t *mp_title;                      // title of the application
     int m_showType;                         // the initial output state of the application
-    
+
     HWND mh_window;                         // to save the main window handle
     std::map<unsigned int, MessageHandler> m_messageMap;
 
@@ -64,7 +67,7 @@ public:
     void DisableSize();
     void DisableMinimize();
     void DisableMaximize();
-    
+
 protected:
     static LRESULT CALLBACK WindowProcedure(HWND ah_window, UINT a_messageID, WPARAM a_wordParam, LPARAM a_longParam);
 
@@ -85,7 +88,7 @@ protected:
     // to handle the WM_PAINT message that occurs when a window is created
     msg_handler int PaintHandler(WPARAM a_wordParam, LPARAM a_longParam);
     // to handle the WM_SYSCOMMAND message that occurs when a window is created
-    msg_handler int SysCommandHandler(WPARAM a_menuID, LPARAM a_longParam);
+    virtual msg_handler int SysCommandHandler(WPARAM a_menuID, LPARAM a_longParam);
 
     virtual void OnInitDialog();
     virtual void OnDestroy();

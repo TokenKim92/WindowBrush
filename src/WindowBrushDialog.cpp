@@ -12,6 +12,8 @@
 #pragma comment (lib, "AppTemplate.lib")     
 #endif
 
+#define MENU_COLOR_OPACITY     20002
+
 WindowBrushDialog::WindowBrushDialog() :
 	WindowDialog(L"WINDOWBRUSH", L"")
 {
@@ -24,6 +26,7 @@ WindowBrushDialog::WindowBrushDialog() :
 	m_modelData.isGradientMode = false;
 	m_modelData.selectedColor = RGB_TO_COLORF(ORANGE_500);
 	m_modelData.isFadeMode = false;
+	m_modelData.colorOpacity = 1.0f;
 }
 
 WindowBrushDialog::~WindowBrushDialog()
@@ -47,32 +50,10 @@ void WindowBrushDialog::OnInitDialog()
 	p_view->UpdateColorSymbolBrush(m_modelData.selectedColor);
 	m_buttonTable = p_view->GetButtonTable();
 
-	/////////////////////////////////////////
-	//
-	////////////////////////////////////////////////
-
-	const size_t ticInterval = 10;
-	int thumbIndex = static_cast<int>(m_modelData.colorOpacity * 100.0f / ticInterval);
-	SLIDER::RD rangeData = {
-		L"10%", 10,
-		L"100%", 100
-	};
-	std::vector<std::wstring> ticIntervalTitle;
-	for (int i = rangeData.min; i <= rangeData.max; i += ticInterval) {
-		ticIntervalTitle.push_back(std::to_wstring(i) + L"%");
-	}
-
-	SliderDialog instanceDialog(L"Color Opacity", rangeData, ticInterval, thumbIndex, ticIntervalTitle);
-	instanceDialog.SetThemeMode(GetColorMode());
-
-	RECT rect;
-	::GetWindowRect(mh_window, &rect);
-	const int centerPosX = rect.left + (rect.right - rect.left) / 2;
-	const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
-	const SIZE size = instanceDialog.GetSize();
-
-	if (BT::OK == instanceDialog.DoModal(mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
-		m_modelData.colorOpacity = instanceDialog.GetValue() / 100.0f;
+	HMENU h_systemMenu = ::GetSystemMenu(mh_window, FALSE);
+	if (nullptr != h_systemMenu) {
+		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_COLOR_OPACITY, L"Color Opacity");
+		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_SEPARATOR, NULL, nullptr);
 	}
 }
 
@@ -238,4 +219,41 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 	}
 
 	return S_OK;
+}
+
+// to handle the WM_SYSCOMMAND message that occurs when a window is created
+msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_longParam)
+{
+	const auto OnClickColorOpacityMenu = [](WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_modelData)
+	{
+		const size_t ticInterval = 10;
+		SLIDER::RD rangeData = {
+			L"10%", 10,
+			L"100%", 100
+		};
+		int thumbIndex = static_cast<int>(a_modelData.colorOpacity * 100.0f - rangeData.min) / ticInterval;
+		std::vector<std::wstring> ticIntervalTitle;
+		for (int i = rangeData.min; i <= rangeData.max; i += ticInterval) {
+			ticIntervalTitle.push_back(std::to_wstring(i) + L"%");
+		}
+
+		SliderDialog instanceDialog(L"Color Opacity", rangeData, ticInterval, thumbIndex, ticIntervalTitle);
+		instanceDialog.SetThemeMode(ap_dialog->GetColorMode());
+
+		RECT rect;
+		::GetWindowRect(ap_dialog->GetWidnowHandle(), &rect);
+		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
+		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
+		const SIZE size = instanceDialog.GetSize();
+
+		if (BT::OK == instanceDialog.DoModal(ap_dialog->GetWidnowHandle(), centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
+			a_modelData.colorOpacity = instanceDialog.GetValue() / 100.0f;
+		}
+	};
+	
+	if (MENU_COLOR_OPACITY == a_menuID) {
+		OnClickColorOpacityMenu(this, m_modelData);
+	}
+
+	return WindowDialog::SysCommandHandler(a_menuID, a_longParam);
 }

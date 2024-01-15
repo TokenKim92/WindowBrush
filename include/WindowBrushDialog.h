@@ -29,6 +29,9 @@ protected:
 	int MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
 	// to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
 	int MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam);
+
+	// to handle the WM_SYSCOMMAND message that occurs when a window is created
+	virtual msg_handler int SysCommandHandler(WPARAM a_menuID, LPARAM a_longParam) override;
 };
 
 #endif //_WINDOW_BRUSH_DIALOG_H_
