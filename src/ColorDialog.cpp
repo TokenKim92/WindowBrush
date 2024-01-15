@@ -15,6 +15,8 @@ ColorDialog::ColorDialog(const DColor &a_selectedColor, const std::vector<DColor
 	m_colorList(a_colorList)
 {
 	SetSize(COLOR::DIALOG_WIDTH, COLOR::DIALOG_HEIGHT);
+	SetStyle(WS_POPUP | WS_VISIBLE);
+	SetExtendStyle(WS_EX_TOPMOST);
 
 	m_drawMode = COLOR::DM::SELECT;
 	m_modelData = {

@@ -7,6 +7,8 @@ ScreenDialog::ScreenDialog(const std::wstring &a_title) :
 	m_title(a_title)
 {
 	SetSize(SCREEN::DIALOG_WIDTH, SCREEN::DIALOG_HEIGHT);
+	SetStyle(WS_POPUP | WS_VISIBLE);
+	SetExtendStyle(WS_EX_TOPMOST);
 
 	m_modelData = { SCREEN::BT::NONE, SCREEN::BT::NONE };
 }

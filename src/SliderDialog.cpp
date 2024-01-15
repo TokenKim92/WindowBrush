@@ -48,8 +48,6 @@ void SliderDialog::OnInitDialog()
 	m_buttonTable = p_view->GetButtonTable();
 	m_ticPoints = p_view->GetTicPoints();
 
-
-
 	DPoint tumbPoint = m_ticPoints.at(m_modelData.thumbIndex);
 	m_modelData.thumbRect = {
 		tumbPoint.x - SLIDER::THUMB_RADIUS, tumbPoint.y - SLIDER::THUMB_RADIUS,
@@ -218,6 +216,7 @@ int SliderDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longPara
 			break;
 		case SLIDER::BT::THUMB:
 			m_modelData.clickedButtonType = SLIDER::BT::NONE;
+			m_modelData.hoverButtonType = SLIDER::BT::NONE;
 			Invalidate();
 			break;
 		default:

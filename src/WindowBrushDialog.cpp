@@ -121,23 +121,20 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 	};
 	static const auto OnStrokeButtonUp = [](const HWND &ah_parentWindow, const CM &a_colorMode, WINDOW_BRUSH::MD &a_modelData)
 	{
-		RECT rect;
-		::GetWindowRect(ah_parentWindow, &rect);
-
-		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
-		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
-
 		const std::vector<std::pair<std::wstring, unsigned int>> itemList = {
 			{ L"stroke width(px)", a_modelData.strokeWidth },
 			{ L"font size(px)", a_modelData.fontSize }
 		};
 
 		EditDialog instanceDialog(L"Stroke Width", itemList, EDIT::RANGE({ 1, 999 }));
-		instanceDialog.SetStyle(WS_POPUP | WS_VISIBLE);
-		instanceDialog.SetExtendStyle(WS_EX_TOPMOST);
 		instanceDialog.SetThemeMode(a_colorMode);
 
+		RECT rect;
+		::GetWindowRect(ah_parentWindow, &rect);
+		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
+		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
 		const SIZE size = instanceDialog.GetSize();
+
 		if (BT::OK == instanceDialog.DoModal(ah_parentWindow, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
 			auto valueList = instanceDialog.GetValueList();
 			a_modelData.strokeWidth = valueList.at(0);
@@ -149,18 +146,15 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		Direct2DEx *const ap_direct2d, std::vector<DColor> &a_colorList
 		)
 	{
-		RECT rect;
-		::GetWindowRect(ah_parentWindow, &rect);
-
-		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
-		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
-
 		ColorDialog instanceDialog(a_buttonShapeData.selectedColor, a_colorList);
-		instanceDialog.SetStyle(WS_POPUP | WS_VISIBLE);
-		instanceDialog.SetExtendStyle(WS_EX_TOPMOST);
 		instanceDialog.SetThemeMode(a_colorMode);
 
+		RECT rect;
+		::GetWindowRect(ah_parentWindow, &rect);
+		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
+		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
 		const SIZE size = instanceDialog.GetSize();
+
 		if (BT::OK == instanceDialog.DoModal(ah_parentWindow, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
 			a_buttonShapeData.selectedColor = instanceDialog.GetSelectedColor();
 			a_colorList = instanceDialog.GetColorList();

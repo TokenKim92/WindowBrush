@@ -15,6 +15,8 @@ EditDialog::EditDialog(
 		: static_cast<unsigned int>(EDIT::EDIT_MARGIN + (EDIT::EDIT_WIDTH + EDIT::EDIT_MARGIN) * m_itemList.size());
 
 	SetSize(width, EDIT::DIALOG_HEIGHT);
+	SetStyle(WS_POPUP | WS_VISIBLE);
+	SetExtendStyle(WS_EX_TOPMOST);
 
 	m_modelData = {
 		EDIT::BT::NONE, EDIT::BT::NONE,
