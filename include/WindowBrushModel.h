@@ -30,6 +30,8 @@ namespace WINDOW_BRUSH {
 		bool isGradientMode;
 		D2D1_COLOR_F selectedColor;
 		bool isFadeMode;
+
+		float colorOpacity;
 	} MD;
 
 }

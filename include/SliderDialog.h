@@ -12,12 +12,21 @@ protected:
 	SLIDER::MD m_modelData;
 
 	const std::wstring m_title;
+	const SLIDER::RD m_rangeData;
+	const size_t m_ticInterval;
+	const std::vector<std::wstring> m_ticIntervalTitle;
 
 	std::map<SLIDER::BT, DRect> m_buttonTable;
+	std::vector<DPoint> m_ticPoints;
 
 public:
-	SliderDialog(const std::wstring &a_title);
+	SliderDialog(
+		const std::wstring &a_title, const SLIDER::RD &a_rangeData, const size_t &a_tickInterval,
+		const size_t &a_thumbIndex, const std::vector<std::wstring> &a_ticIntervalTitle
+	);
 	virtual ~SliderDialog();
+
+	int GetValue();
 
 protected:
 	virtual void OnInitDialog() override;

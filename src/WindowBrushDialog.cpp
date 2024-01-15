@@ -47,24 +47,32 @@ void WindowBrushDialog::OnInitDialog()
 	p_view->UpdateColorSymbolBrush(m_modelData.selectedColor);
 	m_buttonTable = p_view->GetButtonTable();
 
-	////////////////////////////////////////////////
+	/////////////////////////////////////////
 	//
 	////////////////////////////////////////////////
 
-	RECT rect;
-	::GetWindowRect(mh_window, &rect);
+	const size_t ticInterval = 10;
+	int thumbIndex = static_cast<int>(m_modelData.colorOpacity * 100.0f / ticInterval);
+	SLIDER::RD rangeData = {
+		L"10%", 10,
+		L"100%", 100
+	};
+	std::vector<std::wstring> ticIntervalTitle;
+	for (int i = rangeData.min; i <= rangeData.max; i += ticInterval) {
+		ticIntervalTitle.push_back(std::to_wstring(i) + L"%");
+	}
 
-	const int centerPosX = rect.left + (rect.right - rect.left) / 2;
-	const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
-
-	SliderDialog instanceDialog(L"Fade Speed");
-	instanceDialog.SetStyle(WS_POPUP | WS_VISIBLE);
-	instanceDialog.SetExtendStyle(WS_EX_TOPMOST);
+	SliderDialog instanceDialog(L"Color Opacity", rangeData, ticInterval, thumbIndex, ticIntervalTitle);
 	instanceDialog.SetThemeMode(GetColorMode());
 
+	RECT rect;
+	::GetWindowRect(mh_window, &rect);
+	const int centerPosX = rect.left + (rect.right - rect.left) / 2;
+	const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
 	const SIZE size = instanceDialog.GetSize();
+
 	if (BT::OK == instanceDialog.DoModal(mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
-		int a = 0;
+		m_modelData.colorOpacity = instanceDialog.GetValue() / 100.0f;
 	}
 }
 
