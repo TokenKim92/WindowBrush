@@ -33,11 +33,6 @@ WindowBrushDialog::WindowBrushDialog() :
 	m_modelData.colorOpacity = 1.0f;
 }
 
-WindowBrushDialog::~WindowBrushDialog()
-{
-
-}
-#include <vector>
 void WindowBrushDialog::OnInitDialog()
 {
 	DisableMaximize();
@@ -60,11 +55,6 @@ void WindowBrushDialog::OnInitDialog()
 		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_COLOR_OPACITY, L"Color Opacity");
 		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_SEPARATOR, NULL, nullptr);
 	}
-}
-
-void WindowBrushDialog::OnDestroy()
-{
-
 }
 
 void WindowBrushDialog::OnPaint()

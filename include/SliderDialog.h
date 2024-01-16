@@ -24,13 +24,12 @@ public:
 		const std::wstring &a_title, const SLIDER::RD &a_rangeData, const size_t &a_tickInterval,
 		const size_t &a_thumbIndex, const std::vector<std::wstring> &a_ticIntervalTitle
 	);
-	virtual ~SliderDialog();
+	virtual ~SliderDialog() = default;
 
 	int GetValue();
 
 protected:
 	virtual void OnInitDialog() override;
-	virtual void OnDestroy() override;
 	virtual void OnPaint() override;
 
 	// to handle the WM_MOUSEMOVE message that occurs when a window is destroyed

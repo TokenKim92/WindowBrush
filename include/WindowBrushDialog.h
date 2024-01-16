@@ -15,11 +15,10 @@ protected:
 
 public:
 	WindowBrushDialog();
-	virtual ~WindowBrushDialog();
+	virtual ~WindowBrushDialog() = default;
 
 protected:
 	virtual void OnInitDialog() override;
-	virtual void OnDestroy() override;
 	virtual void OnPaint() override;
 	virtual void OnSetThemeMode() override;
 

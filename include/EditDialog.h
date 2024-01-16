@@ -19,13 +19,12 @@ protected:
 
 public:
 	EditDialog(const std::wstring &a_title, const std::vector<std::pair<std::wstring, unsigned int>> &a_itemList, const EDIT::RANGE &a_range);
-	virtual ~EditDialog();
+	virtual ~EditDialog() = default;
 
 	const std::vector<unsigned int> &GetValueList();
 
 protected:
 	virtual void OnInitDialog() override;
-	virtual void OnDestroy() override;
 	virtual void OnPaint() override;
 
 	// to handle the WM_MOUSEMOVE message that occurs when a window is destroyed

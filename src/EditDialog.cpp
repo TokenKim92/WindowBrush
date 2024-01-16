@@ -28,11 +28,6 @@ EditDialog::EditDialog(
 	}
 }
 
-EditDialog::~EditDialog()
-{
-
-}
-
 void EditDialog::OnInitDialog()
 {
 	DisableMaximize();
@@ -50,11 +45,6 @@ void EditDialog::OnInitDialog()
 	p_view->Create();
 	m_buttonTable = p_view->GetButtonTable();
 	m_editTable = p_view->GetEditTable();
-}
-
-void EditDialog::OnDestroy()
-{
-
 }
 
 void EditDialog::OnPaint()

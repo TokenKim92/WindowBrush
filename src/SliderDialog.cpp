@@ -25,11 +25,6 @@ SliderDialog::SliderDialog(
 	m_modelData = { SLIDER::BT::NONE, SLIDER::BT::NONE, thumbIndex, {0, } };
 }
 
-SliderDialog::~SliderDialog()
-{
-
-}
-
 void SliderDialog::OnInitDialog()
 {
 	DisableMaximize();
@@ -53,11 +48,6 @@ void SliderDialog::OnInitDialog()
 		tumbPoint.x - SLIDER::THUMB_RADIUS, tumbPoint.y - SLIDER::THUMB_RADIUS,
 		tumbPoint.x + SLIDER::THUMB_RADIUS, tumbPoint.y + SLIDER::THUMB_RADIUS
 	};
-}
-
-void SliderDialog::OnDestroy()
-{
-
 }
 
 void SliderDialog::OnPaint()
