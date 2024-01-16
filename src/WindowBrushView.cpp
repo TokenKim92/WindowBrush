@@ -23,7 +23,7 @@ WindowBrushView::WindowBrushView(const HWND &ah_window, const CM &a_mode, const 
 	m_drawTable.insert({ WINDOW_BRUSH::BT::CIRCLE, &WindowBrushView::DrawCircleShape });
 	m_drawTable.insert({ WINDOW_BRUSH::BT::TEXT, &WindowBrushView::DrawTextShape });
 	m_drawTable.insert({ WINDOW_BRUSH::BT::STROKE, &WindowBrushView::DrawStrokeShape });
-	m_drawTable.insert({ WINDOW_BRUSH::BT::GRADIATION, &WindowBrushView::DrawGradiationShape });
+	m_drawTable.insert({ WINDOW_BRUSH::BT::GRADIENT, &WindowBrushView::DrawGradientShape });
 	m_drawTable.insert({ WINDOW_BRUSH::BT::COLOR, &WindowBrushView::DrawColorShape });
 	m_drawTable.insert({ WINDOW_BRUSH::BT::FADE, &WindowBrushView::DrawFadeShape });
 }
@@ -43,8 +43,7 @@ int WindowBrushView::Create()
 {
 	const auto InitButtonRects = [](const RECT *const ap_viewRect, std::map<WINDOW_BRUSH::BT, DRect> &a_buttonTable)
 	{
-		const float margin = 10.0f;
-		const float buttonSize = ap_viewRect->right - ap_viewRect->left - margin * 2.0f;
+		const float buttonSize = ap_viewRect->right - ap_viewRect->left - WINDOW_BRUSH::BUTTON_X_MARGIN * 2.0f;
 		const size_t buttonCount = 8;
 
 		std::vector<WINDOW_BRUSH::BT> buttonShapeList = {
@@ -53,7 +52,7 @@ int WindowBrushView::Create()
 			WINDOW_BRUSH::BT::CIRCLE,
 			WINDOW_BRUSH::BT::TEXT,
 			WINDOW_BRUSH::BT::STROKE,
-			WINDOW_BRUSH::BT::GRADIATION,
+			WINDOW_BRUSH::BT::GRADIENT,
 			WINDOW_BRUSH::BT::COLOR,
 			WINDOW_BRUSH::BT::FADE
 		};
@@ -62,7 +61,10 @@ int WindowBrushView::Create()
 		for (const auto &tpye : buttonShapeList) {
 			a_buttonTable.insert({
 				tpye,
-				DRect({ margin, buttonSize * index, ap_viewRect->right - margin, buttonSize * (index + 1) })
+				{ 
+					WINDOW_BRUSH::BUTTON_X_MARGIN, buttonSize * index, 
+					ap_viewRect->right - WINDOW_BRUSH::BUTTON_X_MARGIN, buttonSize * (index + 1) 
+				}
 				});
 
 			index++;
@@ -177,7 +179,7 @@ int WindowBrushView::Create()
 			{0.8f, RGB_TO_COLORF(RGB(252, 182, 159))},
 		};
 
-		auto rect = a_buttonTable.at(WINDOW_BRUSH::BT::GRADIATION);
+		auto rect = a_buttonTable.at(WINDOW_BRUSH::BT::GRADIENT);
 		ShrinkRect(rect, 7.0f);
 		const float centerPosX = rect.left + (rect.right - rect.left) / 2.0f;
 		const float centerPosY = rect.top + (rect.bottom - rect.top) / 2.0f;
@@ -360,7 +362,7 @@ void WindowBrushView::UpdateTextColorOnHover(const WINDOW_BRUSH::BT &a_type, con
 	DColor color = a_type == a_data.drawMode
 		? m_highlightColor
 		: m_textColor;
-	if (a_type == a_data.hoverArea) {
+	if (a_type == a_data.hoverButtonType) {
 		color.a = 1.0f;
 	}
 	SetBrushColor(color);
@@ -435,7 +437,7 @@ void WindowBrushView::DrawStrokeShape(const WINDOW_BRUSH::MD &a_data)
 #endif 
 
 	DColor color = m_textColor;
-	if (WINDOW_BRUSH::BT::STROKE == a_data.hoverArea) {
+	if (WINDOW_BRUSH::BT::STROKE == a_data.hoverButtonType) {
 		color.a = 1.0f;
 	}
 	SetBrushColor(color);
@@ -443,14 +445,14 @@ void WindowBrushView::DrawStrokeShape(const WINDOW_BRUSH::MD &a_data)
 	DrawEllipse(m_strokShapeRects.at(2));
 
 	color = m_highlightColor;
-	if (WINDOW_BRUSH::BT::STROKE == a_data.hoverArea) {
+	if (WINDOW_BRUSH::BT::STROKE == a_data.hoverButtonType) {
 		color.a = 1.0f;
 	}
 	SetBrushColor(color);
 	DrawEllipse(m_strokShapeRects.at(1));
 }
 
-void WindowBrushView::DrawGradiationShape(const WINDOW_BRUSH::MD &a_data)
+void WindowBrushView::DrawGradientShape(const WINDOW_BRUSH::MD &a_data)
 {
 #ifdef  SHOW_BUTTON_AREA
 	mp_direct2d->DrawRectangle(m_buttonTable.at(WINDOW_BRUSH::BT::GRADIATION));
@@ -458,7 +460,7 @@ void WindowBrushView::DrawGradiationShape(const WINDOW_BRUSH::MD &a_data)
 	// able gradation button
 	if (a_data.isGradientMode && nullptr != mp_gradientBrush) {
 		ID2D1Brush *p_prevBrush = SetBrush(mp_gradientBrush);
-		const float transparency = WINDOW_BRUSH::BT::GRADIATION == a_data.hoverArea
+		const float transparency = WINDOW_BRUSH::BT::GRADIENT == a_data.hoverButtonType
 			? 1.0f
 			: WINDOW_BRUSH::DEFAULT_TRANSPARENCY;
 		mp_gradientBrush->SetOpacity(transparency);
@@ -473,7 +475,7 @@ void WindowBrushView::DrawGradiationShape(const WINDOW_BRUSH::MD &a_data)
 	}
 
 	// disable gradation button
-	UpdateTextColorOnHover(WINDOW_BRUSH::BT::GRADIATION, a_data);
+	UpdateTextColorOnHover(WINDOW_BRUSH::BT::GRADIENT, a_data);
 
 	for (auto p_geometry : m_gradientGeometries) {
 		DrawGeometry(p_geometry);
@@ -490,7 +492,7 @@ void WindowBrushView::DrawColorShape(const WINDOW_BRUSH::MD &a_data)
 	DColor color;
 	for (const auto &hueData : m_hueDataList) {
 		color = hueData.first;
-		if (WINDOW_BRUSH::BT::COLOR == a_data.hoverArea) {
+		if (WINDOW_BRUSH::BT::COLOR == a_data.hoverButtonType) {
 			color.a = 1.0f;
 		}
 		SetBrushColor(color);
@@ -504,7 +506,7 @@ void WindowBrushView::DrawColorShape(const WINDOW_BRUSH::MD &a_data)
 		ShrinkRect(rect, m_colorShapeMargin);
 
 		ID2D1Brush *const p_prevBrush = SetBrush(mp_colorShapeBrush);
-		const float transparency = WINDOW_BRUSH::BT::COLOR == a_data.hoverArea
+		const float transparency = WINDOW_BRUSH::BT::COLOR == a_data.hoverButtonType
 			? 1.0f
 			: WINDOW_BRUSH::DEFAULT_TRANSPARENCY;
 		mp_colorShapeBrush->SetOpacity(transparency);
@@ -526,7 +528,7 @@ void WindowBrushView::DrawFadeShape(const WINDOW_BRUSH::MD &a_data)
 	DColor color = a_data.isFadeMode
 		? m_highlightColor
 		: m_textColor;
-	if (WINDOW_BRUSH::BT::FADE == a_data.hoverArea) {
+	if (WINDOW_BRUSH::BT::FADE == a_data.hoverButtonType) {
 		color.a = 1.0f;
 	}
 	SetBrushColor(color);

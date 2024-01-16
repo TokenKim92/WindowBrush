@@ -46,6 +46,12 @@
     <Filter Include="Source Files\ScreenDialog">
       <UniqueIdentifier>{ea36ccd9-1d8e-48e1-875b-2451203467cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\InfoDialog">
+      <UniqueIdentifier>{78250f53-b437-45c4-8570-602b364b328c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\InfoDialog">
+      <UniqueIdentifier>{dcb69ede-a6e1-4aaf-895b-379ee37d9944}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WindowBrush.cpp">
@@ -89,6 +95,9 @@
     </ClCompile>
     <ClCompile Include="src\ScreenView.cpp">
       <Filter>Source Files\ScreenDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\InfoDialog.cpp">
+      <Filter>Source Files\InfoDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +178,12 @@
     </ClInclude>
     <ClInclude Include="include\ScreenView.h">
       <Filter>Header Files\ScreenDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\InfoDialog.h">
+      <Filter>Header Files\InfoDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\InfoModel.h">
+      <Filter>Header Files\InfoDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

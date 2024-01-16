@@ -51,7 +51,7 @@ private:
 	void DrawCircleShape(const WINDOW_BRUSH::MD &a_data);
 	void DrawTextShape(const WINDOW_BRUSH::MD &a_data);
 	void DrawStrokeShape(const WINDOW_BRUSH::MD &a_data);
-	void DrawGradiationShape(const WINDOW_BRUSH::MD &a_data);
+	void DrawGradientShape(const WINDOW_BRUSH::MD &a_data);
 	void DrawColorShape(const WINDOW_BRUSH::MD &a_data);
 	void DrawFadeShape(const WINDOW_BRUSH::MD &a_data);
 };

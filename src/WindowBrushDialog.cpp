@@ -5,7 +5,11 @@
 #include "ColorPalette.h"
 #include "SliderDialog.h"
 #include "ScreenDialog.h"
+#include "InfoDialog.h"
+#include "InfoModel.h"
 #include "Utility.h"
+#include <map>
+#include <sstream>
 
 #ifdef _DEBUG
 #pragma comment (lib, "AppTemplateDebug.lib")
@@ -17,12 +21,24 @@
 #define MENU_COLOR_OPACITY		MENU_LIGHT_MODE + 2
 #define MENU_FADE_SPEED			MENU_LIGHT_MODE + 3
 
+void __stdcall ShowInfoDialog(HWND ah_wnd, UINT a_msg, UINT_PTR ap_data, DWORD dwTime)
+{
+	::KillTimer(ah_wnd, ap_data);
+
+	const auto p_data = reinterpret_cast<WINDOW_BRUSH::IDD *>(ap_data);
+	auto windowBrushDialog = static_cast<WindowBrushDialog *>(p_data->windowBrushDialog);
+
+	const auto point = windowBrushDialog->GetInfoDialogPoint();
+	p_data->infoDialog = new InfoDialog(windowBrushDialog->GetHoverButtonTitle());
+	p_data->infoDialog->Create(point.x, point.y);
+}
+
 WindowBrushDialog::WindowBrushDialog() :
 	WindowDialog(L"WINDOWBRUSH", L"")
 {
-	SetSize(80, 390);
+	SetSize(WINDOW_BRUSH::DIALOG_WIDTH, WINDOW_BRUSH::DIALOG_HEIGHT);
 
-	m_modelData.hoverArea = WINDOW_BRUSH::BT::NONE;
+	m_modelData.hoverButtonType = WINDOW_BRUSH::BT::NONE;
 	m_modelData.drawMode = WINDOW_BRUSH::BT::NONE;
 	m_modelData.strokeWidth = 20;
 	m_modelData.fontSize = 20;
@@ -33,6 +49,10 @@ WindowBrushDialog::WindowBrushDialog() :
 	m_modelData.selectedScreenRect = { 0, 0, ::GetSystemMetrics(SM_CXSCREEN), ::GetSystemMetrics(SM_CYSCREEN) };
 	m_modelData.fadeTimer = 500;
 	m_modelData.colorOpacity = 1.0f;
+
+	m_infoDialogData = { this, nullptr };
+
+	m_isLeftMouse = true;
 }
 
 void WindowBrushDialog::OnInitDialog()
@@ -43,7 +63,9 @@ void WindowBrushDialog::OnInitDialog()
 
 	// add message handlers
 	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&WindowBrushDialog::MouseMoveHandler));
+	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&WindowBrushDialog::MouseLeftButtonDownHandler));
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&WindowBrushDialog::MouseLeftButtonUpHandler));
+	AddMessageHandler(WM_MOUSELEAVE, static_cast<MessageHandler>(&WindowBrushDialog::MouseLeaveHandler));
 
 	const auto p_view = new WindowBrushView(mh_window, GetColorMode());
 	InheritDirect2D(p_view);
@@ -58,6 +80,13 @@ void WindowBrushDialog::OnInitDialog()
 		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_FADE_SPEED, L"Fade Timer");
 		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_SEPARATOR, NULL, nullptr);
 	}
+
+	::EnumDisplayMonitors(nullptr, nullptr, GetPhysicalScreenRects, reinterpret_cast<LPARAM>(&m_physicalScreenRects));
+}
+
+void WindowBrushDialog::OnDestroy()
+{
+	KillInfoDialogTimer();
 }
 
 void WindowBrushDialog::OnPaint()
@@ -74,12 +103,23 @@ void WindowBrushDialog::OnSetThemeMode()
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
 int WindowBrushDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
+	if (m_isLeftMouse) {
+		m_isLeftMouse = false;
+
+		// to call the method OnMouseLeave() on mouse leave
+		TRACKMOUSEEVENT data = { sizeof(TRACKMOUSEEVENT), TME_LEAVE, mh_window };
+		::TrackMouseEvent(&data);
+	}
+
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
 	for (auto const &[type, rect] : m_buttonTable) {
 		if (PointInRect(rect, pos)) {
-			if (type != m_modelData.hoverArea) {
-				m_modelData.hoverArea = type;
+			if (type != m_modelData.hoverButtonType) {
+				m_modelData.hoverButtonType = type;
+				KillInfoDialogTimer();
+				::SetTimer(mh_window, reinterpret_cast<UINT_PTR>(&m_infoDialogData), 1500, ShowInfoDialog);
+
 				Invalidate();
 			}
 
@@ -87,8 +127,10 @@ int WindowBrushDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		}
 	}
 
-	if (WINDOW_BRUSH::BT::NONE != m_modelData.hoverArea) {
-		m_modelData.hoverArea = WINDOW_BRUSH::BT::NONE;
+	if (WINDOW_BRUSH::BT::NONE != m_modelData.hoverButtonType) {
+		m_modelData.hoverButtonType = WINDOW_BRUSH::BT::NONE;
+		KillInfoDialogTimer();
+
 		Invalidate();
 	}
 
@@ -100,13 +142,17 @@ int WindowBrushDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_l
 {
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
+	KillInfoDialogTimer();
+
 	return S_OK;
 }
 
 // to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
 int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static const auto OnDrawButtonUp = [](WINDOW_BRUSH::MD &a_buttonShapeData, const WINDOW_BRUSH::BT &a_type)
+	static const auto OnDrawButtonUp = [](
+		WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_buttonShapeData, const WINDOW_BRUSH::BT &a_type
+		)
 	{
 		if (a_type != a_buttonShapeData.drawMode) {
 			// TODO:: turn on draw mode
@@ -116,6 +162,8 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			// TODO:: turn off draw mode
 			a_buttonShapeData.drawMode = WINDOW_BRUSH::BT::NONE;;
 		}
+
+		ap_dialog->Invalidate();
 	};
 	static const auto OnStrokeButtonUp = [](const HWND &ah_parentWindow, const CM &a_colorMode, WINDOW_BRUSH::MD &a_modelData)
 	{
@@ -159,13 +207,15 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			static_cast<WindowBrushView *>(ap_direct2d)->UpdateColorSymbolBrush(a_buttonShapeData.selectedColor);
 		}
 	};
-	static const auto OnGradientButtonUp = [](WINDOW_BRUSH::MD &a_buttonShapeData)
+	static const auto OnGradientButtonUp = [](WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_buttonShapeData)
 	{
 		a_buttonShapeData.isGradientMode = !a_buttonShapeData.isGradientMode;
+		ap_dialog->Invalidate();
 	};
-	static const auto OnFadeButtonUp = [](WINDOW_BRUSH::MD &a_buttonShapeData)
+	static const auto OnFadeButtonUp = [](WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_buttonShapeData)
 	{
 		a_buttonShapeData.isFadeMode = !a_buttonShapeData.isFadeMode;
+		ap_dialog->Invalidate();
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -183,28 +233,25 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			case WINDOW_BRUSH::BT::RECTANGLE:
 			case WINDOW_BRUSH::BT::CIRCLE:
 			case WINDOW_BRUSH::BT::TEXT:
-				OnDrawButtonUp(m_modelData, type);
+				OnDrawButtonUp(this, m_modelData, type);
 				break;
 			case WINDOW_BRUSH::BT::STROKE:
 				OnStrokeButtonUp(mh_window, GetColorMode(), m_modelData);
 				break;
-			case WINDOW_BRUSH::BT::GRADIATION:
-				OnGradientButtonUp(m_modelData);
+			case WINDOW_BRUSH::BT::GRADIENT:
+				OnGradientButtonUp(this, m_modelData);
 				break;
 			case WINDOW_BRUSH::BT::COLOR:
 				if (!m_modelData.isGradientMode) {
 					OnColorButtonUp(mh_window, m_modelData, GetColorMode(), mp_direct2d, m_colorList);
 				}
-				return S_OK; // to avoid hoverArea is init
+				break;
 			case WINDOW_BRUSH::BT::FADE:
-				OnFadeButtonUp(m_modelData);
+				OnFadeButtonUp(this, m_modelData);
 				break;
 			default:
 				break;
 			}
-
-			m_modelData.hoverArea = WINDOW_BRUSH::BT::NONE;
-			Invalidate();
 
 			return S_OK;
 		}
@@ -212,7 +259,24 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 
 	return S_OK;
 }
-#include <sstream>
+
+// to handle the WM_MOUSELEAVE  message that occurs when a window is destroyed
+int WindowBrushDialog::MouseLeaveHandler(WPARAM a_wordParam, LPARAM a_longParam)
+{
+	if (!m_isLeftMouse) {
+		m_isLeftMouse = true;
+
+		if (WINDOW_BRUSH::BT::NONE != m_modelData.hoverButtonType) {
+			m_modelData.hoverButtonType = WINDOW_BRUSH::BT::NONE;
+			KillInfoDialogTimer();
+
+			Invalidate();
+		}
+	}
+
+	return S_OK;
+}
+
 // to handle the WM_SYSCOMMAND message that occurs when a window is created
 msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_longParam)
 {
@@ -293,7 +357,7 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 	////////////////////////////////////////////////////////////////
 	// implementation
 	////////////////////////////////////////////////////////////////
-	
+
 	switch (a_menuID)
 	{
 	case MENU_SELECT_SCREEN:
@@ -307,7 +371,65 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 		break;
 	default:
 		break;
-	}	
+	}
 
 	return WindowDialog::SysCommandHandler(a_menuID, a_longParam);
+}
+
+std::wstring WindowBrushDialog::GetHoverButtonTitle()
+{
+	const std::map<WINDOW_BRUSH::BT, std::wstring> titleList = {
+		{WINDOW_BRUSH::BT::CURVE, L"Curve Tool (L)"},
+		{WINDOW_BRUSH::BT::RECTANGLE, L"Rectangle Tool (R)"},
+		{WINDOW_BRUSH::BT::CIRCLE, L"Ellipse Tool (E)"},
+		{WINDOW_BRUSH::BT::TEXT, L"Text Tool (T)"},
+		{WINDOW_BRUSH::BT::STROKE, L"Width Tool (W)"},
+		{WINDOW_BRUSH::BT::GRADIENT, L"Gradation Tool (G)"},
+		{WINDOW_BRUSH::BT::COLOR, L"Color Tool (C)"},
+		{WINDOW_BRUSH::BT::FADE, L"Fade Tool (F)"}
+	};
+
+	return titleList.at(m_modelData.hoverButtonType);
+}
+
+POINT WindowBrushDialog::GetInfoDialogPoint()
+{
+	if (WINDOW_BRUSH::BT::NONE == m_modelData.hoverButtonType) {
+		return { 0, 0 };
+	}
+
+	DRect rect = m_buttonTable.at(m_modelData.hoverButtonType);
+	POINT point = { static_cast<long>(rect.right),  static_cast<long>(rect.top) };
+	::ClientToScreen(mh_window, &point);
+
+	RECT screenRect = { 0, 0, 0, 0 };
+	for (const auto &physicalRect : m_physicalScreenRects) {
+		if (PointInRect(physicalRect, point)) {
+			screenRect = physicalRect;
+			break;
+		}
+	}
+
+	if (point.x + static_cast<long>(INFO::DIALOG_WIDTH + WINDOW_BRUSH::BUTTON_X_MARGIN * 2.0f) < screenRect.right) {
+		point.x += static_cast<long>(WINDOW_BRUSH::BUTTON_X_MARGIN * 2.0f);
+	}
+	else {
+		point.x -= INFO::DIALOG_WIDTH + WINDOW_BRUSH::DIALOG_WIDTH - static_cast<unsigned int>(WINDOW_BRUSH::BUTTON_X_MARGIN);
+	}
+	point.y += static_cast<long>((rect.bottom - rect.top - INFO::DIALOG_HEIGHT) / 2.0f);
+
+	return point;
+}
+
+void WindowBrushDialog::KillInfoDialogTimer()
+{
+	::KillTimer(mh_window, reinterpret_cast<UINT_PTR>(&m_infoDialogData));
+
+	auto p_infoDialog = &m_infoDialogData.infoDialog;
+	if (nullptr != *p_infoDialog) {
+		::DestroyWindow((*p_infoDialog)->GetWidnowHandle());
+
+		delete *p_infoDialog;
+		*p_infoDialog = nullptr;
+	}
 }

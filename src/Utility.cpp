@@ -68,6 +68,14 @@ bool PointInRect(const D2D1_RECT_F &a_rect, const POINT &a_pos)
 		a_rect.bottom >= a_pos.y;
 }
 
+bool PointInRect(const RECT &a_rect, const POINT &a_pos)
+{
+	return a_rect.left <= a_pos.x &&
+		a_rect.top <= a_pos.y &&
+		a_rect.right >= a_pos.x &&
+		a_rect.bottom >= a_pos.y;
+}
+
 void ExpandRect(D2D1_RECT_F &a_rect, const float &a_offset)
 {
 	a_rect.left -= a_offset;

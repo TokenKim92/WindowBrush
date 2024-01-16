@@ -12,6 +12,7 @@ float GetBrightness(const D2D1_COLOR_F &a_color);
 std::wstring FloatToHexWString(const float &a_value);
 
 bool PointInRect(const D2D1_RECT_F &a_rect, const POINT &a_pos);
+bool PointInRect(const RECT &a_rect, const POINT &a_pos);
 void ExpandRect(D2D1_RECT_F &a_rect, const float &a_offset);
 void ShrinkRect(D2D1_RECT_F &a_rect, const float &a_offset);
 
