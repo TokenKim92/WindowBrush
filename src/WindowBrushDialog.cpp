@@ -15,6 +15,7 @@
 
 #define MENU_SELECT_SCREEN		MENU_LIGHT_MODE + 1
 #define MENU_COLOR_OPACITY		MENU_LIGHT_MODE + 2
+#define MENU_FADE_SPEED			MENU_LIGHT_MODE + 3
 
 WindowBrushDialog::WindowBrushDialog() :
 	WindowDialog(L"WINDOWBRUSH", L"")
@@ -30,6 +31,7 @@ WindowBrushDialog::WindowBrushDialog() :
 	m_modelData.isFadeMode = false;
 
 	m_modelData.selectedScreenRect = { 0, 0, ::GetSystemMetrics(SM_CXSCREEN), ::GetSystemMetrics(SM_CYSCREEN) };
+	m_modelData.fadeTimer = 500;
 	m_modelData.colorOpacity = 1.0f;
 }
 
@@ -53,6 +55,7 @@ void WindowBrushDialog::OnInitDialog()
 	if (nullptr != h_systemMenu) {
 		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_SELECT_SCREEN, L"Select Screen");
 		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_COLOR_OPACITY, L"Color Opacity");
+		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_FADE_SPEED, L"Fade Timer");
 		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_SEPARATOR, NULL, nullptr);
 	}
 }
@@ -209,10 +212,25 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 
 	return S_OK;
 }
-
+#include <sstream>
 // to handle the WM_SYSCOMMAND message that occurs when a window is created
 msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_longParam)
 {
+	const auto OnClickSelectScreenMenu = [](WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_modelData)
+	{
+		ScreenDialog instanceDialog(a_modelData.selectedScreenRect);
+		instanceDialog.SetThemeMode(ap_dialog->GetColorMode());
+
+		RECT rect;
+		::GetWindowRect(ap_dialog->GetWidnowHandle(), &rect);
+		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
+		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
+		const SIZE size = instanceDialog.GetSize();
+
+		if (BT::OK == instanceDialog.DoModal(ap_dialog->GetWidnowHandle(), centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
+			a_modelData.selectedScreenRect = instanceDialog.GetSelectedRect();
+		}
+	};
 	const auto OnClickColorOpacityMenu = [](WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_modelData)
 	{
 		const size_t ticInterval = 10;
@@ -222,6 +240,7 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 		};
 		int thumbIndex = static_cast<int>(a_modelData.colorOpacity * 100.0f - rangeData.min) / ticInterval;
 		std::vector<std::wstring> ticIntervalTitle;
+
 		for (int i = rangeData.min; i <= rangeData.max; i += ticInterval) {
 			ticIntervalTitle.push_back(std::to_wstring(i) + L"%");
 		}
@@ -239,9 +258,25 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 			a_modelData.colorOpacity = instanceDialog.GetValue() / 100.0f;
 		}
 	};
-	const auto OnClickSelectScreenMenu = [](WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_modelData)
+	const auto OnClickFadeSpeedMenu = [](WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_modelData)
 	{
-		ScreenDialog instanceDialog(a_modelData.selectedScreenRect);
+		const size_t ticInterval = 500;
+		SLIDER::RD rangeData = {
+			L"Fast", 0,
+			L"Slow", 3000
+		};
+		int thumbIndex = static_cast<int>(a_modelData.fadeTimer / ticInterval);
+		std::wostringstream out;
+		out.precision(1);
+
+		std::vector<std::wstring> ticIntervalTitle;
+		for (int i = rangeData.min; i <= rangeData.max; i += ticInterval) {
+			out << std::fixed << i / 1000.0f;
+			ticIntervalTitle.push_back(out.str() + L"s");
+			out.str(L"");
+		}
+
+		SliderDialog instanceDialog(L"Fade Timer", rangeData, ticInterval, thumbIndex, ticIntervalTitle);
 		instanceDialog.SetThemeMode(ap_dialog->GetColorMode());
 
 		RECT rect;
@@ -251,7 +286,7 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 		const SIZE size = instanceDialog.GetSize();
 
 		if (BT::OK == instanceDialog.DoModal(ap_dialog->GetWidnowHandle(), centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
-			a_modelData.selectedScreenRect = instanceDialog.GetSelectedRect();
+			a_modelData.fadeTimer = instanceDialog.GetValue();
 		}
 	};
 
@@ -266,6 +301,9 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 		break;
 	case MENU_COLOR_OPACITY:
 		OnClickColorOpacityMenu(this, m_modelData);
+		break;
+	case MENU_FADE_SPEED:
+		OnClickFadeSpeedMenu(this, m_modelData);
 		break;
 	default:
 		break;

@@ -32,6 +32,7 @@ namespace WINDOW_BRUSH {
 		bool isFadeMode;
 
 		RECT selectedScreenRect;
+		unsigned int fadeTimer; //ms
 		float colorOpacity;
 	} MD;
 
