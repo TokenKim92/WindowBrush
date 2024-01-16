@@ -48,6 +48,7 @@ public:
 		const D2D1_CAP_STYLE a_dashCap = D2D1_CAP_STYLE_ROUND, const D2D1_LINE_JOIN a_lineJoin = D2D1_LINE_JOIN_ROUND,
 		const float a_miterLimit = 10.0f, const float a_dashOffset = 0.0f
 	);
+	ID2D1Bitmap *const CreateBitmapFromHBitmap(const HBITMAP &ah_bitmap);
 
 	void SetBrushColor(const DColor &a_color);
 	void SetBackgroundColor(const DColor &a_backgroundColor);
@@ -72,6 +73,7 @@ public:
 	void DrawEllipse(const DPoint &a_startPoint, const DPoint &a_endPoint);
 	void DrawEllipse(const DRect &a_rect);
 	void DrawGeometry(ID2D1Geometry *const ap_geometry);
+	void DrawBitmap(ID2D1Bitmap *const ap_bitmap, const DRect &a_rect, float opacity = 1.0f);
 
 	void FillRectangle(const DRect &a_rect);
 	void FillRectangle(const DPoint &a_startPoint, const DPoint &a_endPoint);

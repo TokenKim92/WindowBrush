@@ -15,4 +15,6 @@ bool PointInRect(const D2D1_RECT_F &a_rect, const POINT &a_pos);
 void ExpandRect(D2D1_RECT_F &a_rect, const float &a_offset);
 void ShrinkRect(D2D1_RECT_F &a_rect, const float &a_offset);
 
+BOOL CALLBACK GetPhysicalScreenRects(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
+
 #endif //_UTILITY_H_

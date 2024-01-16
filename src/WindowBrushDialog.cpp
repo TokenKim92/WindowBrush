@@ -4,6 +4,7 @@
 #include "EditDialog.h"
 #include "ColorPalette.h"
 #include "SliderDialog.h"
+#include "ScreenDialog.h"
 #include "Utility.h"
 
 #ifdef _DEBUG
@@ -12,7 +13,8 @@
 #pragma comment (lib, "AppTemplate.lib")     
 #endif
 
-#define MENU_COLOR_OPACITY     20002
+#define MENU_SELECT_SCREEN		MENU_LIGHT_MODE + 1
+#define MENU_COLOR_OPACITY		MENU_LIGHT_MODE + 2
 
 WindowBrushDialog::WindowBrushDialog() :
 	WindowDialog(L"WINDOWBRUSH", L"")
@@ -26,6 +28,8 @@ WindowBrushDialog::WindowBrushDialog() :
 	m_modelData.isGradientMode = false;
 	m_modelData.selectedColor = RGB_TO_COLORF(ORANGE_500);
 	m_modelData.isFadeMode = false;
+
+	m_modelData.selectedScreenRect = { 0, 0, ::GetSystemMetrics(SM_CXSCREEN), ::GetSystemMetrics(SM_CYSCREEN) };
 	m_modelData.colorOpacity = 1.0f;
 }
 
@@ -52,6 +56,7 @@ void WindowBrushDialog::OnInitDialog()
 
 	HMENU h_systemMenu = ::GetSystemMenu(mh_window, FALSE);
 	if (nullptr != h_systemMenu) {
+		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_SELECT_SCREEN, L"Select Screen");
 		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_COLOR_OPACITY, L"Color Opacity");
 		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_SEPARATOR, NULL, nullptr);
 	}
@@ -244,10 +249,37 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 			a_modelData.colorOpacity = instanceDialog.GetValue() / 100.0f;
 		}
 	};
+	const auto OnClickSelectScreenMenu = [](WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_modelData)
+	{
+		ScreenDialog instanceDialog(a_modelData.selectedScreenRect);
+		instanceDialog.SetThemeMode(ap_dialog->GetColorMode());
+
+		RECT rect;
+		::GetWindowRect(ap_dialog->GetWidnowHandle(), &rect);
+		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
+		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
+		const SIZE size = instanceDialog.GetSize();
+
+		if (BT::OK == instanceDialog.DoModal(ap_dialog->GetWidnowHandle(), centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
+			a_modelData.selectedScreenRect = instanceDialog.GetSelectedRect();
+		}
+	};
+
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
 	
-	if (MENU_COLOR_OPACITY == a_menuID) {
+	switch (a_menuID)
+	{
+	case MENU_SELECT_SCREEN:
+		OnClickSelectScreenMenu(this, m_modelData);
+		break;
+	case MENU_COLOR_OPACITY:
 		OnClickColorOpacityMenu(this, m_modelData);
-	}
+		break;
+	default:
+		break;
+	}	
 
 	return WindowDialog::SysCommandHandler(a_menuID, a_longParam);
 }

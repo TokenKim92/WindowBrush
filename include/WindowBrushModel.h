@@ -31,6 +31,7 @@ namespace WINDOW_BRUSH {
 		D2D1_COLOR_F selectedColor;
 		bool isFadeMode;
 
+		RECT selectedScreenRect;
 		float colorOpacity;
 	} MD;
 

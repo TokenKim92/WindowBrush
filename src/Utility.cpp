@@ -1,6 +1,7 @@
 #include "Utility.h"
 #include <sstream>
 #include <iomanip>
+#include <vector>
 
 bool IsSameColor(const D2D1_COLOR_F &a_color1, const D2D1_COLOR_F &a_color2)
 {
@@ -81,4 +82,25 @@ void ShrinkRect(D2D1_RECT_F &a_rect, const float &a_offset)
 	a_rect.top += a_offset;
 	a_rect.right -= a_offset;
 	a_rect.bottom -= a_offset;
+}
+
+BOOL CALLBACK GetPhysicalScreenRects(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
+{
+	MONITORINFOEX info;
+	info.cbSize = sizeof(MONITORINFOEX);
+	info.dwFlags = 0;
+	GetMonitorInfo(hMonitor, &info);
+
+	DEVMODE devmode;
+	devmode.dmSize = sizeof(DEVMODE);
+	EnumDisplaySettings(info.szDevice, ENUM_CURRENT_SETTINGS, &devmode);
+
+	auto screenTable = reinterpret_cast<std::vector<RECT> *>(dwData);
+	RECT rect = {
+			static_cast<float>(devmode.dmPosition.x), static_cast<LONG>(devmode.dmPosition.y),
+			static_cast<float>(devmode.dmPosition.x + devmode.dmPelsWidth), static_cast<float>(devmode.dmPosition.y + devmode.dmPelsHeight)
+	};
+	screenTable->push_back(rect);
+
+	return TRUE;
 }

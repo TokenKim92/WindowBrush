@@ -2,20 +2,51 @@
 #include "ScreenView.h"
 #include "Utility.h"
 
-ScreenDialog::ScreenDialog(const std::wstring &a_title) :
-	WindowDialog(L"SCREENDIALOG", L"ScreenDialog"),
-	m_title(a_title)
+ScreenDialog::ScreenDialog(const RECT &a_selectedScreenRect) :
+	WindowDialog(L"SCREENDIALOG", L"ScreenDialog")
 {
-	SetSize(SCREEN::DIALOG_WIDTH, SCREEN::DIALOG_HEIGHT);
+	const auto GetDialogHieght = [](const std::vector<RECT> &a_physicalScreenRects)
+	{
+		const auto screenButtonWidth = SCREEN::DIALOG_WIDTH - SCREEN::SCREEN_X_MARGIN * 2.0f;
+		int dialogHeight = static_cast<int>(SCREEN::TITLE_HEIGHT + SCREEN::BUTTON_HEIGHT + SCREEN::BUTTON_MARGIN * 2);
+		double ratio;
+
+		for (const auto &rect : a_physicalScreenRects) {
+			ratio = static_cast<double>(rect.bottom - rect.top) / static_cast<double>(rect.right - rect.left);
+			dialogHeight += static_cast<int>(screenButtonWidth * ratio + SCREEN::SCREEN_Y_MARGIN);
+		}
+
+		return dialogHeight;
+	};
+	const auto GetIndexFromSelectedScreen = [](const RECT &a_selectedScreenRect, const std::vector<RECT> &a_physicalScreenRects)
+	{
+		size_t index = 0;
+		for (const auto &rect : a_physicalScreenRects) {
+			if (rect.left == a_selectedScreenRect.left && rect.top == a_selectedScreenRect.top &&
+				rect.right == a_selectedScreenRect.right && rect.bottom == a_selectedScreenRect.bottom) {
+				return index;
+			}
+
+			index++;
+		}
+
+		return SCREEN::INVALID_INDEX;
+	};
+
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
+	
+	::EnumDisplayMonitors(nullptr, nullptr, GetPhysicalScreenRects, reinterpret_cast<LPARAM>(&m_physicalScreenRects));
+
+	SetSize(SCREEN::DIALOG_WIDTH, GetDialogHieght(m_physicalScreenRects));
 	SetStyle(WS_POPUP | WS_VISIBLE);
 	SetExtendStyle(WS_EX_TOPMOST);
 
-	m_modelData = { SCREEN::BT::NONE, SCREEN::BT::NONE };
-}
-
-ScreenDialog::~ScreenDialog()
-{
-
+	m_modelData = { 
+		SCREEN::BT::NONE, SCREEN::BT::NONE,
+		SCREEN::INVALID_INDEX, GetIndexFromSelectedScreen(a_selectedScreenRect, m_physicalScreenRects)
+	};
 }
 
 void ScreenDialog::OnInitDialog()
@@ -30,15 +61,11 @@ void ScreenDialog::OnInitDialog()
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ScreenDialog::MouseLeftButtonUpHandler));
 	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ScreenDialog::KeyDownHandler));
 
-	const auto p_view = new ScreenView(mh_window, m_title, GetColorMode());
+	const auto p_view = new ScreenView(mh_window, GetColorMode());
 	InheritDirect2D(p_view);
 	p_view->Create();
 	m_buttonTable = p_view->GetButtonTable();
-}
-
-void ScreenDialog::OnDestroy()
-{
-
+	m_screenTable = p_view->GetScreenTable();
 }
 
 void ScreenDialog::OnPaint()
@@ -63,8 +90,22 @@ int ScreenDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		}
 	}
 
+	for (const auto &[index, rect] : m_screenTable) {
+		if (PointInRect(rect, point)) {
+			m_modelData.hoverButtonType = SCREEN::BT::SCREEN;
+
+			if (index != m_modelData.hoverScreenIndex) {
+				m_modelData.hoverScreenIndex = index;
+				Invalidate();
+			}
+
+			return S_OK;
+		}
+	}
+
 	if (SCREEN::BT::NONE != m_modelData.hoverButtonType) {
 		m_modelData.hoverButtonType = SCREEN::BT::NONE;
+		m_modelData.hoverScreenIndex = SCREEN::INVALID_INDEX;
 		Invalidate();
 	}
 
@@ -82,6 +123,19 @@ int ScreenDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 		if (PointInRect(rect, point)) {
 			m_modelData.clickedButtonType = type;
 			Invalidate();
+
+			return S_OK;
+		}
+	}
+
+	for (const auto &[index, rect] : m_screenTable) {
+		if (PointInRect(rect, point)) {
+			m_modelData.clickedButtonType = SCREEN::BT::SCREEN;
+
+			if (m_modelData.clickedScreenIndex != index) {
+				m_modelData.clickedScreenIndex = index;
+				Invalidate();
+			}
 
 			return S_OK;
 		}
@@ -153,4 +207,9 @@ int ScreenDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	}
 
 	return S_OK;
+}
+
+RECT ScreenDialog::GetSelectedRect()
+{
+	return m_physicalScreenRects.at(m_modelData.clickedScreenIndex);
 }

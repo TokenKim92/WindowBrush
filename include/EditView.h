@@ -22,12 +22,12 @@ protected:
 protected:
 	const std::wstring m_title;
 	std::map<EDIT::BT, DRect> m_buttonTable;
-	std::map<size_t, std::pair< std::wstring, DRect>> m_editTable;
+	std::map<size_t, std::pair<std::wstring, DRect>> m_editTable;
 	const EDIT::RANGE m_range;
 
 	DRect m_titleRect;
 	DRect m_warningRect;
-	DRect m_buttonBackgroundRect;	
+	DRect m_buttonBackgroundRect;
 
 	IDWriteTextFormat *mp_titleFont;
 	IDWriteTextFormat *mp_textFont;

@@ -13,15 +13,14 @@ protected:
 	{
 		DColor text;
 		DColor lightBackground;
-		DColor background;
 		DColor darkBackground;
 		DColor highlight;
-		DColor shadow;
 	}CS;
 
 protected:
-	const std::wstring m_title;
 	std::map<SCREEN::BT, DRect> m_buttonTable;
+	std::map<size_t, std::pair<DRect, ID2D1Bitmap *>> m_screenTable;
+	std::vector<RECT> m_physicalScreenRects;
 
 	DRect m_titleRect;
 	DRect m_buttonBackgroundRect;
@@ -32,13 +31,14 @@ protected:
 	CS m_colorSet;
 
 public:
-	ScreenView(const HWND ah_window, const std::wstring &a_title, const CM &a_mode, const RECT *const ap_viewRect = nullptr);
+	ScreenView(const HWND ah_window, const CM &a_mode, const RECT *const ap_viewRect = nullptr);
 	virtual ~ScreenView();
 
 	virtual int Create() override;
 	void Paint(const SCREEN::MD &a_modelData);
 
 	const std::map<SCREEN::BT, DRect> &GetButtonTable();
+	const std::map<size_t, DRect> GetScreenTable();
 
 protected:
 	void DrawPlainText(const std::wstring &a_text, const DRect &a_rect, IDWriteTextFormat *const ap_textFormat);
