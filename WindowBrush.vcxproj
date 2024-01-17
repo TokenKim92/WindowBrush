@@ -146,6 +146,8 @@
     <ClCompile Include="src\InfoDialog.cpp" />
     <ClCompile Include="src\ScreenDialog.cpp" />
     <ClCompile Include="src\ScreenView.cpp" />
+    <ClCompile Include="src\SketchDialog.cpp" />
+    <ClCompile Include="src\SketchView.cpp" />
     <ClCompile Include="src\SliderDialog.cpp" />
     <ClCompile Include="src\SliderView.cpp" />
     <ClCompile Include="src\WindowBrushView.cpp" />
@@ -171,6 +173,9 @@
     <ClInclude Include="include\ScreenDialog.h" />
     <ClInclude Include="include\ScreenModel.h" />
     <ClInclude Include="include\ScreenView.h" />
+    <ClInclude Include="include\SketchDialog.h" />
+    <ClInclude Include="include\SketchModel.h" />
+    <ClInclude Include="include\SketchView.h" />
     <ClInclude Include="include\SliderDialog.h" />
     <ClInclude Include="include\SliderModel.h" />
     <ClInclude Include="include\SliderView.h" />

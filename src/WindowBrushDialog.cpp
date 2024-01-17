@@ -30,7 +30,7 @@ void __stdcall ShowInfoDialog(HWND ah_wnd, UINT a_msg, UINT_PTR ap_data, DWORD d
 
 	const auto point = windowBrushDialog->GetInfoDialogPoint();
 	p_data->infoDialog = new InfoDialog(windowBrushDialog->GetHoverButtonTitle());
-	p_data->infoDialog->Create(point.x, point.y);
+	p_data->infoDialog->DoModal(nullptr, point.x, point.y);
 }
 
 WindowBrushDialog::WindowBrushDialog() :

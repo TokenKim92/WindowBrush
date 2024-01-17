@@ -52,6 +52,12 @@
     <Filter Include="Source Files\InfoDialog">
       <UniqueIdentifier>{dcb69ede-a6e1-4aaf-895b-379ee37d9944}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\SketchDialog">
+      <UniqueIdentifier>{3d1ca8d1-2459-42b1-8581-4213bf384016}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SketchDialog">
+      <UniqueIdentifier>{c0779b2a-915e-4792-875b-45f10f756e03}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WindowBrush.cpp">
@@ -98,6 +104,12 @@
     </ClCompile>
     <ClCompile Include="src\InfoDialog.cpp">
       <Filter>Source Files\InfoDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SketchDialog.cpp">
+      <Filter>Source Files\SketchDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SketchView.cpp">
+      <Filter>Source Files\SketchDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +196,15 @@
     </ClInclude>
     <ClInclude Include="include\InfoModel.h">
       <Filter>Header Files\InfoDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SketchDialog.h">
+      <Filter>Header Files\SketchDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SketchView.h">
+      <Filter>Header Files\SketchDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SketchModel.h">
+      <Filter>Header Files\SketchDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

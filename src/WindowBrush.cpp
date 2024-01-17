@@ -19,7 +19,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE ah_instance, _In_opt_ HINSTANCE ah_notUseIn
 
 		WindowBrushDialog dialog;
 		dialog.SetExtendStyle(WS_EX_TOPMOST);
-		return dialog.Create(centerPosX - dialog.GetSize().cx / 2, centerPosY - dialog.GetSize().cy / 2);
+		return dialog.DoModal(nullptr, centerPosX - dialog.GetSize().cx / 2, centerPosY - dialog.GetSize().cy / 2);
 	}
 
 	return 0;

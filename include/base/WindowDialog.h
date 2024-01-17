@@ -3,8 +3,8 @@
 
 #include "framework.h"
 #include "targetver.h"
+#include "Direct2DEx.h"
 #include <map>
-#include <Direct2DEx.h>
 
 #define MENU_DARK_MODE      20000
 #define MENU_LIGHT_MODE     20001
@@ -27,6 +27,16 @@ public:
         CANCEL
     } BT;
 
+private:
+    typedef struct THREAD_DATA
+    {
+        WindowDialog *p_dialog;
+        HANDLE h_killEvent;
+        HANDLE h_destroyedEvent;
+        HANDLE h_thread;
+        POINT startPosition;
+    }TD;
+
 protected:
     wchar_t *mp_windowClass;                // name of window class
     wchar_t *mp_title;                      // title of the application
@@ -45,12 +55,17 @@ protected:
 
     BT m_clickedButtonType;
 
+private:
+    TD *mp_threadData;
+
 public:
     WindowDialog(const wchar_t *const ap_windowClass = nullptr, const wchar_t *const ap_title = nullptr);
     virtual ~WindowDialog();
 
-    int Create(int a_x = CW_USEDEFAULT, int a_y = 0);
-    WindowDialog::BT DoModal(HWND ah_parentWindow, int a_x = CW_USEDEFAULT, int a_y = 0);
+    bool Create(int a_x = CW_USEDEFAULT, int a_y = 0);
+    void DestroyWindow();
+
+    WindowDialog::BT DoModal(HWND ah_parentWindow = nullptr, int a_x = CW_USEDEFAULT, int a_y = 0);
     void Invalidate(bool backgroundErase = false);
 
     void SetSize(int a_width, int a_height);
@@ -96,6 +111,10 @@ protected:
     virtual void OnSetThemeMode();
 
     void SetClickedButtonType(BT &a_type);
+
+private:
+    static DWORD WINAPI RunOnOtherThread(void *ap_data);
+    void CloseThread(const bool a_destroyedByParents);
 };
 
 #endif //_WINDOW_DIALOG_H_ 
