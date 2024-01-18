@@ -355,12 +355,14 @@ void WindowBrushView::Paint(const WINDOW_BRUSH::MD &a_modelData)
 	}
 }
 
-void WindowBrushView::UpdateTextColorOnHover(const WINDOW_BRUSH::BT &a_type, const WINDOW_BRUSH::MD &a_data)
+void WindowBrushView::UpdateTextColorOnHover(
+	const WINDOW_BRUSH::DT &a_drawType, const WINDOW_BRUSH::BT &a_buttonType, const WINDOW_BRUSH::MD &a_data
+)
 {
-	DColor color = a_type == a_data.drawMode
+	DColor color = a_drawType == a_data.drawType
 		? m_highlightColor
 		: m_textColor;
-	if (a_type == a_data.hoverButtonType) {
+	if (a_buttonType == a_data.hoverButtonType) {
 		color.a = 1.0f;
 	}
 	SetBrushColor(color);
@@ -377,7 +379,7 @@ void WindowBrushView::DrawCurveShape(const WINDOW_BRUSH::MD &a_data)
 		const float centerPosX = rect.left + (rect.right - rect.left) / 2.0f;
 		const float centerPosY = rect.top + (rect.bottom - rect.top) / 2.0f;
 
-		UpdateTextColorOnHover(WINDOW_BRUSH::BT::CURVE, a_data);
+		UpdateTextColorOnHover(WINDOW_BRUSH::DT::CURVE, WINDOW_BRUSH::BT::CURVE, a_data);
 
 		SetMatrixTransform(D2D1::Matrix3x2F::Rotation(10, { centerPosX, centerPosY }));
 		DrawGeometry(mp_curveGeometry);
@@ -394,7 +396,7 @@ void WindowBrushView::DrawRectangleShape(const WINDOW_BRUSH::MD &a_data)
 	auto rect = m_buttonTable.at(WINDOW_BRUSH::BT::RECTANGLE);
 	ShrinkRect(rect, 7.0f);
 
-	UpdateTextColorOnHover(WINDOW_BRUSH::BT::RECTANGLE, a_data);
+	UpdateTextColorOnHover(WINDOW_BRUSH::DT::RECTANGLE, WINDOW_BRUSH::BT::RECTANGLE, a_data);
 
 	DrawRoundedRectangle(rect, 5.0f);
 }
@@ -408,7 +410,7 @@ void WindowBrushView::DrawCircleShape(const WINDOW_BRUSH::MD &a_data)
 	auto rect = m_buttonTable.at(WINDOW_BRUSH::BT::CIRCLE);
 	ShrinkRect(rect, 7.0f);
 
-	UpdateTextColorOnHover(WINDOW_BRUSH::BT::CIRCLE, a_data);
+	UpdateTextColorOnHover(WINDOW_BRUSH::DT::CIRCLE, WINDOW_BRUSH::BT::CIRCLE, a_data);
 
 	DrawEllipse(rect);
 }
@@ -421,7 +423,7 @@ void WindowBrushView::DrawTextShape(const WINDOW_BRUSH::MD &a_data)
 
 	auto rect = m_buttonTable.at(WINDOW_BRUSH::BT::TEXT);
 
-	UpdateTextColorOnHover(WINDOW_BRUSH::BT::TEXT, a_data);
+	UpdateTextColorOnHover(WINDOW_BRUSH::DT::TEXT, WINDOW_BRUSH::BT::TEXT, a_data);
 
 	auto prevTextFormat = SetTextFormat(mp_textFormat);
 	DrawUserText(L"T", rect);
@@ -473,7 +475,13 @@ void WindowBrushView::DrawGradientShape(const WINDOW_BRUSH::MD &a_data)
 	}
 
 	// disable gradation button
-	UpdateTextColorOnHover(WINDOW_BRUSH::BT::GRADIENT, a_data);
+	DColor color = a_data.isGradientMode
+		? m_highlightColor
+		: m_textColor;
+	if (WINDOW_BRUSH::BT::GRADIENT == a_data.hoverButtonType) {
+		color.a = 1.0f;
+	}
+	SetBrushColor(color);
 
 	for (auto p_geometry : m_gradientGeometries) {
 		DrawGeometry(p_geometry);

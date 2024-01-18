@@ -44,7 +44,7 @@ public:
 	void UpdateColorSymbolBrush(const DColor &a_color);
 
 private:
-	void UpdateTextColorOnHover(const WINDOW_BRUSH::BT &a_type, const WINDOW_BRUSH::MD &a_data);
+	void UpdateTextColorOnHover(const WINDOW_BRUSH::DT &a_drawType, const WINDOW_BRUSH::BT &a_buttonType, const WINDOW_BRUSH::MD &a_data);
 
 	void DrawCurveShape(const WINDOW_BRUSH::MD &a_data);
 	void DrawRectangleShape(const WINDOW_BRUSH::MD &a_data);

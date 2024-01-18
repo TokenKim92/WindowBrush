@@ -73,24 +73,39 @@ void SketchDialog::OnInitDialog()
 void SketchDialog::OnPaint()
 {
 	mp_direct2d->Clear();
-	static_cast<SketchView *>(mp_direct2d)->Paint(m_modelData);
+	static_cast<SketchView *>(mp_direct2d)->Paint(m_modelDataList);
 }
 
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
 int SketchDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
+	static const auto UpdateDrawDataPerType = [](SKETCH::MD &a_data, const POINT &a_point)
+	{
+		if (WINDOW_BRUSH::DT::CURVE == a_data.drawType) {
+			a_data.points.push_back({ static_cast<float>(a_point.x), static_cast<float>(a_point.y) });
+		}
+		else if (WINDOW_BRUSH::DT::RECTANGLE == a_data.drawType) {
+			a_data.rect.right = static_cast<float>(a_point.x);
+			a_data.rect.bottom = static_cast<float>(a_point.y);
+		}
+		else if (WINDOW_BRUSH::DT::CIRCLE == a_data.drawType) {
+
+			a_data.rect.right = static_cast<float>(a_point.x);
+			a_data.rect.bottom = static_cast<float>(a_point.y);
+		}
+	};
+
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
 	if (!m_leftButtonDown) {
 		return S_OK;
 	}
 
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 	
-	if (WINDOW_BRUSH::BT::CURVE == m_windowBrushModelData.drawMode) {
-		auto &latestCurvaData = m_modelData.curveDataList.back();
-		latestCurvaData.points.push_back({ static_cast<float>(point.x), static_cast<float>(point.y) });
-
-		Invalidate();
-	}
+	UpdateDrawDataPerType(m_modelDataList.back(), point);
+	Invalidate();
 
 	return S_OK;
 }
@@ -98,6 +113,42 @@ int SketchDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 // to handle the WM_LBUTTONDOWN message that occurs when a window is destroyed
 int SketchDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
+	static const auto GetDefaultData = [](SketchDialog *const ap_dialog)
+	{
+		SKETCH::DD data;
+
+		data.strokeWidth = ap_dialog->m_windowBrushModelData.strokeWidth;
+		data.transparency = ap_dialog->m_windowBrushModelData.colorOpacity;
+		data.color = ap_dialog->m_windowBrushModelData.selectedColor;
+		data.gradientBrushIndex = ap_dialog->m_windowBrushModelData.isGradientMode
+			? rand() % SKETCH::GRADIENT_BRUSH_COUNT
+			: SKETCH::INVALID_INDEX;
+
+		return data;
+	};
+	static const auto InitDrawDataPerType = [](SKETCH::MD &a_data, const POINT &a_point)
+	{
+		if (WINDOW_BRUSH::DT::CURVE == a_data.drawType) {
+			a_data.points.push_back({ static_cast<float>(a_point.x), static_cast<float>(a_point.y) });
+		}
+		else if (WINDOW_BRUSH::DT::RECTANGLE == a_data.drawType) {
+			a_data.rect = {
+				static_cast<float>(a_point.x), static_cast<float>(a_point.y),
+				static_cast<float>(a_point.x), static_cast<float>(a_point.y) 
+			};
+		}
+		else if (WINDOW_BRUSH::DT::CIRCLE == a_data.drawType) {
+			a_data.rect = {
+				static_cast<float>(a_point.x), static_cast<float>(a_point.y),
+				static_cast<float>(a_point.x), static_cast<float>(a_point.y)
+			};
+		}
+	};
+
+	////////////////////////////////////////////////////////////////
+	// implementation
+	////////////////////////////////////////////////////////////////
+
 	if (m_leftButtonDown) {
 		return S_OK;
 	}
@@ -108,20 +159,13 @@ int SketchDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 	m_leftButtonDown = true;
 	m_previouseMilliseconds = ::GetTickCount64();
 
-	if (WINDOW_BRUSH::BT::CURVE == m_windowBrushModelData.drawMode) {
-		SKETCH::CD data;
-		data.points.push_back({ static_cast<float>(point.x), static_cast<float>(point.y) });
-		data.strokeWidth = m_windowBrushModelData.strokeWidth;
-		data.transparency = m_windowBrushModelData.colorOpacity;
-		data.color = m_windowBrushModelData.selectedColor;
-		data.gradientBrushIndex = m_windowBrushModelData.isGradientMode
-			? rand() % SKETCH::GRADIENT_BRUSH_COUNT
-			: SKETCH::INVALID_INDEX;
+	SKETCH::MD data;
+	data.drawType = m_windowBrushModelData.drawType;
+	data.defaultData = GetDefaultData(this);
+	InitDrawDataPerType(data, point);
 
-		m_modelData.curveDataList.push_back(data);
-
-		Invalidate();
-	}
+	m_modelDataList.push_back(data);
+	Invalidate();
 
 	return S_OK;
 }
@@ -137,10 +181,6 @@ int SketchDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longPara
 
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 	m_leftButtonDown = false;
-
-	if (WINDOW_BRUSH::BT::CURVE == m_windowBrushModelData.drawMode) {
-		
-	}
 
 	return S_OK;
 }

@@ -29,7 +29,7 @@ public:
 	virtual ~SketchView();
 
 	virtual int Create() override;
-	void Paint(const SKETCH::MD &a_modelData);
+	void Paint(const std::vector<SKETCH::MD> &a_modelDataList);
 
 protected:
 	unsigned char GetAverageBrightness(const HBITMAP &ah_bitmap);

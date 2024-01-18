@@ -2,6 +2,7 @@
 #define _SKETCH_MODEL_H_
 #include <vector>
 #include "Direct2D.h"
+#include "WindowBrushModel.h"
 
 namespace SKETCH {
 	const size_t INVALID_INDEX = static_cast<size_t>(-1);
@@ -10,18 +11,20 @@ namespace SKETCH {
 	
 	const size_t GRADIENT_BRUSH_COUNT = 10;
 
-	typedef struct CURVE_DATA
+	typedef struct DEFAULT_DATA
 	{
-		std::vector<DPoint> points;
 		unsigned int strokeWidth;
 		float transparency;
 		DColor color;
 		size_t gradientBrushIndex;
-	}CD;
+	}DD;
 
 	typedef struct MODEL_DATA
 	{
-		std::vector<SKETCH::CD> curveDataList;
+		WINDOW_BRUSH::DT drawType;
+		std::vector<DPoint> points;
+		DRect rect;
+		DD defaultData;
 	}MD;
 }
 

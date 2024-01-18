@@ -10,7 +10,7 @@ class SketchDialog : public WindowDialog
 {
 protected:
 	WINDOW_BRUSH::MD m_windowBrushModelData;
-	SKETCH::MD m_modelData;
+	std::vector<SKETCH::MD> m_modelDataList;
 
 	bool m_leftButtonDown;
 	unsigned __int64 m_previouseMilliseconds;

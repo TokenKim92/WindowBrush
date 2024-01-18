@@ -39,7 +39,7 @@ WindowBrushDialog::WindowBrushDialog() :
 	SetSize(WINDOW_BRUSH::DIALOG_WIDTH, WINDOW_BRUSH::DIALOG_HEIGHT);
 
 	m_modelData.hoverButtonType = WINDOW_BRUSH::BT::NONE;
-	m_modelData.drawMode = WINDOW_BRUSH::BT::NONE;
+	m_modelData.drawType = WINDOW_BRUSH::DT::NONE;
 	m_modelData.strokeWidth = 20;
 	m_modelData.fontSize = 20;
 	m_modelData.isGradientMode = false;
@@ -155,7 +155,7 @@ int WindowBrushDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_l
 // to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
 int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static const auto OnDrawButtonUp = [](WindowBrushDialog *const ap_dialog, const WINDOW_BRUSH::BT &a_type)
+	static const auto OnDrawButtonUp = [](WindowBrushDialog *const ap_dialog, const WINDOW_BRUSH::DT &a_type)
 	{
 		static const auto GetScaledRect = [](const RECT &a_rect) -> RECT
 		{
@@ -186,20 +186,21 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		////////////////////////////////////////////////////////////////
 
 		// same button click -> turn off
-		if (a_type == ap_dialog->m_modelData.drawMode) {
-			ap_dialog->m_modelData.drawMode = WINDOW_BRUSH::BT::NONE;
+		if (a_type == ap_dialog->m_modelData.drawType) {
+			ap_dialog->DestroySketchDialog();
+
+			ap_dialog->m_modelData.drawType = WINDOW_BRUSH::DT::NONE;
 			HMENU h_systemMenu = ::GetSystemMenu(ap_dialog->mh_window, FALSE);
 			if (nullptr != h_systemMenu) {
 				::EnableMenuItem(h_systemMenu, MENU_SELECT_SCREEN, MF_ENABLED);
 			}
 
 			ap_dialog->Invalidate();
-			ap_dialog->DestroySketchDialog();
 
 			return;
 		}
 
-		ap_dialog->m_modelData.drawMode = a_type;
+		ap_dialog->m_modelData.drawType = a_type;
 		ap_dialog->Invalidate();
 		// other button click -> chnage draw mode
 		if (nullptr != ap_dialog->mp_sketchDialog) {
@@ -219,7 +220,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		ap_dialog->mp_sketchDialog->SetThemeMode(ap_dialog->m_colorMode);
 
 		if (!ap_dialog->mp_sketchDialog->Create(scaledRect.left, scaledRect.top)) {
-			ap_dialog->m_modelData.drawMode = WINDOW_BRUSH::BT::NONE;
+			ap_dialog->m_modelData.drawType = WINDOW_BRUSH::DT::NONE;
 			ap_dialog->DestroySketchDialog();
 		}
 	};
@@ -275,7 +276,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 	static const auto OnGradientButtonUp = [](WindowBrushDialog *const ap_dialog)
 	{
 		ap_dialog->m_modelData.isGradientMode = !ap_dialog->m_modelData.isGradientMode;
-		
+
 		if (nullptr != ap_dialog->mp_sketchDialog) {
 			ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
 		}
@@ -295,7 +296,12 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 	////////////////////////////////////////////////////////////////
 	// implementation
 	////////////////////////////////////////////////////////////////
-
+	static std::map< WINDOW_BRUSH::BT, WINDOW_BRUSH::DT> buttonDrawTable = {
+		{ WINDOW_BRUSH::BT::CURVE, WINDOW_BRUSH::DT::CURVE },
+		{ WINDOW_BRUSH::BT::RECTANGLE, WINDOW_BRUSH::DT::RECTANGLE },
+		{ WINDOW_BRUSH::BT::CIRCLE, WINDOW_BRUSH::DT::CIRCLE },
+		{ WINDOW_BRUSH::BT::TEXT, WINDOW_BRUSH::DT::TEXT }
+	};
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
 	// check first click area on draw mode buttons
@@ -307,7 +313,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			case WINDOW_BRUSH::BT::RECTANGLE:
 			case WINDOW_BRUSH::BT::CIRCLE:
 			case WINDOW_BRUSH::BT::TEXT:
-				OnDrawButtonUp(this, type);
+				OnDrawButtonUp(this, buttonDrawTable.at(type));
 				break;
 			case WINDOW_BRUSH::BT::STROKE:
 				OnStrokeButtonUp(this);
@@ -394,7 +400,7 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 
 		if (BT::OK == instanceDialog.DoModal(ap_dialog->mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
 			ap_dialog->m_modelData.colorOpacity = instanceDialog.GetValue() / 100.0f;
-			
+
 			if (nullptr != ap_dialog->mp_sketchDialog) {
 				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
 			}

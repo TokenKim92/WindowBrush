@@ -15,8 +15,8 @@ namespace WINDOW_BRUSH {
 
 	typedef enum class BUTTON_TYPE
 	{
-		NONE = -1,
-		CURVE = 0,
+		NONE,
+		CURVE,
 		RECTANGLE,
 		CIRCLE,
 		TEXT,
@@ -26,10 +26,19 @@ namespace WINDOW_BRUSH {
 		FADE
 	} BT;
 
+	typedef enum class DRAW_TYPE
+	{
+		NONE,
+		CURVE,
+		RECTANGLE,
+		CIRCLE,
+		TEXT
+	}DT;
+
 	typedef struct MODEL_DATA
 	{
 		BT hoverButtonType;
-		BT drawMode;
+		DT drawType;
 		unsigned int strokeWidth;
 		unsigned int fontSize;
 		bool isGradientMode;

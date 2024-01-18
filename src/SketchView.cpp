@@ -56,7 +56,7 @@ int SketchView::Create()
 	return S_OK;
 }
 
-void SketchView::Paint(const SKETCH::MD &a_modelData)
+void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 {
 	static const auto DrawBorder = [](SketchView *const ap_view)
 	{
@@ -65,34 +65,38 @@ void SketchView::Paint(const SKETCH::MD &a_modelData)
 		ap_view->DrawRectangle(ap_view->m_viewRect);
 		ap_view->SetStrokeWidth(1.0f);
 	};
-	static const auto DrawCurve = [](SketchView *const ap_view, SKETCH::CD a_curveData)
+	static const auto SetByDefaultData = [](SketchView *const ap_view, SKETCH::DD a_data)
+	{
+		if (SKETCH::INVALID_INDEX != a_data.gradientBrushIndex) {
+		// TODO:: gradient brush
+		}
+		else {
+			DColor color = a_data.color;
+			color.a = a_data.transparency;
+			ap_view->SetBrushColor(color);
+		}
+
+		ap_view->SetStrokeWidth(static_cast<float>(a_data.strokeWidth));
+	};
+	static const auto DrawCurve = [](SketchView *const ap_view, SKETCH::MD a_modelData)
 	{
 		ID2D1PathGeometry *p_geometry;
 		if (S_OK == gp_appCore->GetFactory()->CreatePathGeometry(&p_geometry)) {
 			ID2D1GeometrySink *p_sink;
 			if (S_OK == p_geometry->Open(&p_sink)) {
-				p_sink->BeginFigure(a_curveData.points[0], D2D1_FIGURE_BEGIN_FILLED);
+				p_sink->BeginFigure(a_modelData.points[0], D2D1_FIGURE_BEGIN_FILLED);
 
-				size_t count = a_curveData.points.size();
+				size_t count = a_modelData.points.size();
 				if (count > 1) {
 					for (size_t i = 1; i < count; i++) {
-						p_sink->AddLine(a_curveData.points[i]);
+						p_sink->AddLine(a_modelData.points[i]);
 					}
 				}
 
 				p_sink->EndFigure(D2D1_FIGURE_END_OPEN);
 				p_sink->Close();
 
-				if (SKETCH::INVALID_INDEX != a_curveData.gradientBrushIndex) {
-					// TODO:: gradient brush
-				}
-				else {
-					DColor color = a_curveData.color;
-					color.a = a_curveData.transparency;
-					ap_view->SetBrushColor(color);
-				}
-
-				ap_view->SetStrokeWidth(static_cast<float>(a_curveData.strokeWidth));
+				SetByDefaultData(ap_view, a_modelData.defaultData);
 				ap_view->DrawGeometry(p_geometry);
 
 				p_sink->Release();
@@ -110,8 +114,16 @@ void SketchView::Paint(const SKETCH::MD &a_modelData)
 	}
 	DrawBorder(this);
 
-	for (const auto &curveData : a_modelData.curveDataList) {
-		DrawCurve(this, curveData);
+	for (const auto &modelData : a_modelDataList) {
+		if (WINDOW_BRUSH::DT::CURVE == modelData.drawType) {
+			DrawCurve(this, modelData);
+		} else if (WINDOW_BRUSH::DT::RECTANGLE == modelData.drawType) {
+			SetByDefaultData(this, modelData.defaultData);
+			DrawRectangle(modelData.rect);
+		} else if (WINDOW_BRUSH::DT::CIRCLE == modelData.drawType) {
+			SetByDefaultData(this, modelData.defaultData);
+			DrawEllipse(modelData.rect);
+		}
 	}
 }
 
