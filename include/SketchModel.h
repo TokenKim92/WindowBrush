@@ -6,6 +6,8 @@
 namespace SKETCH {
 	const size_t INVALID_INDEX = static_cast<size_t>(-1);
 
+	const unsigned int WM_UPDATEMD = 24001;
+	
 	const size_t GRADIENT_BRUSH_COUNT = 10;
 
 	typedef struct CURVE_DATA

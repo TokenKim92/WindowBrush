@@ -49,6 +49,7 @@ SketchDialog::SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_sc
 	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&SketchDialog::MouseLeftButtonDownHandler));
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&SketchDialog::MouseLeftButtonUpHandler));
 	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&SketchDialog::KeyDownHandler));
+	AddMessageHandler(SKETCH::WM_UPDATEMD, static_cast<MessageHandler>(&SketchDialog::UpdateModelDataHandler));
 
 	srand(static_cast<unsigned int>(time(NULL)));
 }
@@ -161,7 +162,14 @@ int SketchDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	return S_OK;
 }
 
-void SketchDialog::UpdateWindowBrushModelData(const WINDOW_BRUSH::MD &a_modelData)
+int SketchDialog::UpdateModelDataHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	m_windowBrushModelData = a_modelData;
+	m_windowBrushModelData = *reinterpret_cast<WINDOW_BRUSH::MD *>(a_wordParam);
+
+	return S_OK;
+}
+
+void SketchDialog::UpdateWindowBrushModelData(const WINDOW_BRUSH::MD *ap_modelData)
+{
+	::PostMessage(mh_window, SKETCH::WM_UPDATEMD, reinterpret_cast<WPARAM>(ap_modelData), 0);
 }

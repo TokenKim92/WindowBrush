@@ -47,6 +47,7 @@ protected:
 
 protected:
 	void KillInfoDialogTimer();
+	void DestroySketchDialog();
 };
 
 #endif //_WINDOW_BRUSH_DIALOG_H_

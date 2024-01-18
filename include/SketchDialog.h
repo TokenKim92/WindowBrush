@@ -22,7 +22,7 @@ public:
 	SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_scaledRect);
 	virtual ~SketchDialog();
 
-	void UpdateWindowBrushModelData(const WINDOW_BRUSH::MD &a_modelData);
+	void UpdateWindowBrushModelData(const WINDOW_BRUSH::MD *a_modelData);
 
 protected:
 	virtual void OnInitDialog() override;
@@ -36,6 +36,8 @@ protected:
 	int MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam);
 	// to handle the WM_KEYDOWN message that occurs when a window is destroyed
 	int KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
+	// to handle the WM_UPDATEMD message that occurs when a window is destroyed
+	int UpdateModelDataHandler(WPARAM a_wordParam, LPARAM a_longParam);
 };
 
 #endif //_SKETCH_DIALOG_H_

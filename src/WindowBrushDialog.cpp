@@ -90,7 +90,7 @@ void WindowBrushDialog::OnDestroy()
 	KillInfoDialogTimer();
 
 	if (mp_sketchDialog) {
-		delete mp_sketchDialog;
+		DestroySketchDialog();
 	}
 }
 
@@ -194,8 +194,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			}
 
 			ap_dialog->Invalidate();
-			delete ap_dialog->mp_sketchDialog;
-			ap_dialog->mp_sketchDialog = nullptr;
+			ap_dialog->DestroySketchDialog();
 
 			return;
 		}
@@ -204,7 +203,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		ap_dialog->Invalidate();
 		// other button click -> chnage draw mode
 		if (nullptr != ap_dialog->mp_sketchDialog) {
-			ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
+			ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
 
 			return;
 		}
@@ -221,9 +220,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 
 		if (!ap_dialog->mp_sketchDialog->Create(scaledRect.left, scaledRect.top)) {
 			ap_dialog->m_modelData.drawMode = WINDOW_BRUSH::BT::NONE;
-
-			delete ap_dialog->mp_sketchDialog;
-			ap_dialog->mp_sketchDialog = nullptr;
+			ap_dialog->DestroySketchDialog();
 		}
 	};
 	static const auto OnStrokeButtonUp = [](WindowBrushDialog *const ap_dialog)
@@ -248,7 +245,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			ap_dialog->m_modelData.fontSize = valueList.at(1);
 
 			if (nullptr != ap_dialog->mp_sketchDialog) {
-				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
+				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
 			}
 		}
 	};
@@ -269,7 +266,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			static_cast<WindowBrushView *>(ap_dialog->mp_direct2d)->UpdateColorSymbolBrush(ap_dialog->m_modelData.selectedColor);
 
 			if (nullptr != ap_dialog->mp_sketchDialog) {
-				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
+				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
 			}
 
 			ap_dialog->Invalidate();
@@ -280,7 +277,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		ap_dialog->m_modelData.isGradientMode = !ap_dialog->m_modelData.isGradientMode;
 		
 		if (nullptr != ap_dialog->mp_sketchDialog) {
-			ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
+			ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
 		}
 
 		ap_dialog->Invalidate();
@@ -289,7 +286,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 	{
 		ap_dialog->m_modelData.isFadeMode = !ap_dialog->m_modelData.isFadeMode;
 		if (nullptr != ap_dialog->mp_sketchDialog) {
-			ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
+			ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
 		}
 
 		ap_dialog->Invalidate();
@@ -399,7 +396,7 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 			ap_dialog->m_modelData.colorOpacity = instanceDialog.GetValue() / 100.0f;
 			
 			if (nullptr != ap_dialog->mp_sketchDialog) {
-				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
+				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
 			}
 		}
 	};
@@ -513,4 +510,12 @@ void WindowBrushDialog::KillInfoDialogTimer()
 		delete *p_infoDialog;
 		*p_infoDialog = nullptr;
 	}
+}
+
+void WindowBrushDialog::DestroySketchDialog()
+{
+	mp_sketchDialog->DestroyWindow();
+
+	delete mp_sketchDialog;
+	mp_sketchDialog = nullptr;
 }
