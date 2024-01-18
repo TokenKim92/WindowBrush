@@ -152,19 +152,19 @@ int ScreenDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 // to handle the WM_LBUTTONUP message that occurs when a window is destroyed
 int ScreenDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static const auto OnButtonUp = [](ScreenDialog *const ap_dialog, const HWND &ah_window, const SCREEN::BT &a_type, SCREEN::MD &a_modelData)
+	static const auto OnButtonUp = [](ScreenDialog *const ap_dialog, const SCREEN::BT &a_type)
 	{
-		if (a_type == a_modelData.hoverButtonType) {
+		if (a_type == ap_dialog->m_modelData.hoverButtonType) {
 			if (SCREEN::BT::SAVE == a_type) {
 				BT type = BT::OK;
 				ap_dialog->SetClickedButtonType(type);
 			}
 
-			::DestroyWindow(ah_window);
+			::DestroyWindow(ap_dialog->mh_window);
 			return;
 		}
 
-		a_modelData.clickedButtonType = SCREEN::BT::NONE;
+		ap_dialog->m_modelData.clickedButtonType = SCREEN::BT::NONE;
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -179,10 +179,10 @@ int ScreenDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longPara
 		switch (m_modelData.clickedButtonType)
 		{
 		case SCREEN::BT::SAVE:
-			OnButtonUp(this, mh_window, SCREEN::BT::SAVE, m_modelData);
+			OnButtonUp(this, SCREEN::BT::SAVE);
 			break;
 		case SCREEN::BT::CANCEL:
-			OnButtonUp(this, mh_window, SCREEN::BT::CANCEL, m_modelData);
+			OnButtonUp(this, SCREEN::BT::CANCEL);
 			break;
 		default:
 			break;

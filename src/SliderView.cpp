@@ -139,14 +139,11 @@ int SliderView::Create()
 
 void SliderView::Paint(const SLIDER::MD &a_modelData)
 {
-	static const auto DrawButton = [](
-		SliderView *const ap_view, IDWriteTextFormat *const ap_font, const std::map<SLIDER::BT, DRect> &a_buttonTable,
-		const CS &a_colorSet, const SLIDER::BT &a_type, const SLIDER::MD &a_modelData
-		)
+	static const auto DrawButton = [](SliderView *const ap_view, const SLIDER::BT &a_type, const SLIDER::MD &a_modelData)
 	{
 		DColor color = SLIDER::BT::SAVE == a_type
-			? a_colorSet.saveButton
-			: a_colorSet.lightBackground;
+			? ap_view->m_colorSet.saveButton
+			: ap_view->m_colorSet.lightBackground;
 		if (a_type == a_modelData.hoverButtonType && a_type != a_modelData.clickedButtonType) {
 			color.a = 1.0f;
 		}
@@ -155,64 +152,55 @@ void SliderView::Paint(const SLIDER::MD &a_modelData)
 			: L"Cancel";
 
 		ap_view->SetBrushColor(color);
-		ap_view->FillRoundedRectangle(a_buttonTable.at(a_type), 5.0f);
-		ap_view->DrawPlainText(text.c_str(), a_buttonTable.at(a_type), ap_font);
+		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(a_type), 5.0f);
+		ap_view->DrawPlainText(text.c_str(), ap_view->m_buttonTable.at(a_type), ap_view->mp_textFont);
 	};
-	static const auto DrawChannel = [](
-		SliderView *const ap_view, IDWriteTextFormat *const ap_font, const SLIDER::RD &a_rangeData, const SR &a_sliderRect,
-		const std::vector<DPoint> &a_ticPoints, const CS &a_colorSet
-		)
+	static const auto DrawChannel = [](SliderView *const ap_view)
 	{
-		ap_view->DrawPlainText(a_rangeData.minTitle.c_str(), a_sliderRect.minTitle, ap_font);
-		ap_view->DrawPlainText(a_rangeData.maxTitle.c_str(), a_sliderRect.maxTitle, ap_font);
+		ap_view->DrawPlainText(ap_view->m_rangeData.minTitle.c_str(), ap_view->m_sliderRect.minTitle, ap_view->mp_textFont);
+		ap_view->DrawPlainText(ap_view->m_rangeData.maxTitle.c_str(), ap_view->m_sliderRect.maxTitle, ap_view->mp_textFont);
 
-		ap_view->SetBrushColor(a_colorSet.channel);
-		ap_view->FillRectangle(a_sliderRect.sldier);
+		ap_view->SetBrushColor(ap_view->m_colorSet.channel);
+		ap_view->FillRectangle(ap_view->m_sliderRect.sldier);
 
 		DPoint point;
-		for (size_t i = 1; i < a_ticPoints.size() - 1; i++) {
-			point = a_ticPoints[i];
+		for (size_t i = 1; i < ap_view->m_ticPoints.size() - 1; i++) {
+			point = ap_view->m_ticPoints[i];
 			ap_view->FillRectangle({
 				point.x - SLIDER::TIC_HALF_WIDTH, point.y - SLIDER::TIC_HALF_HEIGHT,
 				point.x + SLIDER::TIC_HALF_WIDTH, point.y + SLIDER::TIC_HALF_HEIGHT
-				});
+			});
 		}
 	};
-	static const auto DrawThumb = [](
-		SliderView *const ap_view, const std::vector<DPoint> &a_ticPoints, const CS &a_colorSet, const SLIDER::MD &a_modelData
-		)
+	static const auto DrawThumb = [](SliderView *const ap_view, const SLIDER::MD &a_modelData)
 	{
-
-		DColor color = a_colorSet.saveButton;
+		DColor color = ap_view->m_colorSet.saveButton;
 		if (SLIDER::BT::THUMB == a_modelData.hoverButtonType || SLIDER::BT::THUMB == a_modelData.clickedButtonType) {
 			color.a = 1.0f;
 		}
 		ap_view->SetBrushColor(color);
 		ap_view->FillEllipse(a_modelData.thumbRect);
 
-		DPoint startPoint = a_ticPoints.front();
-		DPoint endPoint = a_ticPoints.at(a_modelData.thumbIndex);
+		DPoint startPoint = ap_view->m_ticPoints.front();
+		DPoint endPoint = ap_view->m_ticPoints.at(a_modelData.thumbIndex);
 		ap_view->FillRectangle(
 			{ startPoint.x, startPoint.y - 1.0f, endPoint.x, endPoint.y + 1.0f }
 		);
 	};
-	static const auto DrawThumbValue = [](
-		SliderView *const ap_view, IDWriteTextFormat *const ap_font, const std::vector<DPoint> &a_ticPoints,
-		const std::vector<std::wstring> &a_ticIntervalTitle, const CS &a_colorSet, const SLIDER::MD &a_modelData
-		)
+	static const auto DrawThumbValue = [](SliderView *const ap_view, const SLIDER::MD &a_modelData)
 	{
-		const auto point = a_ticPoints.at(a_modelData.thumbIndex);
+		const auto point = ap_view->m_ticPoints.at(a_modelData.thumbIndex);
 		DRect rect = {
 			point.x - SLIDER::THUMB_VALUE_HEIGHT, point.y + SLIDER::THUMB_RADIUS + SLIDER::THUMB_MARGIN,
 			point.x + SLIDER::THUMB_VALUE_HEIGHT, point.y + SLIDER::THUMB_RADIUS + SLIDER::THUMB_VALUE_HEIGHT + SLIDER::THUMB_MARGIN,
 		};
-		ap_view->SetBrushColor(a_colorSet.darkBackground);
+		ap_view->SetBrushColor(ap_view->m_colorSet.darkBackground);
 		ap_view->FillRoundedRectangle(rect, 3.0f);
 
-		std::wstring title = a_modelData.thumbIndex < a_ticIntervalTitle.size()
-			? a_ticIntervalTitle.at(a_modelData.thumbIndex)
+		std::wstring title = a_modelData.thumbIndex < ap_view->m_ticIntervalTitle.size()
+			? ap_view->m_ticIntervalTitle.at(a_modelData.thumbIndex)
 			: L"-";
-		ap_view->DrawPlainText(title, rect, ap_font);
+		ap_view->DrawPlainText(title, rect, ap_view->mp_textFont);
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -221,17 +209,17 @@ void SliderView::Paint(const SLIDER::MD &a_modelData)
 
 	DrawPlainText(m_title.c_str(), m_titleRect, mp_titleFont);
 
-	DrawChannel(this, mp_textFont, m_rangeData, m_sliderRect, m_ticPoints, m_colorSet);
-	DrawThumb(this, m_ticPoints, m_colorSet, a_modelData);
+	DrawChannel(this);
+	DrawThumb(this, a_modelData);
 
 	if (SLIDER::BT::THUMB == a_modelData.clickedButtonType) {
-		DrawThumbValue(this, mp_textFont, m_ticPoints, m_ticIntervalTitle, m_colorSet, a_modelData);
+		DrawThumbValue(this, a_modelData);
 	}
 
 	SetBrushColor(m_colorSet.darkBackground);
 	FillRectangle(m_buttonBackgroundRect);
-	DrawButton(this, mp_textFont, m_buttonTable, m_colorSet, SLIDER::BT::SAVE, a_modelData);
-	DrawButton(this, mp_textFont, m_buttonTable, m_colorSet, SLIDER::BT::CANCEL, a_modelData);
+	DrawButton(this, SLIDER::BT::SAVE, a_modelData);
+	DrawButton(this, SLIDER::BT::CANCEL, a_modelData);
 }
 
 void SliderView::DrawPlainText(const std::wstring &a_text, const DRect &a_rect, IDWriteTextFormat *const ap_textFormat)

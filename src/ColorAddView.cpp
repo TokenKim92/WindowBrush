@@ -44,20 +44,17 @@ ColorAddView::~ColorAddView()
 
 void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 {
-	const auto InitHueDataList = [](
-		const float a_radius, const float &a_centerPosX, const float &a_centerPosY,
-		std::vector<std::pair<DColor, std::pair<DPoint, DPoint>>> &a_hueDataList
-		)
+	const auto InitHueDataList = [](ColorAddView *const ap_view, const float &a_centerPosX, const float &a_centerPosY)
 	{
 		const float STROKE_WIDTH = 2.5f;
-		const float startHueRadius = a_radius - STROKE_WIDTH;
-		const float endHueRadius = a_radius + STROKE_WIDTH;
+		const float startHueRadius = COLOR::HUE_CIRCLE_RADIUS - STROKE_WIDTH;
+		const float endHueRadius = COLOR::HUE_CIRCLE_RADIUS + STROKE_WIDTH;
 
-		a_hueDataList.resize(720);
+		ap_view->m_hueDataList.resize(720);
 
 		double radian;
 		unsigned int degree = 0;
-		for (auto &hueData : a_hueDataList) {
+		for (auto &hueData : ap_view->m_hueDataList) {
 			radian = PI * degree / 360;
 
 			// set strat point
@@ -76,23 +73,22 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 			degree++;
 		}
 	};
-
-	const auto UpdateMemoryHueCircle = [](ID2D1RenderTarget *const ap_memoryTarget, std::vector<std::pair<DColor, std::pair<DPoint, DPoint>>> &a_hueDataList)
+	const auto UpdateMemoryHueCircle = [](ColorAddView *const ap_view)
 	{
 		ID2D1SolidColorBrush *p_solidBrush;
-		auto result = ap_memoryTarget->CreateSolidColorBrush(DColor({ 0.0f, 0.0f, 0.0f, 1.0f }), &p_solidBrush);
+		auto result = ap_view->mp_memoryTarget->CreateSolidColorBrush(DColor({ 0.0f, 0.0f, 0.0f, 1.0f }), &p_solidBrush);
 		if (S_OK != result) {
 			return;
 		}
 
-		ap_memoryTarget->BeginDraw();
+		ap_view->mp_memoryTarget->BeginDraw();
 
-		for (const auto &hueData : a_hueDataList) {
+		for (const auto &hueData : ap_view->m_hueDataList) {
 			p_solidBrush->SetColor(hueData.first);
-			ap_memoryTarget->DrawLine(hueData.second.first, hueData.second.second, p_solidBrush);
+			ap_view->mp_memoryTarget->DrawLine(hueData.second.first, hueData.second.second, p_solidBrush);
 		}
 
-		ap_memoryTarget->EndDraw();
+		ap_view->mp_memoryTarget->EndDraw();
 
 		p_solidBrush->Release();
 	};
@@ -100,6 +96,7 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 	////////////////////////////////////////////////////////////////
 	// implementation
 	////////////////////////////////////////////////////////////////
+
 	m_viewSize = a_viewSize;
 	m_lightnessRect = {
 		a_centerPoint.x - COLOR::LIHTNESS_CIRCLE_RADIUS, a_centerPoint.y - COLOR::LIHTNESS_CIRCLE_RADIUS,
@@ -118,8 +115,8 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 		return;
 	}
 
-	InitHueDataList(COLOR::HUE_CIRCLE_RADIUS, a_centerPoint.x, a_centerPoint.y, m_hueDataList);
-	UpdateMemoryHueCircle(mp_memoryTarget, m_hueDataList);
+	InitHueDataList(this, a_centerPoint.x, a_centerPoint.y);
+	UpdateMemoryHueCircle(this);
 
 	m_returnIconPoints = {
 	{{ 14.0f, COLOR::TITLE_HEIGHT / 2.0f }, { COLOR::TITLE_HEIGHT - 14.0f, 10.0f }},
@@ -154,56 +151,49 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 
 void ColorAddView::Paint(const COLOR::MD &a_modelData)
 {
-	static const auto DrawReturnButton = [](
-		Direct2DEx *const ap_direct2d, const DColor &a_mainColor, std::vector<std::pair<DPoint, DPoint>> &a_returnIconPoints, const COLOR::MD &a_modelData
-		)
+	static const auto DrawReturnButton = [](ColorAddView *const ap_view, const COLOR::MD &a_modelData)
 	{
-
-		DColor color = a_mainColor;
+		DColor color = ap_view->m_mainColor;
 		if (COLOR::BT::RETURN == a_modelData.clickedButtonType || COLOR::BT::RETURN != a_modelData.hoverButtonType) {
 			color.a = COLOR::DEFAULT_TRANSPARENCY;
 		}
-		ap_direct2d->SetBrushColor(color);
-		ap_direct2d->SetStrokeWidth(3.0f);
-		ap_direct2d->DrawLine(a_returnIconPoints[0].first, a_returnIconPoints[0].second);
-		ap_direct2d->DrawLine(a_returnIconPoints[1].first, a_returnIconPoints[1].second);
-		ap_direct2d->SetStrokeWidth(1.0f);
+		ap_view->mp_direct2d->SetBrushColor(color);
+		ap_view->mp_direct2d->SetStrokeWidth(3.0f);
+		ap_view->mp_direct2d->DrawLine(ap_view->m_returnIconPoints[0].first, ap_view->m_returnIconPoints[0].second);
+		ap_view->mp_direct2d->DrawLine(ap_view->m_returnIconPoints[1].first, ap_view->m_returnIconPoints[1].second);
+		ap_view->mp_direct2d->SetStrokeWidth(1.0f);
 	};
-	static const auto DrawHueCircle = [](
-		Direct2DEx *const ap_direct2d, const std::vector<std::pair<DColor, std::pair<DPoint, DPoint>>> &a_hueDataList
-		)
+	static const auto DrawHueCircle = [](ColorAddView *const ap_view)
 	{
-		for (const auto &hueData : a_hueDataList) {
-			ap_direct2d->SetBrushColor(hueData.first);
-			ap_direct2d->DrawLine(hueData.second.first, hueData.second.second);
+		for (const auto &hueData : ap_view->m_hueDataList) {
+			ap_view->mp_direct2d->SetBrushColor(hueData.first);
+			ap_view->mp_direct2d->DrawLine(hueData.second.first, hueData.second.second);
 		}
 	};
-	static const auto DrawLightnessCircle = [](
-		Direct2DEx *const ap_direct2d, ID2D1LinearGradientBrush *const ap_lightnessGradientBrush, const DRect &a_lightnessRect
-		)
+	static const auto DrawLightnessCircle = [](ColorAddView *const ap_view)
 	{
-		if (nullptr == ap_lightnessGradientBrush) {
-			ap_direct2d->FillEllipse(a_lightnessRect);
+		if (nullptr == ap_view->mp_lightnessGradientBrush) {
+			ap_view->mp_direct2d->FillEllipse(ap_view->m_lightnessRect);
 
 			return;
 		}
 
-		auto p_previousBrush = ap_direct2d->SetBrush(ap_lightnessGradientBrush);
-		ap_direct2d->FillEllipse(a_lightnessRect);
-		ap_direct2d->SetBrush(p_previousBrush);
+		auto p_previousBrush = ap_view->mp_direct2d->SetBrush(ap_view->mp_lightnessGradientBrush);
+		ap_view->mp_direct2d->FillEllipse(ap_view->m_lightnessRect);
+		ap_view->mp_direct2d->SetBrush(p_previousBrush);
 	};
-	static const auto DrawHueButton = [](Direct2DEx *const ap_direct2d, const DColor &a_buttonColor, const COLOR::MD &a_modelData)
+	static const auto DrawHueButton = [](ColorAddView *const ap_view, const COLOR::MD &a_modelData)
 	{
-		DColor color = a_buttonColor;
+		DColor color = ap_view->m_mainColor;
 		if (COLOR::BT::HUE != a_modelData.hoverButtonType) {
 			color.a = COLOR::DEFAULT_TRANSPARENCY;
 		}
 
 		// draw the circle to show the current color
-		ap_direct2d->SetBrushColor(color);
-		ap_direct2d->FillEllipse(a_modelData.hueButtonRect);
+		ap_view->mp_direct2d->SetBrushColor(color);
+		ap_view->mp_direct2d->FillEllipse(a_modelData.hueButtonRect);
 	};
-	static const auto DrawLightnessButton = [](ColorAddView *const ap_view, Direct2DEx *const ap_direct2d, const COLOR::MD &a_modelData)
+	static const auto DrawLightnessButton = [](ColorAddView *const ap_view, const COLOR::MD &a_modelData)
 	{
 		auto rect = a_modelData.lightnessButtonRect;
 		const DPoint centerPos = {
@@ -215,8 +205,8 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 
 		// fill button
 		const DColor colorOnPoint = ap_view->GetPixelColorOnPoint(centerPos);
-		ap_direct2d->SetBrushColor(colorOnPoint);
-		ap_direct2d->FillEllipse(rect);
+		ap_view->mp_direct2d->SetBrushColor(colorOnPoint);
+		ap_view->mp_direct2d->FillEllipse(rect);
 
 		// draw border button
 		DColor color;
@@ -231,20 +221,17 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 			color.a = COLOR::DEFAULT_TRANSPARENCY;
 		}
 
-		ap_direct2d->SetStrokeWidth(2.0f);
-		ap_direct2d->SetBrushColor(color);
-		ap_direct2d->DrawEllipse(rect);
-		ap_direct2d->SetStrokeWidth(1.0f);
+		ap_view->mp_direct2d->SetStrokeWidth(2.0f);
+		ap_view->mp_direct2d->SetBrushColor(color);
+		ap_view->mp_direct2d->DrawEllipse(rect);
+		ap_view->mp_direct2d->SetStrokeWidth(1.0f);
 
 		return colorOnPoint;
 	};
-	static const auto DrawAddButton = [](
-		Direct2DEx *const ap_direct2d, IDWriteTextFormat *const ap_font, const DRect &a_rect, const DColor &a_color,
-		const DColor &a_borderColor, const DColor &a_oppositeColor, const COLOR::MD &a_modelData
-		)
+	static const auto DrawAddButton = [](ColorAddView *const ap_view, const COLOR::MD &a_modelData)
 	{
 		// draw main circle
-		DRect mainRect = a_rect;
+		DRect mainRect = ap_view->m_buttonTable.at(COLOR::BT::ADD);
 		if (COLOR::BT::ADD == a_modelData.clickedButtonType) {
 			ShrinkRect(mainRect, 1.0f);
 		}
@@ -252,10 +239,10 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 			ExpandRect(mainRect, 2.0f);
 		}
 
-		ap_direct2d->SetBrushColor(a_color);
-		ap_direct2d->FillEllipse(mainRect);
-		ap_direct2d->SetBrushColor(a_borderColor);
-		ap_direct2d->DrawEllipse(mainRect);
+		ap_view->mp_direct2d->SetBrushColor(ap_view->m_currentLightness);
+		ap_view->mp_direct2d->FillEllipse(mainRect);
+		ap_view->mp_direct2d->SetBrushColor(ap_view->m_mainColor);
+		ap_view->mp_direct2d->DrawEllipse(mainRect);
 
 		// draw small circle
 		const float SMALL_RADIUS = 7.0f;
@@ -264,7 +251,7 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 			mainRect.right - SMALL_RADIUS - offset, mainRect.top + SMALL_RADIUS + offset,
 			mainRect.right + SMALL_RADIUS - offset, mainRect.top - SMALL_RADIUS + offset,
 		};
-		ap_direct2d->FillEllipse(smallRect);
+		ap_view->mp_direct2d->FillEllipse(smallRect);
 
 		// draw + on small circle
 		offset = 3.0f;
@@ -273,59 +260,57 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 
 		DPoint startPos = { smallRect.left + offset, centerPosY };
 		DPoint endPos = { smallRect.right - offset, centerPosY };
-		ap_direct2d->SetStrokeWidth(2.0f);
-		ap_direct2d->SetBrushColor(a_oppositeColor);
-		ap_direct2d->DrawLine(startPos, endPos);
+		ap_view->mp_direct2d->SetStrokeWidth(2.0f);
+		ap_view->mp_direct2d->SetBrushColor(ap_view->m_oppositeColor);
+		ap_view->mp_direct2d->DrawLine(startPos, endPos);
 
 		startPos = { centerPosX, smallRect.top - offset };
 		endPos = { centerPosX, smallRect.bottom + offset };
-		ap_direct2d->DrawLine(startPos, endPos);
-		ap_direct2d->SetStrokeWidth(1.0f);
+		ap_view->mp_direct2d->DrawLine(startPos, endPos);
+		ap_view->mp_direct2d->SetStrokeWidth(1.0f);
 
 		// draw title
+		const auto rect = ap_view->m_buttonTable.at(COLOR::BT::ADD);
 		const DRect titleRect = {
-			a_rect.right, a_rect.top,
-			a_rect.right + 80.0f, a_rect.bottom
+			rect.right, rect.top,
+			rect.right + 80.0f, rect.bottom
 		};
 
-		auto previousFont = ap_direct2d->SetTextFormat(ap_font);
-		ap_direct2d->SetBrushColor(a_borderColor);
-		ap_direct2d->DrawUserText(L"Add color", titleRect);
-		ap_direct2d->SetTextFormat(previousFont);
+		auto previousFont = ap_view->mp_direct2d->SetTextFormat(ap_view->mp_indicateFont);
+		ap_view->mp_direct2d->SetBrushColor(ap_view->m_mainColor);
+		ap_view->mp_direct2d->DrawUserText(L"Add color", titleRect);
+		ap_view->mp_direct2d->SetTextFormat(previousFont);
 	};
-	static const auto DrawIndicate = [](
-		Direct2DEx *const ap_direct2d, IDWriteTextFormat *const ap_font, const DRect &a_rect,
-		const DColor &a_lightness, const DColor &a_backgroundColor, const DColor &a_textColor
-		)
+	static const auto DrawIndicate = [](ColorAddView *const ap_view)
 	{
 		std::wstring rgbText = L"HEX: " +
-			FloatToHexWString(a_lightness.r) +
-			FloatToHexWString(a_lightness.g) +
-			FloatToHexWString(a_lightness.b);
+			FloatToHexWString(ap_view->m_currentLightness.r) +
+			FloatToHexWString(ap_view->m_currentLightness.g) +
+			FloatToHexWString(ap_view->m_currentLightness.b);
 
-		ap_direct2d->SetBrushColor(a_backgroundColor);
-		ap_direct2d->FillRoundedRectangle(a_rect, 3.0f);
+		ap_view->mp_direct2d->SetBrushColor(ap_view->m_oppositeColor);
+		ap_view->mp_direct2d->FillRoundedRectangle(ap_view->m_indicateRect, 3.0f);
 
-		auto previousFont = ap_direct2d->SetTextFormat(ap_font);
-		ap_direct2d->SetBrushColor(a_textColor);
-		ap_direct2d->DrawUserText(rgbText.c_str(), a_rect);
-		ap_direct2d->SetTextFormat(previousFont);
+		auto previousFont = ap_view->mp_direct2d->SetTextFormat(ap_view->mp_indicateFont);
+		ap_view->mp_direct2d->SetBrushColor(ap_view->m_mainColor);
+		ap_view->mp_direct2d->DrawUserText(rgbText.c_str(), ap_view->m_indicateRect);
+		ap_view->mp_direct2d->SetTextFormat(previousFont);
 	};
 
 	////////////////////////////////////////////////////////////////
 	// implementation
 	////////////////////////////////////////////////////////////////
 
-	DrawReturnButton(mp_direct2d, m_mainColor, m_returnIconPoints, a_modelData);
+	DrawReturnButton(this, a_modelData);
 
-	DrawHueCircle(mp_direct2d, m_hueDataList);
-	DrawHueButton(mp_direct2d, m_mainColor, a_modelData);
+	DrawHueCircle(this);
+	DrawHueButton(this, a_modelData);
 
-	DrawLightnessCircle(mp_direct2d, mp_lightnessGradientBrush, m_lightnessRect);
-	m_currentLightness = DrawLightnessButton(this, mp_direct2d, a_modelData);
+	DrawLightnessCircle(this);
+	m_currentLightness = DrawLightnessButton(this, a_modelData);
 
-	DrawAddButton(mp_direct2d, mp_indicateFont, m_buttonTable.at(COLOR::BT::ADD), m_currentLightness, m_mainColor, m_oppositeColor, a_modelData);
-	DrawIndicate(mp_direct2d, mp_indicateFont, m_indicateRect, m_currentLightness, m_oppositeColor, m_mainColor);
+	DrawAddButton(this, a_modelData);
+	DrawIndicate(this);
 }
 
 void ColorAddView::UpdateLightnessData(const DColor &a_hue)

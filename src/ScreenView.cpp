@@ -44,9 +44,7 @@ ScreenView::~ScreenView()
 
 int ScreenView::Create()
 {
-	const auto InitScreenItems = [](
-		ScreenView *const ap_view, std::vector<RECT> *ap_physicalScreenRects, std::map<size_t, std::pair<DRect, ID2D1Bitmap *>> &a_screenTable
-		)
+	const auto InitScreenItems = [](ScreenView *const ap_view)
 	{
 		const auto CreateScreenBitmap = [](ScreenView *const ap_view, const RECT &a_sourceRect, const DRect &a_destinationRect)
 		{
@@ -81,7 +79,7 @@ int ScreenView::Create()
 		// implementation
 		////////////////////////////////////////////////////////////////
 
-		::EnumDisplayMonitors(nullptr, nullptr, GetPhysicalScreenRects, reinterpret_cast<LPARAM>(ap_physicalScreenRects));
+		::EnumDisplayMonitors(nullptr, nullptr, GetPhysicalScreenRects, reinterpret_cast<LPARAM>(&ap_view->m_physicalScreenRects));
 
 		const float screenButtonWidth = SCREEN::DIALOG_WIDTH - SCREEN::SCREEN_X_MARGIN * 2.0f;
 		float posTop = SCREEN::TITLE_HEIGHT;
@@ -90,7 +88,7 @@ int ScreenView::Create()
 		float screenButtonHeight;
 		DRect screenButtonRect;
 
-		for (const auto &physicalRect : *ap_physicalScreenRects) {
+		for (const auto &physicalRect : ap_view->m_physicalScreenRects) {
 			ratio = static_cast<double>(physicalRect.bottom - physicalRect.top) / static_cast<double>(physicalRect.right - physicalRect.left);
 			screenButtonHeight = static_cast<float>(screenButtonWidth * ratio);
 			screenButtonRect = {
@@ -98,7 +96,7 @@ int ScreenView::Create()
 				SCREEN::DIALOG_WIDTH - SCREEN::SCREEN_X_MARGIN, posTop + screenButtonHeight,
 			};
 
-			a_screenTable.insert({
+			ap_view->m_screenTable.insert({
 				index,
 				{ screenButtonRect,  CreateScreenBitmap(ap_view, physicalRect, screenButtonRect) }
 			});
@@ -124,7 +122,7 @@ int ScreenView::Create()
 		return result;
 	}
 
-	InitScreenItems(this, &m_physicalScreenRects, m_screenTable);
+	InitScreenItems(this);
 
 	const float centerPosX = (mp_viewRect->right - mp_viewRect->left) / 2.0f;
 	m_titleRect = {
@@ -161,9 +159,8 @@ int ScreenView::Create()
 void ScreenView::Paint(const SCREEN::MD &a_modelData)
 {
 	static const auto DrawScreenButton = [](
-		ScreenView *const ap_view, const std::pair<size_t, std::pair<DRect, ID2D1Bitmap *>> &a_item,
-		const CS &a_colorSet, const SCREEN::MD &a_modelData
-		)
+		ScreenView *const ap_view, const std::pair<size_t, std::pair<DRect, ID2D1Bitmap *>> &a_item, const SCREEN::MD &a_modelData
+	)
 	{
 		const float transparency = SCREEN::BT::SCREEN == a_modelData.hoverButtonType && a_item.first == a_modelData.hoverScreenIndex
 			? 1.0f
@@ -172,22 +169,19 @@ void ScreenView::Paint(const SCREEN::MD &a_modelData)
 		ap_view->DrawBitmap(a_item.second.second, a_item.second.first, transparency);
 
 		DColor color = a_item.first == a_modelData.clickedScreenIndex
-			? a_colorSet.highlight
-			: a_colorSet.lightBackground;
+			? ap_view->m_colorSet.highlight
+			: ap_view->m_colorSet.lightBackground;
 		color.a = transparency;
 		ap_view->SetBrushColor(color);
 		ap_view->SetStrokeWidth(4.0f);
 		ap_view->DrawRectangle(a_item.second.first);
 		ap_view->SetStrokeWidth(1.0f);
 	};
-	static const auto DrawButton = [](
-		ScreenView *const ap_view, IDWriteTextFormat *const ap_font, const std::map<SCREEN::BT, DRect> &a_buttonTable,
-		const CS &a_colorSet, const SCREEN::BT &a_type, const SCREEN::MD &a_modelData
-		)
+	static const auto DrawButton = [](ScreenView *const ap_view, const SCREEN::BT &a_type, const SCREEN::MD &a_modelData)
 	{
 		DColor color = SCREEN::BT::SAVE == a_type
-			? a_colorSet.highlight
-			: a_colorSet.lightBackground;
+			? ap_view->m_colorSet.highlight
+			: ap_view->m_colorSet.lightBackground;
 		if (a_type == a_modelData.hoverButtonType && a_type != a_modelData.clickedButtonType) {
 			color.a = 1.0f;
 		}
@@ -196,8 +190,8 @@ void ScreenView::Paint(const SCREEN::MD &a_modelData)
 			: L"Cancel";
 
 		ap_view->SetBrushColor(color);
-		ap_view->FillRoundedRectangle(a_buttonTable.at(a_type), 5.0f);
-		ap_view->DrawPlainText(text.c_str(), a_buttonTable.at(a_type), ap_font);
+		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(a_type), 5.0f);
+		ap_view->DrawPlainText(text.c_str(), ap_view->m_buttonTable.at(a_type), ap_view->mp_textFont);
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -207,13 +201,13 @@ void ScreenView::Paint(const SCREEN::MD &a_modelData)
 	DrawPlainText(L"Select Screen", m_titleRect, mp_titleFont);
 
 	for (const auto &item : m_screenTable) {
-		DrawScreenButton(this, item, m_colorSet, a_modelData);
+		DrawScreenButton(this, item, a_modelData);
 	}
 
 	SetBrushColor(m_colorSet.darkBackground);
 	FillRectangle(m_buttonBackgroundRect);
-	DrawButton(this, mp_textFont, m_buttonTable, m_colorSet, SCREEN::BT::SAVE, a_modelData);
-	DrawButton(this, mp_textFont, m_buttonTable, m_colorSet, SCREEN::BT::CANCEL, a_modelData);
+	DrawButton(this, SCREEN::BT::SAVE, a_modelData);
+	DrawButton(this, SCREEN::BT::CANCEL, a_modelData);
 }
 
 void ScreenView::DrawPlainText(const std::wstring &a_text, const DRect &a_rect, IDWriteTextFormat *const ap_textFormat)

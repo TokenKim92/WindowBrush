@@ -58,11 +58,11 @@ int SketchView::Create()
 
 void SketchView::Paint(const SKETCH::MD &a_modelData)
 {
-	static const auto DrawBorder = [](SketchView *const ap_view, const DRect &a_viewRect, const CS &a_colorSet)
+	static const auto DrawBorder = [](SketchView *const ap_view)
 	{
 		ap_view->SetStrokeWidth(4.0f);
-		ap_view->SetBrushColor(a_colorSet.highlight);
-		ap_view->DrawRectangle(a_viewRect);
+		ap_view->SetBrushColor(ap_view->m_colorSet.highlight);
+		ap_view->DrawRectangle(ap_view->m_viewRect);
 		ap_view->SetStrokeWidth(1.0f);
 	};
 	static const auto DrawCurve = [](SketchView *const ap_view, SKETCH::CD a_curveData)
@@ -108,8 +108,7 @@ void SketchView::Paint(const SKETCH::MD &a_modelData)
 	if (nullptr != mp_screenBitmap) {
 		DrawBitmap(mp_screenBitmap, m_viewRect);
 	}
-
-	DrawBorder(this, m_viewRect, m_colorSet);
+	DrawBorder(this);
 
 	for (const auto &curveData : a_modelData.curveDataList) {
 		DrawCurve(this, curveData);

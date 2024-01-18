@@ -90,13 +90,10 @@ const DRect ColorSelectView::GetColorRect(const size_t a_index)
 
 void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 {
-	static const auto DrawColorItems = [](
-		Direct2DEx *const ap_direct2d, const DColor &a_mainColor,
-		const std::map<size_t, std::pair<DColor, DRect>> &a_colorDataTable, const COLOR::MD &a_modelData
-		)
+	static const auto DrawColorItems = [](ColorSelectView *const ap_view, const COLOR::MD &a_modelData)
 	{
 		DRect rect;
-		for (auto const &[index, colorData] : a_colorDataTable) {
+		for (auto const &[index, colorData] : ap_view->m_colorDataTable) {
 			rect = colorData.second;
 			// draw a large circle where the mouse is located
 			if (index == a_modelData.clickedIndex) {
@@ -106,59 +103,53 @@ void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 				ExpandRect(rect, 2.0f);
 			}
 
-			ap_direct2d->SetBrushColor(a_mainColor);
-			ap_direct2d->DrawEllipse(rect);
-			ap_direct2d->SetBrushColor(colorData.first);
-			ap_direct2d->FillEllipse(rect);
+			ap_view->mp_direct2d->SetBrushColor(ap_view->m_mainColor);
+			ap_view->mp_direct2d->DrawEllipse(rect);
+			ap_view->mp_direct2d->SetBrushColor(colorData.first);
+			ap_view->mp_direct2d->FillEllipse(rect);
 		}
 	};
-	static const auto DrawSelectedColorItem = [](
-		Direct2DEx *const ap_direct2d, const DColor &a_mainColor, const std::pair<size_t, DColor> &a_selectedColorData,
-		const std::map<size_t, std::pair<DColor, DRect>> &a_colorDataTable, const COLOR::MD &a_modelData
-		)
+	static const auto DrawSelectedColorItem = [](ColorSelectView *const ap_view, const COLOR::MD &a_modelData)
 	{
 		DRect rect;
-		const size_t selectedColorIndex = a_selectedColorData.first;
+		const size_t selectedColorIndex = ap_view->m_selectedColorData.first;
 		if (COLOR::INVALID_INDEX != selectedColorIndex) {
-			rect = a_colorDataTable.at(selectedColorIndex).second;
+			rect = ap_view->m_colorDataTable.at(selectedColorIndex).second;
 
 			// draw border
 			const bool isClicked = selectedColorIndex == a_modelData.clickedIndex;
 			float offset = isClicked ? 2.0f : 4.0f;
 			ExpandRect(rect, offset);
-			ap_direct2d->SetBrushColor(a_mainColor);
-			ap_direct2d->FillEllipse(rect);
+			ap_view->mp_direct2d->SetBrushColor(ap_view->m_mainColor);
+			ap_view->mp_direct2d->FillEllipse(rect);
 
 			// draw color circle
 			offset = !isClicked && selectedColorIndex == a_modelData.hoverIndex ? 2.0f : 4.0f;
 			ShrinkRect(rect, offset);
-			ap_direct2d->SetBrushColor(a_selectedColorData.second);
-			ap_direct2d->FillEllipse(rect);
+			ap_view->mp_direct2d->SetBrushColor(ap_view->m_selectedColorData.second);
+			ap_view->mp_direct2d->FillEllipse(rect);
 		}
 	};
-	static const auto DrawAddButton = [](
-		Direct2DEx *const ap_direct2d, const DColor &a_mainColor, const DColor &a_oppositeColor,
-		ID2D1StrokeStyle *const ap_addButtonStroke, const std::pair<size_t, DRect> &a_addButtonData, const COLOR::MD &a_modelData
-		)
+	static const auto DrawAddButton = [](ColorSelectView *const ap_view, const COLOR::MD &a_modelData)
 	{
 		// draw main circle
-		DRect mainRect = a_addButtonData.second;
-		if (a_addButtonData.first == a_modelData.clickedIndex) {
+		DRect mainRect = ap_view->m_addButtonData.second;
+		if (ap_view->m_addButtonData.first == a_modelData.clickedIndex) {
 			ShrinkRect(mainRect, 1.0f);
 		}
-		else if (a_addButtonData.first == a_modelData.hoverIndex) {
+		else if (ap_view->m_addButtonData.first == a_modelData.hoverIndex) {
 			ExpandRect(mainRect, 2.0f);
 		}
 
-		if (nullptr != ap_addButtonStroke) {
-			ID2D1StrokeStyle *p_prevStrokeStyle = ap_direct2d->SetStrokeStyle(ap_addButtonStroke);
-			ap_direct2d->SetBrushColor(a_mainColor);
-			ap_direct2d->DrawEllipse(mainRect);
-			ap_direct2d->SetStrokeStyle(p_prevStrokeStyle);
+		if (nullptr != ap_view->mp_addButtonStroke) {
+			ID2D1StrokeStyle *p_prevStrokeStyle = ap_view->mp_direct2d->SetStrokeStyle(ap_view->mp_addButtonStroke);
+			ap_view->mp_direct2d->SetBrushColor(ap_view->m_mainColor);
+			ap_view->mp_direct2d->DrawEllipse(mainRect);
+			ap_view->mp_direct2d->SetStrokeStyle(p_prevStrokeStyle);
 		}
 		else {
-			ap_direct2d->SetBrushColor(a_mainColor);
-			ap_direct2d->DrawEllipse(mainRect);
+			ap_view->mp_direct2d->SetBrushColor(ap_view->m_mainColor);
+			ap_view->mp_direct2d->DrawEllipse(mainRect);
 		}
 
 		// draw small circle
@@ -168,7 +159,7 @@ void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 			mainRect.right - SMALL_RADIUS - offset, mainRect.top + SMALL_RADIUS + offset,
 			mainRect.right + SMALL_RADIUS - offset, mainRect.top - SMALL_RADIUS + offset,
 		};
-		ap_direct2d->FillEllipse(smallRect);
+		ap_view->mp_direct2d->FillEllipse(smallRect);
 
 		// draw + on small circle
 		offset = 3.0f;
@@ -177,14 +168,14 @@ void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 
 		DPoint startPos = { smallRect.left + offset, centerPosY };
 		DPoint endPos = { smallRect.right - offset, centerPosY };
-		ap_direct2d->SetStrokeWidth(2.0f);
-		ap_direct2d->SetBrushColor(a_oppositeColor);
-		ap_direct2d->DrawLine(startPos, endPos);
+		ap_view->mp_direct2d->SetStrokeWidth(2.0f);
+		ap_view->mp_direct2d->SetBrushColor(ap_view->m_oppositeColor);
+		ap_view->mp_direct2d->DrawLine(startPos, endPos);
 
 		startPos = { centerPosX, smallRect.top - offset };
 		endPos = { centerPosX, smallRect.bottom + offset };
-		ap_direct2d->DrawLine(startPos, endPos);
-		ap_direct2d->SetStrokeWidth(1.0f);
+		ap_view->mp_direct2d->DrawLine(startPos, endPos);
+		ap_view->mp_direct2d->SetStrokeWidth(1.0f);
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -192,13 +183,11 @@ void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 	////////////////////////////////////////////////////////////////
 
 	mp_direct2d->SetStrokeWidth(2.0f);
-
-	DrawColorItems(mp_direct2d, m_mainColor, m_colorDataTable, a_modelData);
-	DrawSelectedColorItem(mp_direct2d, m_mainColor, m_selectedColorData, m_colorDataTable, a_modelData);
+	DrawColorItems(this, a_modelData);
+	DrawSelectedColorItem(this, a_modelData);
 
 	mp_direct2d->SetStrokeWidth(1.0f);
-
-	DrawAddButton(mp_direct2d, m_mainColor, m_oppositeColor, mp_addButtonStroke, m_addButtonData, a_modelData);
+	DrawAddButton(this, a_modelData);
 }
 
 void ColorSelectView::AddColor(const DColor &a_color)

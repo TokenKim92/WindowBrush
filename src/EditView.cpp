@@ -119,9 +119,8 @@ int EditView::Create()
 void EditView::Paint(const EDIT::MD &a_modelData)
 {
 	static const auto DrawEdit = [](
-		EditView *const ap_view, IDWriteTextFormat *const ap_font, const std::pair< std::wstring, DRect> &a_editData,
-		const CS &a_colorSet, const size_t &a_currentIndex, const EDIT::MD &a_modelData
-		)
+		EditView *const ap_view, const std::pair< std::wstring, DRect> &a_editData, const size_t &a_currentIndex, const EDIT::MD &a_modelData
+	)
 	{
 		// draw title of edit
 		const DRect originalRect = a_editData.second;
@@ -129,17 +128,16 @@ void EditView::Paint(const EDIT::MD &a_modelData)
 			originalRect.left, originalRect.top - EDIT::EDIT_TITLE_HEIGHT,
 			originalRect.right, originalRect.top
 		};
-		ap_view->DrawPlainText(a_editData.first, rect, ap_font);
-
+		ap_view->DrawPlainText(a_editData.first, rect, ap_view->mp_textFont);
 
 		const bool isClicked = EDIT::BT::EDIT == a_modelData.clickedButtonType && a_currentIndex == a_modelData.clickedEditIndex;
 		const bool isHover = EDIT::BT::EDIT == a_modelData.hoverButtonType && a_currentIndex == a_modelData.hoverEditIndex;
 		DColor backgroundColor = isClicked
-			? a_colorSet.darkBackground
-			: a_colorSet.lightBackground;
+			? ap_view->m_colorSet.darkBackground
+			: ap_view->m_colorSet.lightBackground;
 		DColor shadowColor = isClicked
-			? a_colorSet.highlight
-			: a_colorSet.shadow;
+			? ap_view->m_colorSet.highlight
+			: ap_view->m_colorSet.shadow;
 		if (isHover) {
 			backgroundColor.a = 1.0f;
 			shadowColor.a = 1.0f;
@@ -156,48 +154,42 @@ void EditView::Paint(const EDIT::MD &a_modelData)
 		// draw value contents
 		const float margin = 10.0f;
 		rect = { originalRect.left + margin, originalRect.top, originalRect.right - margin, originalRect.bottom };
-		ap_view->DrawPlainText(std::to_wstring(a_modelData.valueList[a_currentIndex]).c_str(), rect, ap_font);
-
+		ap_view->DrawPlainText(std::to_wstring(a_modelData.valueList[a_currentIndex]).c_str(), rect, ap_view->mp_textFont);
 	};
-	static const  auto DrawWarning = [](EditView *const ap_view, IDWriteTextFormat *const ap_font, const DRect &a_rect)
+	static const  auto DrawWarning = [](EditView *const ap_view)
 	{
-		auto prevTextFormat = ap_view->SetTextFormat(ap_font);
+		auto prevTextFormat = ap_view->SetTextFormat(ap_view->mp_textFont);
 		ap_view->SetBrushColor(RGB_TO_COLORF(RED_300));
-		ap_view->DrawUserText(L"(!) Invalid number value.", a_rect);
+		ap_view->DrawUserText(L"(!) Invalid number value.", ap_view->m_warningRect);
 		ap_view->SetTextFormat(prevTextFormat);
 	};
-	static const auto DrawSaveButton = [](
-		EditView *const ap_view, IDWriteTextFormat *const ap_font, const DRect &a_rect,
-		const CS &a_colorSet, const bool isValid, const EDIT::MD &a_modelData
-		)
+	static const auto DrawSaveButton = [](EditView *const ap_view, const bool isValid, const EDIT::MD &a_modelData)
 	{
 		DColor color;
 		if (isValid) {
-			color = a_colorSet.highlight;
+			color = ap_view->m_colorSet.highlight;
 			if (EDIT::BT::SAVE == a_modelData.hoverButtonType && EDIT::BT::SAVE != a_modelData.clickedButtonType) {
 				color.a = 1.0f;
 			}
 		}
 		else {
-			color = a_colorSet.background;
+			color = ap_view->m_colorSet.background;
 		}
 
 		ap_view->SetBrushColor(color);
-		ap_view->FillRoundedRectangle(a_rect, 5.0f);
-		ap_view->DrawPlainText(L"Save", a_rect, ap_font);
+		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(EDIT::BT::SAVE), 5.0f);
+		ap_view->DrawPlainText(L"Save", ap_view->m_buttonTable.at(EDIT::BT::SAVE), ap_view->mp_textFont);
 	};
-	static const auto DrawCancelButton = [](
-		EditView *const ap_view, IDWriteTextFormat *const ap_font, const DRect &a_rect, const CS &a_colorSet, const EDIT::MD &a_modelData
-		)
+	static const auto DrawCancelButton = [](EditView *const ap_view, const EDIT::MD &a_modelData)
 	{
-		DColor color = a_colorSet.lightBackground;
+		DColor color = ap_view->m_colorSet.lightBackground;
 		if (EDIT::BT::CANCEL == a_modelData.hoverButtonType && EDIT::BT::CANCEL != a_modelData.clickedButtonType) {
 			color.a = 1.0f;
 		}
 
 		ap_view->SetBrushColor(color);
-		ap_view->FillRoundedRectangle(a_rect, 5.0f);
-		ap_view->DrawPlainText(L"Cancel", a_rect, ap_font);
+		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(EDIT::BT::CANCEL), 5.0f);
+		ap_view->DrawPlainText(L"Cancel", ap_view->m_buttonTable.at(EDIT::BT::CANCEL), ap_view->mp_textFont);
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -209,7 +201,7 @@ void EditView::Paint(const EDIT::MD &a_modelData)
 	mp_textFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 
 	for (const auto &[index, editData] : m_editTable) {
-		DrawEdit(this, mp_textFont, editData, m_colorSet, index, a_modelData);
+		DrawEdit(this, editData, index, a_modelData);
 	}
 
 	bool isValid = true;
@@ -221,16 +213,15 @@ void EditView::Paint(const EDIT::MD &a_modelData)
 	}
 
 	if (!isValid) {
-		DrawWarning(this, mp_textFont, m_warningRect);
+		DrawWarning(this);
 	}
 
 	mp_textFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	SetBrushColor(m_colorSet.darkBackground);
 	FillRectangle(m_buttonBackgroundRect);
-	DrawSaveButton(this, mp_textFont, m_buttonTable.at(EDIT::BT::SAVE), m_colorSet, isValid, a_modelData);
-	DrawCancelButton(this, mp_textFont, m_buttonTable.at(EDIT::BT::CANCEL), m_colorSet, a_modelData);
+	DrawSaveButton(this, isValid, a_modelData);
+	DrawCancelButton(this, a_modelData);
 }
-
 
 void EditView::DrawPlainText(const std::wstring &a_text, const DRect &a_rect, IDWriteTextFormat *const ap_textFormat)
 {

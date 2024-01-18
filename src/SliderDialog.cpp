@@ -59,25 +59,22 @@ void SliderDialog::OnPaint()
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
 int SliderDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static const auto OnClickThumb = [](
-		SliderDialog *const ap_dialog, const POINT a_point, const std::vector<DPoint> &a_ticPoints,
-		const SLIDER::RD &a_rangeData, const size_t &a_ticInterval, SLIDER::MD &a_modelData
-		)
+	static const auto OnClickThumb = [](SliderDialog *const ap_dialog, const POINT a_point)
 	{
 		size_t currentThumbIndex;
-		const auto startChannelPoint = a_ticPoints.front();
-		const auto endChannelPoint = a_ticPoints.back();
+		const auto startChannelPoint = ap_dialog->m_ticPoints.front();
+		const auto endChannelPoint = ap_dialog->m_ticPoints.back();
 
 		if (startChannelPoint.x + SLIDER::THUMB_RADIUS > a_point.x) {
 			currentThumbIndex = 0;	// so as not to go out of range
 		}
 		else if (endChannelPoint.x - SLIDER::THUMB_RADIUS < a_point.x) {
-			currentThumbIndex = a_ticPoints.size() - 1; // so as not to go out of range
+			currentThumbIndex = ap_dialog->m_ticPoints.size() - 1; // so as not to go out of range
 		}
 		else {
-			const int ticCount = a_rangeData.max - a_rangeData.min;
+			const int ticCount = ap_dialog->m_rangeData.max - ap_dialog->m_rangeData.min;
 			const float channelWidth = endChannelPoint.x - startChannelPoint.x;
-			const float currentIndex = (ticCount * (a_point.x - startChannelPoint.x) / channelWidth) / a_ticInterval;
+			const float currentIndex = (ticCount * (a_point.x - startChannelPoint.x) / channelWidth) / ap_dialog->m_ticInterval;
 
 			// increase index with the tolerance 0.5
 			currentThumbIndex = currentIndex - static_cast<int>(currentIndex) >= 0.5f
@@ -85,11 +82,11 @@ int SliderDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 				: static_cast<size_t>(currentIndex);
 		}
 
-		if (a_modelData.thumbIndex != currentThumbIndex) {
-			a_modelData.thumbIndex = currentThumbIndex;
+		if (ap_dialog->m_modelData.thumbIndex != currentThumbIndex) {
+			ap_dialog->m_modelData.thumbIndex = currentThumbIndex;
 
-			DPoint tumbPoint = a_ticPoints.at(a_modelData.thumbIndex);
-			a_modelData.thumbRect = {
+			DPoint tumbPoint = ap_dialog->m_ticPoints.at(ap_dialog->m_modelData.thumbIndex);
+			ap_dialog->m_modelData.thumbRect = {
 				tumbPoint.x - SLIDER::THUMB_RADIUS, tumbPoint.y - SLIDER::THUMB_RADIUS,
 				tumbPoint.x + SLIDER::THUMB_RADIUS, tumbPoint.y + SLIDER::THUMB_RADIUS
 			};
@@ -105,7 +102,7 @@ int SliderDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
 	if (SLIDER::BT::THUMB == m_modelData.clickedButtonType) {
-		OnClickThumb(this, point, m_ticPoints, m_rangeData, m_ticInterval, m_modelData);
+		OnClickThumb(this, point);
 
 		return S_OK;
 	}
@@ -172,19 +169,19 @@ int SliderDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 // to handle the WM_LBUTTONUP message that occurs when a window is destroyed
 int SliderDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static const auto OnButtonUp = [](SliderDialog *const ap_dialog, const HWND &ah_window, const SLIDER::BT &a_type, SLIDER::MD &a_modelData)
+	static const auto OnButtonUp = [](SliderDialog *const ap_dialog, const SLIDER::BT &a_type)
 	{
-		if (a_type == a_modelData.hoverButtonType) {
+		if (a_type == ap_dialog->m_modelData.hoverButtonType) {
 			if (SLIDER::BT::SAVE == a_type) {
 				BT type = BT::OK;
 				ap_dialog->SetClickedButtonType(type);
 			}
 
-			::DestroyWindow(ah_window);
+			::DestroyWindow(ap_dialog->mh_window);
 			return;
 		}
 
-		a_modelData.clickedButtonType = SLIDER::BT::NONE;
+		ap_dialog->m_modelData.clickedButtonType = SLIDER::BT::NONE;
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -199,10 +196,10 @@ int SliderDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longPara
 		switch (m_modelData.clickedButtonType)
 		{
 		case SLIDER::BT::SAVE:
-			OnButtonUp(this, mh_window, SLIDER::BT::SAVE, m_modelData);
+			OnButtonUp(this, SLIDER::BT::SAVE);
 			break;
 		case SLIDER::BT::CANCEL:
-			OnButtonUp(this, mh_window, SLIDER::BT::CANCEL, m_modelData);
+			OnButtonUp(this, SLIDER::BT::CANCEL);
 			break;
 		case SLIDER::BT::THUMB:
 			m_modelData.clickedButtonType = SLIDER::BT::NONE;

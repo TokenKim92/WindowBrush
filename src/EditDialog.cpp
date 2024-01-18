@@ -129,24 +129,23 @@ int EditDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPara
 // to handle the WM_LBUTTONUP message that occurs when a window is destroyed
 int EditDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static const auto OnSaveButtonUp = [](
-		EditDialog *const ap_dialog, EDIT::MD &a_modelData)
+	static const auto OnSaveButtonUp = [](EditDialog *const ap_dialog)
 	{
-		if (EDIT::BT::SAVE == a_modelData.hoverButtonType) {
+		if (EDIT::BT::SAVE == ap_dialog->m_modelData.hoverButtonType) {
 			ap_dialog->OnSave();
 			return;
 		}
 
-		a_modelData.clickedButtonType = EDIT::BT::NONE;
+		ap_dialog->m_modelData.clickedButtonType = EDIT::BT::NONE;
 	};
-	static const auto OnCancelButtonUp = [](EditDialog *const ap_dialog, const HWND &ah_window, EDIT::MD &a_modelData)
+	static const auto OnCancelButtonUp = [](EditDialog *const ap_dialog)
 	{
-		if (EDIT::BT::CANCEL == a_modelData.hoverButtonType) {
-			::DestroyWindow(ah_window);
+		if (EDIT::BT::CANCEL == ap_dialog->m_modelData.hoverButtonType) {
+			::DestroyWindow(ap_dialog->mh_window);
 			return;
 		}
 
-		a_modelData.clickedButtonType = EDIT::BT::NONE;
+		ap_dialog->m_modelData.clickedButtonType = EDIT::BT::NONE;
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -161,10 +160,10 @@ int EditDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		switch (m_modelData.clickedButtonType)
 		{
 		case EDIT::BT::SAVE:
-			OnSaveButtonUp(this, m_modelData);
+			OnSaveButtonUp(this);
 			break;
 		case EDIT::BT::CANCEL:
-			OnCancelButtonUp(this, mh_window, m_modelData);
+			OnCancelButtonUp(this);
 			break;
 		case EDIT::BT::EDIT:
 			break;
@@ -179,11 +178,9 @@ int EditDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 // to handle the WM_KEYDOWN message that occurs when a window is destroyed
 int EditDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static const auto OnNumberKeyDown = [](
-		EditDialog *const ap_dialog, const unsigned char a_pressedKey, const unsigned char a_offset, EDIT::MD &a_modelData
-		)
+	static const auto OnNumberKeyDown = [](EditDialog *const ap_dialog, const unsigned char a_pressedKey, const unsigned char a_offset)
 	{
-		auto &tempValue = a_modelData.valueList[a_modelData.clickedEditIndex];
+		auto &tempValue = ap_dialog->m_modelData.valueList[ap_dialog->m_modelData.clickedEditIndex];
 		std::string previousValue = std::to_string(tempValue);
 
 		if (previousValue.length() < EDIT::MAX_DIGIT_LEGNHT) {
@@ -193,9 +190,9 @@ int EditDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 			ap_dialog->Invalidate();
 		}
 	};
-	static const auto OnBackKeyDown = [](EditDialog *const ap_dialog, EDIT::MD &a_modelData)
+	static const auto OnBackKeyDown = [](EditDialog *const ap_dialog)
 	{
-		auto &tempValue = a_modelData.valueList[a_modelData.clickedEditIndex];
+		auto &tempValue = ap_dialog->m_modelData.valueList[ap_dialog->m_modelData.clickedEditIndex];
 		if (0 != tempValue) {
 			std::string numberText = std::to_string(tempValue);
 			numberText.pop_back();
@@ -222,13 +219,13 @@ int EditDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 
 	if (EDIT::BT::EDIT == m_modelData.clickedButtonType) {
 		if (number0 <= pressedKey && pressedKey <= number9) {
-			OnNumberKeyDown(this, pressedKey, number0, m_modelData);
+			OnNumberKeyDown(this, pressedKey, number0);
 		}
 		else if ((VK_NUMPAD0 <= pressedKey && pressedKey <= VK_NUMPAD9)) {
-			OnNumberKeyDown(this, pressedKey, VK_NUMPAD0, m_modelData);
+			OnNumberKeyDown(this, pressedKey, VK_NUMPAD0);
 		}
 		else if (VK_BACK == pressedKey) {
-			OnBackKeyDown(this, m_modelData);
+			OnBackKeyDown(this);
 		}
 	}
 

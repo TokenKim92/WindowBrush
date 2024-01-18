@@ -90,7 +90,7 @@ void WindowBrushDialog::OnDestroy()
 	KillInfoDialogTimer();
 
 	if (mp_sketchDialog) {
-		DestroySketchDialog();
+		delete mp_sketchDialog;
 	}
 }
 
@@ -155,9 +155,7 @@ int WindowBrushDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_l
 // to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
 int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static const auto OnDrawButtonUp = [](
-		WindowBrushDialog *const ap_dialog, SketchDialog ** ap_sketchDialog, const WINDOW_BRUSH::BT &a_type, WINDOW_BRUSH::MD &a_modelData
-		)
+	static const auto OnDrawButtonUp = [](WindowBrushDialog *const ap_dialog, const WINDOW_BRUSH::BT &a_type)
 	{
 		static const auto GetScaledRect = [](const RECT &a_rect) -> RECT
 		{
@@ -188,106 +186,110 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		////////////////////////////////////////////////////////////////
 
 		// same button click -> turn off
-		if (a_type == a_modelData.drawMode) {
-			a_modelData.drawMode = WINDOW_BRUSH::BT::NONE;;
-			HMENU h_systemMenu = ::GetSystemMenu(ap_dialog->GetWidnowHandle(), FALSE);
+		if (a_type == ap_dialog->m_modelData.drawMode) {
+			ap_dialog->m_modelData.drawMode = WINDOW_BRUSH::BT::NONE;
+			HMENU h_systemMenu = ::GetSystemMenu(ap_dialog->mh_window, FALSE);
 			if (nullptr != h_systemMenu) {
 				::EnableMenuItem(h_systemMenu, MENU_SELECT_SCREEN, MF_ENABLED);
 			}
 
 			ap_dialog->Invalidate();
-			ap_dialog->DestroySketchDialog();
+			delete ap_dialog->mp_sketchDialog;
+			ap_dialog->mp_sketchDialog = nullptr;
 
 			return;
 		}
 
-		a_modelData.drawMode = a_type;
+		ap_dialog->m_modelData.drawMode = a_type;
 		ap_dialog->Invalidate();
 		// other button click -> chnage draw mode
-		if (nullptr != *ap_sketchDialog) {
-			(*ap_sketchDialog)->UpdateWindowBrushModelData(a_modelData);
+		if (nullptr != ap_dialog->mp_sketchDialog) {
+			ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
 
 			return;
 		}
 
 		// button click -> turn on
-		HMENU h_systemMenu = ::GetSystemMenu(ap_dialog->GetWidnowHandle(), FALSE);
+		HMENU h_systemMenu = ::GetSystemMenu(ap_dialog->mh_window, FALSE);
 		if (nullptr != h_systemMenu) {
 			::EnableMenuItem(h_systemMenu, MENU_SELECT_SCREEN, MF_DISABLED);
 		}
 
-		const auto scaledRect = GetScaledRect(a_modelData.selectedScreenRect);
-		*ap_sketchDialog = new SketchDialog(a_modelData, scaledRect);
-		(*ap_sketchDialog)->SetThemeMode(ap_dialog->GetColorMode());
+		const auto scaledRect = GetScaledRect(ap_dialog->m_modelData.selectedScreenRect);
+		ap_dialog->mp_sketchDialog = new SketchDialog(ap_dialog->m_modelData, scaledRect);
+		ap_dialog->mp_sketchDialog->SetThemeMode(ap_dialog->m_colorMode);
 
-		if (!(*ap_sketchDialog)->Create(scaledRect.left, scaledRect.top)) {
-			ap_dialog->DestroySketchDialog();
+		if (!ap_dialog->mp_sketchDialog->Create(scaledRect.left, scaledRect.top)) {
+			ap_dialog->m_modelData.drawMode = WINDOW_BRUSH::BT::NONE;
+
+			delete ap_dialog->mp_sketchDialog;
+			ap_dialog->mp_sketchDialog = nullptr;
 		}
 	};
-	static const auto OnStrokeButtonUp = [](const HWND &ah_parentWindow, SketchDialog *ap_sketchDialog, const CM &a_colorMode, WINDOW_BRUSH::MD &a_modelData)
+	static const auto OnStrokeButtonUp = [](WindowBrushDialog *const ap_dialog)
 	{
 		const std::vector<std::pair<std::wstring, unsigned int>> itemList = {
-			{ L"stroke width(px)", a_modelData.strokeWidth },
-			{ L"font size(px)", a_modelData.fontSize }
+			{ L"stroke width(px)", ap_dialog->m_modelData.strokeWidth },
+			{ L"font size(px)", ap_dialog->m_modelData.fontSize }
 		};
 
 		EditDialog instanceDialog(L"Stroke Width", itemList, EDIT::RANGE({ 1, 999 }));
-		instanceDialog.SetThemeMode(a_colorMode);
+		instanceDialog.SetThemeMode(ap_dialog->m_colorMode);
 
 		RECT rect;
-		::GetWindowRect(ah_parentWindow, &rect);
+		::GetWindowRect(ap_dialog->mh_window, &rect);
 		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
 		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
 		const SIZE size = instanceDialog.GetSize();
 
-		if (BT::OK == instanceDialog.DoModal(ah_parentWindow, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
+		if (BT::OK == instanceDialog.DoModal(ap_dialog->mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
 			auto valueList = instanceDialog.GetValueList();
-			a_modelData.strokeWidth = valueList.at(0);
-			a_modelData.fontSize = valueList.at(1);
+			ap_dialog->m_modelData.strokeWidth = valueList.at(0);
+			ap_dialog->m_modelData.fontSize = valueList.at(1);
 
-			if (nullptr != ap_sketchDialog) {
-				ap_sketchDialog->UpdateWindowBrushModelData(a_modelData);
+			if (nullptr != ap_dialog->mp_sketchDialog) {
+				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
 			}
 		}
 	};
-	static const auto OnColorButtonUp = [](
-		const HWND &ah_parentWindow, SketchDialog *ap_sketchDialog, const CM &a_colorMode, 
-		Direct2DEx *const ap_direct2d, std::vector<DColor> &a_colorList, WINDOW_BRUSH::MD &a_modelData
-		)
+	static const auto OnColorButtonUp = [](WindowBrushDialog *const ap_dialog)
 	{
-		ColorDialog instanceDialog(a_modelData.selectedColor, a_colorList);
-		instanceDialog.SetThemeMode(a_colorMode);
+		ColorDialog instanceDialog(ap_dialog->m_modelData.selectedColor, ap_dialog->m_colorList);
+		instanceDialog.SetThemeMode(ap_dialog->m_colorMode);
 
 		RECT rect;
-		::GetWindowRect(ah_parentWindow, &rect);
+		::GetWindowRect(ap_dialog->mh_window, &rect);
 		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
 		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
 		const SIZE size = instanceDialog.GetSize();
 
-		if (BT::OK == instanceDialog.DoModal(ah_parentWindow, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
-			a_modelData.selectedColor = instanceDialog.GetSelectedColor();
-			a_colorList = instanceDialog.GetColorList();
-			static_cast<WindowBrushView *>(ap_direct2d)->UpdateColorSymbolBrush(a_modelData.selectedColor);
+		if (BT::OK == instanceDialog.DoModal(ap_dialog->mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
+			ap_dialog->m_modelData.selectedColor = instanceDialog.GetSelectedColor();
+			ap_dialog->m_colorList = instanceDialog.GetColorList();
+			static_cast<WindowBrushView *>(ap_dialog->mp_direct2d)->UpdateColorSymbolBrush(ap_dialog->m_modelData.selectedColor);
 
-			if (nullptr != ap_sketchDialog) {
-				ap_sketchDialog->UpdateWindowBrushModelData(a_modelData);
+			if (nullptr != ap_dialog->mp_sketchDialog) {
+				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
 			}
+
+			ap_dialog->Invalidate();
 		}
 	};
-	static const auto OnGradientButtonUp = [](WindowBrushDialog *const ap_dialog, SketchDialog *ap_sketchDialog, WINDOW_BRUSH::MD &a_modelData)
+	static const auto OnGradientButtonUp = [](WindowBrushDialog *const ap_dialog)
 	{
-		a_modelData.isGradientMode = !a_modelData.isGradientMode;
-		if (nullptr != ap_sketchDialog) {
-			ap_sketchDialog->UpdateWindowBrushModelData(a_modelData);
+		ap_dialog->m_modelData.isGradientMode = !ap_dialog->m_modelData.isGradientMode;
+		
+		if (nullptr != ap_dialog->mp_sketchDialog) {
+			ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
 		}
 
 		ap_dialog->Invalidate();
 	};
-	static const auto OnFadeButtonUp = [](WindowBrushDialog *const ap_dialog, SketchDialog *ap_sketchDialog, WINDOW_BRUSH::MD &a_modelData)
+	static const auto OnFadeButtonUp = [](WindowBrushDialog *const ap_dialog)
 	{
-		a_modelData.isFadeMode = !a_modelData.isFadeMode;
-		if (nullptr != ap_sketchDialog) {
-			ap_sketchDialog->UpdateWindowBrushModelData(a_modelData);
+		ap_dialog->m_modelData.isFadeMode = !ap_dialog->m_modelData.isFadeMode;
+		if (nullptr != ap_dialog->mp_sketchDialog) {
+			ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
 		}
 
 		ap_dialog->Invalidate();
@@ -308,21 +310,21 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 			case WINDOW_BRUSH::BT::RECTANGLE:
 			case WINDOW_BRUSH::BT::CIRCLE:
 			case WINDOW_BRUSH::BT::TEXT:
-				OnDrawButtonUp(this, &mp_sketchDialog, type, m_modelData);
+				OnDrawButtonUp(this, type);
 				break;
 			case WINDOW_BRUSH::BT::STROKE:
-				OnStrokeButtonUp(mh_window, mp_sketchDialog, GetColorMode(), m_modelData);
+				OnStrokeButtonUp(this);
 				break;
 			case WINDOW_BRUSH::BT::GRADIENT:
-				OnGradientButtonUp(this, mp_sketchDialog, m_modelData);
+				OnGradientButtonUp(this);
 				break;
 			case WINDOW_BRUSH::BT::COLOR:
 				if (!m_modelData.isGradientMode) {
-					OnColorButtonUp(mh_window, mp_sketchDialog, GetColorMode(), mp_direct2d, m_colorList, m_modelData);
+					OnColorButtonUp(this);
 				}
 				break;
 			case WINDOW_BRUSH::BT::FADE:
-				OnFadeButtonUp(this, mp_sketchDialog, m_modelData);
+				OnFadeButtonUp(this);
 				break;
 			default:
 				break;
@@ -355,29 +357,29 @@ int WindowBrushDialog::MouseLeaveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 // to handle the WM_SYSCOMMAND message that occurs when a window is created
 msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_longParam)
 {
-	const auto OnClickSelectScreenMenu = [](WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_modelData)
+	const auto OnClickSelectScreenMenu = [](WindowBrushDialog *const ap_dialog)
 	{
-		ScreenDialog instanceDialog(a_modelData.selectedScreenRect);
-		instanceDialog.SetThemeMode(ap_dialog->GetColorMode());
+		ScreenDialog instanceDialog(ap_dialog->m_modelData.selectedScreenRect);
+		instanceDialog.SetThemeMode(ap_dialog->m_colorMode);
 
 		RECT rect;
-		::GetWindowRect(ap_dialog->GetWidnowHandle(), &rect);
+		::GetWindowRect(ap_dialog->mh_window, &rect);
 		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
 		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
 		const SIZE size = instanceDialog.GetSize();
 
-		if (BT::OK == instanceDialog.DoModal(ap_dialog->GetWidnowHandle(), centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
-			a_modelData.selectedScreenRect = instanceDialog.GetSelectedRect();
+		if (BT::OK == instanceDialog.DoModal(ap_dialog->mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
+			ap_dialog->m_modelData.selectedScreenRect = instanceDialog.GetSelectedRect();
 		}
 	};
-	const auto OnClickColorOpacityMenu = [](WindowBrushDialog *const ap_dialog, SketchDialog *ap_sketchDialog, WINDOW_BRUSH::MD &a_modelData)
+	const auto OnClickColorOpacityMenu = [](WindowBrushDialog *const ap_dialog)
 	{
 		const size_t ticInterval = 10;
 		SLIDER::RD rangeData = {
 			L"10%", 10,
 			L"100%", 100
 		};
-		int thumbIndex = static_cast<int>(a_modelData.colorOpacity * 100.0f - rangeData.min) / ticInterval;
+		int thumbIndex = static_cast<int>(ap_dialog->m_modelData.colorOpacity * 100.0f - rangeData.min) / ticInterval;
 		std::vector<std::wstring> ticIntervalTitle;
 
 		for (int i = rangeData.min; i <= rangeData.max; i += ticInterval) {
@@ -385,29 +387,30 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 		}
 
 		SliderDialog instanceDialog(L"Color Opacity", rangeData, ticInterval, thumbIndex, ticIntervalTitle);
-		instanceDialog.SetThemeMode(ap_dialog->GetColorMode());
+		instanceDialog.SetThemeMode(ap_dialog->m_colorMode);
 
 		RECT rect;
-		::GetWindowRect(ap_dialog->GetWidnowHandle(), &rect);
+		::GetWindowRect(ap_dialog->mh_window, &rect);
 		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
 		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
 		const SIZE size = instanceDialog.GetSize();
 
-		if (BT::OK == instanceDialog.DoModal(ap_dialog->GetWidnowHandle(), centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
-			a_modelData.colorOpacity = instanceDialog.GetValue() / 100.0f;
-			if (nullptr != ap_sketchDialog) {
-				ap_sketchDialog->UpdateWindowBrushModelData(a_modelData);
+		if (BT::OK == instanceDialog.DoModal(ap_dialog->mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
+			ap_dialog->m_modelData.colorOpacity = instanceDialog.GetValue() / 100.0f;
+			
+			if (nullptr != ap_dialog->mp_sketchDialog) {
+				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(ap_dialog->m_modelData);
 			}
 		}
 	};
-	const auto OnClickFadeSpeedMenu = [](WindowBrushDialog *const ap_dialog, WINDOW_BRUSH::MD &a_modelData)
+	const auto OnClickFadeSpeedMenu = [](WindowBrushDialog *const ap_dialog)
 	{
 		const size_t ticInterval = 500;
 		SLIDER::RD rangeData = {
 			L"Fast", 0,
 			L"Slow", 3000
 		};
-		int thumbIndex = static_cast<int>(a_modelData.fadeTimer / ticInterval);
+		int thumbIndex = static_cast<int>(ap_dialog->m_modelData.fadeTimer / ticInterval);
 		std::wostringstream out;
 		out.precision(1);
 
@@ -419,16 +422,16 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 		}
 
 		SliderDialog instanceDialog(L"Fade Timer", rangeData, ticInterval, thumbIndex, ticIntervalTitle);
-		instanceDialog.SetThemeMode(ap_dialog->GetColorMode());
+		instanceDialog.SetThemeMode(ap_dialog->m_colorMode);
 
 		RECT rect;
-		::GetWindowRect(ap_dialog->GetWidnowHandle(), &rect);
+		::GetWindowRect(ap_dialog->mh_window, &rect);
 		const int centerPosX = rect.left + (rect.right - rect.left) / 2;
 		const int centerPosY = rect.top + (rect.bottom - rect.top) / 2;
 		const SIZE size = instanceDialog.GetSize();
 
-		if (BT::OK == instanceDialog.DoModal(ap_dialog->GetWidnowHandle(), centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
-			a_modelData.fadeTimer = instanceDialog.GetValue();
+		if (BT::OK == instanceDialog.DoModal(ap_dialog->mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
+			ap_dialog->m_modelData.fadeTimer = instanceDialog.GetValue();
 		}
 	};
 
@@ -439,13 +442,13 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 	switch (a_menuID)
 	{
 	case MENU_SELECT_SCREEN:
-		OnClickSelectScreenMenu(this, m_modelData);
+		OnClickSelectScreenMenu(this);
 		break;
 	case MENU_COLOR_OPACITY:
-		OnClickColorOpacityMenu(this, mp_sketchDialog, m_modelData);
+		OnClickColorOpacityMenu(this);
 		break;
 	case MENU_FADE_SPEED:
-		OnClickFadeSpeedMenu(this, m_modelData);
+		OnClickFadeSpeedMenu(this);
 		break;
 	default:
 		break;
@@ -510,14 +513,4 @@ void WindowBrushDialog::KillInfoDialogTimer()
 		delete *p_infoDialog;
 		*p_infoDialog = nullptr;
 	}
-}
-
-void WindowBrushDialog::DestroySketchDialog()
-{
-	m_modelData.drawMode = WINDOW_BRUSH::BT::NONE;
-
-	mp_sketchDialog->DestroyWindow();
-
-	delete mp_sketchDialog;
-	mp_sketchDialog = nullptr;
 }

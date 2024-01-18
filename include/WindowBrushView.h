@@ -20,7 +20,7 @@ private:
 	// for curve button
 	ID2D1PathGeometry *mp_curveGeometry;
 	// for stroke button
-	std::vector<DRect> m_strokShapeRects;
+	std::vector<DRect> m_strokeShapeRects;
 	// for gradient button
 	ID2D1LinearGradientBrush *mp_gradientBrush;
 	std::vector<ID2D1PathGeometry *> m_gradientGeometries;
