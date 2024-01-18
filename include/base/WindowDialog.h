@@ -31,8 +31,6 @@ private:
     typedef struct THREAD_DATA
     {
         WindowDialog *p_dialog;
-        HANDLE h_killEvent;
-        HANDLE h_destroyedEvent;
         HANDLE h_thread;
         POINT startPosition;
     }TD;
@@ -114,7 +112,6 @@ protected:
 
 private:
     static DWORD WINAPI RunOnOtherThread(void *ap_data);
-    void CloseThread(const bool a_destroyedByParents);
 };
 
 #endif //_WINDOW_DIALOG_H_ 

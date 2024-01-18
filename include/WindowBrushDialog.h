@@ -3,6 +3,7 @@
 
 #include "WindowDialog.h"
 #include "WindowBrushModel.h"
+#include "SketchDialog.h"
 #include <vector>
 
 class WindowBrushDialog : public WindowDialog
@@ -15,6 +16,7 @@ protected:
 	std::vector<RECT> m_physicalScreenRects;
 
 	WINDOW_BRUSH::IDD m_infoDialogData;
+	SketchDialog *mp_sketchDialog;;
 
 	bool m_isLeftMouse;
 
@@ -45,6 +47,7 @@ protected:
 
 protected:
 	void KillInfoDialogTimer();
+	void DestroySketchDialog();
 };
 
 #endif //_WINDOW_BRUSH_DIALOG_H_

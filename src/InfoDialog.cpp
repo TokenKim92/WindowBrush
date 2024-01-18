@@ -8,7 +8,6 @@ InfoDialog::InfoDialog(const std::wstring &a_title) :
 {
 	SetSize(INFO::DIALOG_WIDTH, INFO::DIALOG_HEIGHT);
 	SetStyle(WS_POPUP | WS_VISIBLE);
-	SetExtendStyle(WS_EX_TOPMOST);
 }
 
 void InfoDialog::OnInitDialog()
