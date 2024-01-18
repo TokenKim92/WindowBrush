@@ -3,6 +3,7 @@
 
 #include "Direct2DEx.h"
 #include "SketchModel.h"
+#include <map>
 
 class SketchView : public Direct2DEx
 {
@@ -17,6 +18,7 @@ protected:
 protected:
 	ID2D1Bitmap *mp_screenBitmap;
 	ID2D1StrokeStyle *mp_dashStroke;
+	std::map<size_t, ID2D1LinearGradientBrush *> m_gradientTable;
 
 	HBITMAP mh_screenBitmap;
 	const RECT m_physicalRect;
