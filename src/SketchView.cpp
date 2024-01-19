@@ -17,9 +17,13 @@ SketchView::SketchView(const HWND ah_window, const HBITMAP &ah_screenBitmap, con
 
 	if (CM::LIGHT == a_mode) {
 		m_colorSet.highlight = RGB_TO_COLORF(ORANGE_300);
+		m_colorSet.extentColor = RGB_TO_COLORF(NEUTRAL_100);
+		m_colorSet.extentInvertColor = RGB_TO_COLORF(NEUTRAL_700);
 	}
 	else {
 		m_colorSet.highlight = RGB_TO_COLORF(SKY_400);
+		m_colorSet.extentColor = RGB_TO_COLORF(NEUTRAL_700);
+		m_colorSet.extentInvertColor = RGB_TO_COLORF(NEUTRAL_100);
 	}
 }
 
@@ -115,15 +119,6 @@ int SketchView::Create()
 	mp_dashStroke = CreateUserStrokeStyle(D2D1_DASH_STYLE_DASH);
 	InitGradientTable(this);
 
-	//if (static_cast<unsigned char>(-1) / 2 > GetAverageBrightness(mh_screenBitmap) {
-	//	m_colorSet.extentColor = RGB_TO_COLORF(NEUTRAL_100);
-	//	m_colorSet.extentInvertColor = RGB_TO_COLORF(NEUTRAL_700);
-	//}
-	//else {
-	//	m_colorSet.extentColor = RGB_TO_COLORF(NEUTRAL_700);
-	//	m_colorSet.extentInvertColor = RGB_TO_COLORF(NEUTRAL_100);
-	//}
-
 	return S_OK;
 }
 
@@ -183,7 +178,64 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 			}
 		}
 	};
+	static const auto DrawTextExtent = [](SketchView *const ap_view, const DRect &a_rect)
+	{
+		const size_t circleCount = 4;
+		float offset = (a_rect.right - a_rect.left) * 0.02f;
+		if (offset > 5.0f) {
+			offset = 5.0f;
+		}
+		DRect rectList[circleCount] = {
+			{ a_rect.left - offset, a_rect.top - offset, a_rect.left + offset, a_rect.top + offset },
+			{ a_rect.right - offset, a_rect.top - offset, a_rect.right + offset, a_rect.top + offset },
+			{ a_rect.left - offset, a_rect.bottom - offset, a_rect.left + offset, a_rect.bottom + offset },
+			{ a_rect.right - offset, a_rect.bottom - offset, a_rect.right + offset, a_rect.bottom + offset }
+		};
 
+		const auto previousStroke = ap_view->SetStrokeStyle(ap_view->mp_dashStroke);
+		ap_view->SetBrushColor(ap_view->m_colorSet.extentColor);
+		ap_view->DrawRectangle(a_rect);
+		ap_view->SetStrokeStyle(previousStroke);
+
+		for (int i = 0; i < circleCount; i++) {
+			ap_view->DrawEllipse(rectList[i]);
+		}
+
+		ap_view->SetBrushColor(ap_view->m_colorSet.extentInvertColor);
+		for (int i = 0; i < circleCount; i++) {
+			ap_view->FillEllipse(rectList[i]);
+		}
+	};
+	static const auto DrawTextOutline = [](SketchView *const ap_view, SKETCH::MD a_modelData)
+	{		
+		const auto previousStroke = ap_view->SetStrokeStyle(ap_view->mp_dashStroke);
+		ap_view->SetFontSize(static_cast<float>(a_modelData.defaultData.fontSize)); // TODO:: change font size to pixel
+		ap_view->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
+		const auto startPoint = a_modelData.points.front();
+		DSize textSize = ap_view->GetTextExtent(L"Text");
+		const float strokeWidth = textSize.width * 0.01f;
+		DRect extentRect;
+
+		ap_view->SetStrokeWidth(strokeWidth);
+		if (SKETCH::INVALID_INDEX == a_modelData.defaultData.gradientBrushIndex) {
+			ap_view->SetBrushColor(a_modelData.defaultData.color);
+			extentRect = ap_view->DrawTextOutline(L"Text", startPoint, textSize.height);
+		}
+		else {
+			const auto previousBrush = ap_view->SetBrush(ap_view->m_gradientTable.at(a_modelData.defaultData.gradientBrushIndex));
+			extentRect = ap_view->DrawTextOutline(L"Text", startPoint, textSize.height);
+			ap_view->SetBrush(previousBrush);
+		}
+
+		ap_view->SetStrokeStyle(previousStroke);
+		extentRect.top = startPoint.y;
+		extentRect.right += strokeWidth;
+		extentRect.bottom = startPoint.y + textSize.height;
+
+		DrawTextExtent(ap_view, extentRect);
+	};
+	
 	///////////////////////////////////////////////////////////////////
 	// implementation
 	///////////////////////////////////////////////////////////////////
@@ -193,23 +245,26 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 	}
 	DrawBorder(this);
 
+	ID2D1Brush *p_previousBrush;
 	for (const auto &modelData : a_modelDataList) {
-		if (WINDOW_BRUSH::DT::CURVE == modelData.drawType) {
+		switch (modelData.drawType)
+		{
+		case WINDOW_BRUSH::DT::CURVE:
 			DrawCurve(this, modelData);
-		} else if (WINDOW_BRUSH::DT::RECTANGLE == modelData.drawType) {
-			const auto p_previousBrush = SetByDefaultData(this, modelData.defaultData);
+			break;
+		case WINDOW_BRUSH::DT::RECTANGLE:
+			p_previousBrush = SetByDefaultData(this, modelData.defaultData);
 			DrawRectangle(modelData.rect);
-
-			if (nullptr != p_previousBrush) {
-				SetBrush(p_previousBrush);
-			}
-		} else if (WINDOW_BRUSH::DT::CIRCLE == modelData.drawType) {
-			const auto p_previousBrush = SetByDefaultData(this, modelData.defaultData);
+			if (nullptr != p_previousBrush) SetBrush(p_previousBrush);
+			break;
+		case WINDOW_BRUSH::DT::CIRCLE:
+			p_previousBrush = SetByDefaultData(this, modelData.defaultData);
 			DrawEllipse(modelData.rect);
-
-			if (nullptr != p_previousBrush) {
-				SetBrush(p_previousBrush);
-			}
+			if (nullptr != p_previousBrush) SetBrush(p_previousBrush);
+			break;
+		case WINDOW_BRUSH::DT::TEXT_OUTLINE:
+			DrawTextOutline(this, modelData);
+			break;	
 		}
 	}
 }

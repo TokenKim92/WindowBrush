@@ -105,8 +105,8 @@ BOOL CALLBACK GetPhysicalScreenRects(HMONITOR hMonitor, HDC hdcMonitor, LPRECT l
 
 	auto screenTable = reinterpret_cast<std::vector<RECT> *>(dwData);
 	RECT rect = {
-			static_cast<float>(devmode.dmPosition.x), static_cast<LONG>(devmode.dmPosition.y),
-			static_cast<float>(devmode.dmPosition.x + devmode.dmPelsWidth), static_cast<float>(devmode.dmPosition.y + devmode.dmPelsHeight)
+		devmode.dmPosition.x, devmode.dmPosition.y,
+		devmode.dmPosition.x + devmode.dmPelsWidth, devmode.dmPosition.y + devmode.dmPelsHeight
 	};
 	screenTable->push_back(rect);
 

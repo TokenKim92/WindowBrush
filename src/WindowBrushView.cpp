@@ -423,7 +423,7 @@ void WindowBrushView::DrawTextShape(const WINDOW_BRUSH::MD &a_data)
 
 	auto rect = m_buttonTable.at(WINDOW_BRUSH::BT::TEXT);
 
-	UpdateTextColorOnHover(WINDOW_BRUSH::DT::TEXT, WINDOW_BRUSH::BT::TEXT, a_data);
+	UpdateTextColorOnHover(WINDOW_BRUSH::DT::TEXT_OUTLINE, WINDOW_BRUSH::BT::TEXT, a_data);
 
 	auto prevTextFormat = SetTextFormat(mp_textFormat);
 	DrawUserText(L"T", rect);

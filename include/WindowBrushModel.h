@@ -32,6 +32,7 @@ namespace WINDOW_BRUSH {
 		CURVE,
 		RECTANGLE,
 		CIRCLE,
+		TEXT_OUTLINE,
 		TEXT
 	}DT;
 

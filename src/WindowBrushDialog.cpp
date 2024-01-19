@@ -41,7 +41,7 @@ WindowBrushDialog::WindowBrushDialog() :
 	m_modelData.hoverButtonType = WINDOW_BRUSH::BT::NONE;
 	m_modelData.drawType = WINDOW_BRUSH::DT::NONE;
 	m_modelData.strokeWidth = 20;
-	m_modelData.fontSize = 20;
+	m_modelData.fontSize = 180;
 	m_modelData.isGradientMode = false;
 	m_modelData.selectedColor = RGB_TO_COLORF(ORANGE_500);
 	m_modelData.isFadeMode = false;
@@ -300,7 +300,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		{ WINDOW_BRUSH::BT::CURVE, WINDOW_BRUSH::DT::CURVE },
 		{ WINDOW_BRUSH::BT::RECTANGLE, WINDOW_BRUSH::DT::RECTANGLE },
 		{ WINDOW_BRUSH::BT::CIRCLE, WINDOW_BRUSH::DT::CIRCLE },
-		{ WINDOW_BRUSH::BT::TEXT, WINDOW_BRUSH::DT::TEXT }
+		{ WINDOW_BRUSH::BT::TEXT, WINDOW_BRUSH::DT::TEXT_OUTLINE }
 	};
 	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
 

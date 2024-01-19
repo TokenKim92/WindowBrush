@@ -9,14 +9,15 @@
 class SketchDialog : public WindowDialog
 {
 protected:
-	WINDOW_BRUSH::MD m_windowBrushModelData;
+	WINDOW_BRUSH::MD m_parentModelData;
 	std::vector<SKETCH::MD> m_modelDataList;
 
 	bool m_leftButtonDown;
-	unsigned __int64 m_previouseMilliseconds;
+	unsigned __int64 m_previousMilliseconds;
 
 	const RECT m_scaledRect;
 	HBITMAP mh_screenBitmap;
+	HWND mh_edit;
 
 public:
 	SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_scaledRect);

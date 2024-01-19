@@ -5,7 +5,7 @@
 
 SketchDialog::SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_scaledRect) :
 	WindowDialog(L"SKETCHDIALOG", L"SketchDialog"),
-	m_windowBrushModelData(a_modelData),
+	m_parentModelData(a_modelData),
 	m_scaledRect(a_scaledRect)
 {
 	const auto GetScreenHBitmap = [](const RECT &a_scaledRect, const RECT &a_physicalRect)
@@ -41,8 +41,9 @@ SketchDialog::SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_sc
 	SetStyle(WS_POPUP | WS_VISIBLE);
 
 	m_leftButtonDown = false;
-	m_previouseMilliseconds = 0;
+	m_previousMilliseconds = 0;
 	mh_screenBitmap = GetScreenHBitmap(a_scaledRect, a_modelData.selectedScreenRect);
+	mh_edit = nullptr;
 
 	// add message handlers
 	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&SketchDialog::MouseMoveHandler));
@@ -56,6 +57,9 @@ SketchDialog::SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_sc
 
 SketchDialog::~SketchDialog()
 {
+	if (nullptr != mh_edit) {
+		::DestroyWindow(mh_edit);
+	}
 	::DeleteObject(mh_screenBitmap);
 }
 
@@ -65,9 +69,15 @@ void SketchDialog::OnInitDialog()
 	DisableMinimize();
 	DisableSize();
 
-	const auto p_view = new SketchView(mh_window, mh_screenBitmap, m_windowBrushModelData.selectedScreenRect, GetColorMode());
+	const auto p_view = new SketchView(mh_window, mh_screenBitmap, m_parentModelData.selectedScreenRect, GetColorMode());
 	InheritDirect2D(p_view);
 	p_view->Create();
+
+	mh_edit = ::CreateWindowEx(
+		WS_EX_CLIENTEDGE, L"EDIT", nullptr, WS_CHILD, 0, 0, m_viewRect.right - m_viewRect.left, 20,
+		mh_window, nullptr, nullptr, nullptr
+	);
+	::SetFocus(mh_edit);
 }
 
 void SketchDialog::OnPaint()
@@ -79,32 +89,34 @@ void SketchDialog::OnPaint()
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
 int SketchDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	static const auto UpdateDrawDataPerType = [](SKETCH::MD &a_data, const POINT &a_point)
-	{
-		if (WINDOW_BRUSH::DT::CURVE == a_data.drawType) {
-			a_data.points.push_back({ static_cast<float>(a_point.x), static_cast<float>(a_point.y) });
-		}
-		else if (WINDOW_BRUSH::DT::RECTANGLE == a_data.drawType) {
-			a_data.rect.right = static_cast<float>(a_point.x);
-			a_data.rect.bottom = static_cast<float>(a_point.y);
-		}
-		else if (WINDOW_BRUSH::DT::CIRCLE == a_data.drawType) {
-
-			a_data.rect.right = static_cast<float>(a_point.x);
-			a_data.rect.bottom = static_cast<float>(a_point.y);
-		}
-	};
-
-	////////////////////////////////////////////////////////////////
-	// implementation
-	////////////////////////////////////////////////////////////////
 	if (!m_leftButtonDown) {
 		return S_OK;
 	}
 
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
-	
-	UpdateDrawDataPerType(m_modelDataList.back(), point);
+	auto &latestData = m_modelDataList.back();
+
+	if (WINDOW_BRUSH::DT::TEXT_OUTLINE == latestData.drawType) {
+		return S_OK;
+	}
+
+	switch (latestData.drawType)
+	{
+	case WINDOW_BRUSH::DT::CURVE:
+		latestData.points.push_back({ static_cast<float>(point.x), static_cast<float>(point.y) });
+		break;
+	case WINDOW_BRUSH::DT::RECTANGLE:
+		latestData.rect.right = static_cast<float>(point.x);
+		latestData.rect.bottom = static_cast<float>(point.y);
+		break;
+	case WINDOW_BRUSH::DT::CIRCLE:
+		latestData.rect.right = static_cast<float>(point.x);
+		latestData.rect.bottom = static_cast<float>(point.y);
+		break;
+	default:
+		break;
+	}
+
 	Invalidate();
 
 	return S_OK;
@@ -117,32 +129,23 @@ int SketchDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 	{
 		SKETCH::DD data;
 
-		data.strokeWidth = ap_dialog->m_windowBrushModelData.strokeWidth;
-		data.transparency = ap_dialog->m_windowBrushModelData.colorOpacity;
-		data.color = ap_dialog->m_windowBrushModelData.selectedColor;
-		data.gradientBrushIndex = ap_dialog->m_windowBrushModelData.isGradientMode
+		data.fontSize = ap_dialog->m_parentModelData.fontSize;
+		data.strokeWidth = ap_dialog->m_parentModelData.strokeWidth;
+		data.transparency = ap_dialog->m_parentModelData.colorOpacity;
+		data.color = ap_dialog->m_parentModelData.selectedColor;
+		data.gradientBrushIndex = ap_dialog->m_parentModelData.isGradientMode
 			? rand() % SKETCH::GRADIENT_BRUSH_COUNT
 			: SKETCH::INVALID_INDEX;
 
 		return data;
 	};
-	static const auto InitDrawDataPerType = [](SKETCH::MD &a_data, const POINT &a_point)
+	static const auto IsDrawingTextOutline = [](SketchDialog *const ap_dialog)
 	{
-		if (WINDOW_BRUSH::DT::CURVE == a_data.drawType) {
-			a_data.points.push_back({ static_cast<float>(a_point.x), static_cast<float>(a_point.y) });
-		}
-		else if (WINDOW_BRUSH::DT::RECTANGLE == a_data.drawType) {
-			a_data.rect = {
-				static_cast<float>(a_point.x), static_cast<float>(a_point.y),
-				static_cast<float>(a_point.x), static_cast<float>(a_point.y) 
-			};
-		}
-		else if (WINDOW_BRUSH::DT::CIRCLE == a_data.drawType) {
-			a_data.rect = {
-				static_cast<float>(a_point.x), static_cast<float>(a_point.y),
-				static_cast<float>(a_point.x), static_cast<float>(a_point.y)
-			};
-		}
+		return ap_dialog->m_modelDataList.size() && WINDOW_BRUSH::DT::TEXT_OUTLINE == ap_dialog->m_modelDataList.back().drawType;
+	};
+	static const auto CancelTypingText = [](SketchDialog *const ap_dialog)
+	{
+		ap_dialog->m_modelDataList.pop_back();
 	};
 
 	////////////////////////////////////////////////////////////////
@@ -157,15 +160,46 @@ int SketchDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 	m_leftButtonDown = true;
-	m_previouseMilliseconds = ::GetTickCount64();
+	m_previousMilliseconds = ::GetTickCount64();
+
+	if (IsDrawingTextOutline(this)) {
+		CancelTypingText(this);
+	}
 
 	SKETCH::MD data;
-	data.drawType = m_windowBrushModelData.drawType;
+	data.drawType = m_parentModelData.drawType;
 	data.defaultData = GetDefaultData(this);
-	InitDrawDataPerType(data, point);
 
-	m_modelDataList.push_back(data);
-	Invalidate();
+	switch (data.drawType)
+	{
+	case WINDOW_BRUSH::DT::CURVE:
+		data.points.push_back({ static_cast<float>(point.x), static_cast<float>(point.y) });
+		m_modelDataList.push_back(data);
+		Invalidate();
+		break;
+	case WINDOW_BRUSH::DT::RECTANGLE:
+		data.rect = {
+			static_cast<float>(point.x), static_cast<float>(point.y),
+			static_cast<float>(point.x), static_cast<float>(point.y)
+		};
+		m_modelDataList.push_back(data);
+		Invalidate();
+		break;
+	case WINDOW_BRUSH::DT::CIRCLE:
+		data.rect = {
+			static_cast<float>(point.x), static_cast<float>(point.y),
+			static_cast<float>(point.x), static_cast<float>(point.y)
+		};
+		m_modelDataList.push_back(data);
+		Invalidate();
+		break;
+	case WINDOW_BRUSH::DT::TEXT_OUTLINE:
+		m_modelDataList.push_back(data);
+		::SetWindowText(mh_edit, L"");
+		break;
+	default:
+		break;
+	}
 
 	return S_OK;
 }
@@ -182,6 +216,13 @@ int SketchDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longPara
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 	m_leftButtonDown = false;
 
+	auto &data = m_modelDataList.back();
+	if (WINDOW_BRUSH::DT::TEXT_OUTLINE == data.drawType) {
+		data.points.push_back({ static_cast<float>(point.x), static_cast<float>(point.y) });
+
+		Invalidate();
+	}
+
 	return S_OK;
 }
 
@@ -191,12 +232,10 @@ int SketchDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	const unsigned char pressedKey = static_cast<unsigned char>(a_wordParam);
 
 	if (VK_RETURN == pressedKey) {
-		BT type = BT::OK;
-		SetClickedButtonType(type);
-		::DestroyWindow(mh_window);
+
 	}
 	else if (VK_ESCAPE == pressedKey) {
-		::DestroyWindow(mh_window);
+
 	}
 
 	return S_OK;
@@ -204,7 +243,7 @@ int SketchDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 
 int SketchDialog::UpdateModelDataHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	m_windowBrushModelData = *reinterpret_cast<WINDOW_BRUSH::MD *>(a_wordParam);
+	m_parentModelData = *reinterpret_cast<WINDOW_BRUSH::MD *>(a_wordParam);
 
 	return S_OK;
 }

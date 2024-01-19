@@ -14,6 +14,7 @@ namespace SKETCH {
 	typedef struct DEFAULT_DATA
 	{
 		unsigned int strokeWidth;
+		unsigned int fontSize;
 		float transparency;
 		DColor color;
 		size_t gradientBrushIndex;
