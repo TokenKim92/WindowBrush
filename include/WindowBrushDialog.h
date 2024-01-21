@@ -31,7 +31,7 @@ protected:
 	virtual void OnInitDialog() override;
 	virtual void OnDestroy() override;
 	virtual void OnPaint() override;
-	virtual void OnSetThemeMode() override;
+	virtual void OnSetColorMode() override;
 
 	// to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
 	int MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam);

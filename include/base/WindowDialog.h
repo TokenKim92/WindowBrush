@@ -69,7 +69,7 @@ public:
     void SetSize(int a_width, int a_height);
     void SetStyle(const unsigned long a_tyle);
     void SetExtendStyle(const unsigned long a_extendStyle);
-    int SetThemeMode(const CM a_mode);
+    int SetColorMode(const CM a_mode);
     void InheritDirect2D(Direct2DEx *const ap_direct2d);
 
     HWND GetWidnowHandle();
@@ -106,7 +106,8 @@ protected:
     virtual void OnInitDialog();
     virtual void OnDestroy();
     virtual void OnPaint();
-    virtual void OnSetThemeMode();
+    virtual void OnSetColorMode();
+    virtual void PreTranslateMessage(MSG &a_msg);
 
     void SetClickedButtonType(BT &a_type);
 

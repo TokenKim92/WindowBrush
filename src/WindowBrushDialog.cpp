@@ -99,7 +99,7 @@ void WindowBrushDialog::OnPaint()
 	static_cast<WindowBrushView *>(mp_direct2d)->Paint(m_modelData);
 }
 
-void WindowBrushDialog::OnSetThemeMode()
+void WindowBrushDialog::OnSetColorMode()
 {
 	static_cast<WindowBrushView *>(mp_direct2d)->SetColorMode(GetColorMode());
 	Invalidate();
@@ -217,7 +217,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 
 		const auto scaledRect = GetScaledRect(ap_dialog->m_modelData.selectedScreenRect);
 		ap_dialog->mp_sketchDialog = new SketchDialog(ap_dialog->m_modelData, scaledRect);
-		ap_dialog->mp_sketchDialog->SetThemeMode(ap_dialog->m_colorMode);
+		ap_dialog->mp_sketchDialog->SetColorMode(ap_dialog->m_colorMode);
 
 		if (!ap_dialog->mp_sketchDialog->Create(scaledRect.left, scaledRect.top)) {
 			ap_dialog->m_modelData.drawType = WINDOW_BRUSH::DT::NONE;
@@ -232,7 +232,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		};
 
 		EditDialog instanceDialog(L"Stroke Width", itemList, EDIT::RANGE({ 1, 999 }));
-		instanceDialog.SetThemeMode(ap_dialog->m_colorMode);
+		instanceDialog.SetColorMode(ap_dialog->m_colorMode);
 
 		RECT rect;
 		::GetWindowRect(ap_dialog->mh_window, &rect);
@@ -253,7 +253,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 	static const auto OnColorButtonUp = [](WindowBrushDialog *const ap_dialog)
 	{
 		ColorDialog instanceDialog(ap_dialog->m_modelData.selectedColor, ap_dialog->m_colorList);
-		instanceDialog.SetThemeMode(ap_dialog->m_colorMode);
+		instanceDialog.SetColorMode(ap_dialog->m_colorMode);
 
 		RECT rect;
 		::GetWindowRect(ap_dialog->mh_window, &rect);
@@ -363,7 +363,7 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 	const auto OnClickSelectScreenMenu = [](WindowBrushDialog *const ap_dialog)
 	{
 		ScreenDialog instanceDialog(ap_dialog->m_modelData.selectedScreenRect);
-		instanceDialog.SetThemeMode(ap_dialog->m_colorMode);
+		instanceDialog.SetColorMode(ap_dialog->m_colorMode);
 
 		RECT rect;
 		::GetWindowRect(ap_dialog->mh_window, &rect);
@@ -390,7 +390,7 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 		}
 
 		SliderDialog instanceDialog(L"Color Opacity", rangeData, ticInterval, thumbIndex, ticIntervalTitle);
-		instanceDialog.SetThemeMode(ap_dialog->m_colorMode);
+		instanceDialog.SetColorMode(ap_dialog->m_colorMode);
 
 		RECT rect;
 		::GetWindowRect(ap_dialog->mh_window, &rect);
@@ -425,7 +425,7 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 		}
 
 		SliderDialog instanceDialog(L"Fade Timer", rangeData, ticInterval, thumbIndex, ticIntervalTitle);
-		instanceDialog.SetThemeMode(ap_dialog->m_colorMode);
+		instanceDialog.SetColorMode(ap_dialog->m_colorMode);
 
 		RECT rect;
 		::GetWindowRect(ap_dialog->mh_window, &rect);
