@@ -3,6 +3,7 @@
 #include "ColorPalette.h"
 #include <vector>
 #include <memory>
+#include <map>
 
 extern ApplicationCore *gp_appCore;
 
@@ -178,10 +179,10 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 			}
 		}
 	};
-	static const auto DrawTextExtent = [](SketchView *const ap_view, const DRect &a_rect)
+	static const auto DrawTextExtent = [](SketchView *const ap_view, const DRect &a_rect, const float &strokeWith)
 	{
 		const size_t circleCount = 4;
-		float offset = (a_rect.right - a_rect.left) * 0.02f;
+		float offset = strokeWith * 2;
 		if (offset > 5.0f) {
 			offset = 5.0f;
 		}
@@ -214,7 +215,7 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 
 		const auto startPoint = a_modelData.points.front();
 		DSize textSize = ap_view->GetTextExtent(L"Text");
-		const float strokeWidth = textSize.width * 0.01f;
+		const float strokeWidth = a_modelData.defaultData.fontSize * 0.02f;
 		DRect extentRect;
 
 		ap_view->SetStrokeWidth(strokeWidth);
@@ -233,39 +234,122 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 		extentRect.right += strokeWidth;
 		extentRect.bottom = startPoint.y + textSize.height;
 
-		DrawTextExtent(ap_view, extentRect);
+		DrawTextExtent(ap_view, extentRect, strokeWidth);
+	};
+	static const auto DrawUserText = [](SketchView *const ap_view, SKETCH::MD a_modelData) -> std::pair<DRect, float>
+	{
+		if (a_modelData.text.length() < 1) {
+			const bool isDone = false;
+			::PostMessage(ap_view->mh_window, SKETCH::WM_SET_TEXTOUTLINE_MODE, 0, isDone);
+			DrawTextOutline(ap_view, a_modelData);
+			
+			return {};
+		}
+
+		ap_view->SetFontSize(static_cast<float>(a_modelData.defaultData.fontSize)); // TODO:: change font size to pixel
+		ap_view->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
+		const auto startPoint = a_modelData.points.front();
+		const float maxTextWidth = ap_view->m_physicalRect.right - ap_view->m_physicalRect.left - startPoint.x;
+		const float maxTextHeight = ap_view->m_physicalRect.bottom - ap_view->m_physicalRect.top - startPoint.y;
+		auto &text = a_modelData.text;
+		const auto originalTextLength = text.length();
+		DSize textSize = ap_view->GetTextExtent(text.c_str(), maxTextWidth, maxTextHeight);
+
+		// if the text width is lager than monitor screen
+		while (textSize.height > maxTextHeight) {
+			// delete a last letter
+			text.pop_back();
+			textSize = ap_view->GetTextExtent(text.c_str(), maxTextWidth, maxTextHeight);
+		}
+
+		// if the text width is lager than the max text width
+		if (originalTextLength != text.length()) {
+			const auto textLength = text.length();
+			auto p_memoryText = new wchar_t[textLength + 1];
+			wcscpy_s(p_memoryText, textLength + 1, text.c_str());
+
+			::PostMessage(ap_view->mh_window, SKETCH::WM_ON_EDIT_MAX_LEGNTH, reinterpret_cast<WPARAM>(p_memoryText), textLength);
+		}
+
+		const DRect rect = { startPoint.x, startPoint.y, startPoint.x + textSize.width, startPoint.y + textSize.height };
+		const float strokeWidth = a_modelData.defaultData.fontSize * 0.02f;
+
+		ap_view->SetStrokeWidth(strokeWidth);
+		if (SKETCH::INVALID_INDEX == a_modelData.defaultData.gradientBrushIndex) {
+			ap_view->SetBrushColor(a_modelData.defaultData.color);
+			ap_view->DrawUserText(text.c_str(), rect);
+		}
+		else {
+			const auto previousBrush = ap_view->SetBrush(ap_view->m_gradientTable.at(a_modelData.defaultData.gradientBrushIndex));
+			ap_view->DrawUserText(text.c_str(), rect);
+			ap_view->SetBrush(previousBrush);
+		}
+
+		return { rect, strokeWidth };
 	};
 	
 	///////////////////////////////////////////////////////////////////
 	// implementation
 	///////////////////////////////////////////////////////////////////
+	
+	static std::map< WINDOW_BRUSH::DT, void (*)(SketchView *const, const SKETCH::MD &)> paintTable = {
+		{
+			WINDOW_BRUSH::DT::CURVE,
+			[](SketchView *const ap_view, const SKETCH::MD &a_modelData) {
+				DrawCurve(ap_view, a_modelData);
+			}
+		},
+		{
+			WINDOW_BRUSH::DT::RECTANGLE,
+			[](SketchView *const ap_view, const SKETCH::MD &a_modelData) {
+				const auto p_previousBrush = SetByDefaultData(ap_view, a_modelData.defaultData);
+				ap_view->DrawRectangle(a_modelData.rect);
+
+				if (nullptr != p_previousBrush) {
+					ap_view->SetBrush(p_previousBrush);
+				}
+			}
+		},
+		{
+			WINDOW_BRUSH::DT::CIRCLE,
+			[](SketchView *const ap_view, const SKETCH::MD &a_modelData) {
+				const auto p_previousBrush = SetByDefaultData(ap_view, a_modelData.defaultData);
+				ap_view->DrawEllipse(a_modelData.rect);
+
+				if (nullptr != p_previousBrush) {
+					ap_view->SetBrush(p_previousBrush);
+				}
+			}
+		},
+		{
+			WINDOW_BRUSH::DT::TEXT_OUTLINE,
+			[](SketchView *const ap_view, const SKETCH::MD &a_modelData) {
+				DrawTextOutline(ap_view, a_modelData);
+			}
+		},
+		{
+			WINDOW_BRUSH::DT::TEXT_TYPING,
+			[](SketchView *const ap_view, const SKETCH::MD &a_modelData) {
+				const auto data = DrawUserText(ap_view, a_modelData);
+				DrawTextExtent(ap_view, data.first, data.second);
+			}
+		},
+		{
+			WINDOW_BRUSH::DT::TEXT,
+			[](SketchView *const ap_view, const SKETCH::MD &a_modelData) {
+				DrawUserText(ap_view, a_modelData);
+			}
+		}
+	};
 
 	if (nullptr != mp_screenBitmap) {
 		DrawBitmap(mp_screenBitmap, m_viewRect);
 	}
 	DrawBorder(this);
 
-	ID2D1Brush *p_previousBrush;
 	for (const auto &modelData : a_modelDataList) {
-		switch (modelData.drawType)
-		{
-		case WINDOW_BRUSH::DT::CURVE:
-			DrawCurve(this, modelData);
-			break;
-		case WINDOW_BRUSH::DT::RECTANGLE:
-			p_previousBrush = SetByDefaultData(this, modelData.defaultData);
-			DrawRectangle(modelData.rect);
-			if (nullptr != p_previousBrush) SetBrush(p_previousBrush);
-			break;
-		case WINDOW_BRUSH::DT::CIRCLE:
-			p_previousBrush = SetByDefaultData(this, modelData.defaultData);
-			DrawEllipse(modelData.rect);
-			if (nullptr != p_previousBrush) SetBrush(p_previousBrush);
-			break;
-		case WINDOW_BRUSH::DT::TEXT_OUTLINE:
-			DrawTextOutline(this, modelData);
-			break;	
-		}
+		paintTable.at(modelData.drawType)(this, modelData);
 	}
 }
 

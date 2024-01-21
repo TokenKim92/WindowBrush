@@ -33,6 +33,7 @@ namespace WINDOW_BRUSH {
 		RECTANGLE,
 		CIRCLE,
 		TEXT_OUTLINE,
+		TEXT_TYPING,
 		TEXT
 	}DT;
 

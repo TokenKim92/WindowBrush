@@ -1,13 +1,17 @@
 #ifndef _SKETCH_MODEL_H_
 #define _SKETCH_MODEL_H_
-#include <vector>
+
 #include "Direct2D.h"
 #include "WindowBrushModel.h"
+#include <vector>
+#include <string>
 
 namespace SKETCH {
 	const size_t INVALID_INDEX = static_cast<size_t>(-1);
 
-	const unsigned int WM_UPDATEMD = 24001;
+	const unsigned int WM_UPDATE_MODEL_DATA = 24001;
+	const unsigned int WM_SET_TEXTOUTLINE_MODE = WM_UPDATE_MODEL_DATA + 1;
+	const unsigned int WM_ON_EDIT_MAX_LEGNTH = WM_UPDATE_MODEL_DATA + 2;
 	
 	const size_t GRADIENT_BRUSH_COUNT = 10;
 
@@ -25,6 +29,7 @@ namespace SKETCH {
 		WINDOW_BRUSH::DT drawType;
 		std::vector<DPoint> points;
 		DRect rect;
+		std::wstring text;
 		DD defaultData;
 	}MD;
 }

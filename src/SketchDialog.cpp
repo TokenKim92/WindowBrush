@@ -2,6 +2,7 @@
 #include "SketchView.h"
 #include "Utility.h"
 #include "time.h"
+#include <memory>
 
 SketchDialog::SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_scaledRect) :
 	WindowDialog(L"SKETCHDIALOG", L"SketchDialog"),
@@ -49,8 +50,9 @@ SketchDialog::SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_sc
 	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&SketchDialog::MouseMoveHandler));
 	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&SketchDialog::MouseLeftButtonDownHandler));
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&SketchDialog::MouseLeftButtonUpHandler));
-	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&SketchDialog::KeyDownHandler));
-	AddMessageHandler(SKETCH::WM_UPDATEMD, static_cast<MessageHandler>(&SketchDialog::UpdateModelDataHandler));
+	AddMessageHandler(SKETCH::WM_UPDATE_MODEL_DATA, static_cast<MessageHandler>(&SketchDialog::UpdateModelDataHandler));
+	AddMessageHandler(SKETCH::WM_SET_TEXTOUTLINE_MODE, static_cast<MessageHandler>(&SketchDialog::SetTextOutlineModeHandler));
+	AddMessageHandler(SKETCH::WM_ON_EDIT_MAX_LEGNTH, static_cast<MessageHandler>(&SketchDialog::OnEditMaxLengthHandler));
 
 	srand(static_cast<unsigned int>(time(NULL)));
 }
@@ -68,7 +70,7 @@ void SketchDialog::OnInitDialog()
 	DisableMaximize();
 	DisableMinimize();
 	DisableSize();
-
+	
 	const auto p_view = new SketchView(mh_window, mh_screenBitmap, m_parentModelData.selectedScreenRect, GetColorMode());
 	InheritDirect2D(p_view);
 	p_view->Create();
@@ -77,13 +79,56 @@ void SketchDialog::OnInitDialog()
 		WS_EX_CLIENTEDGE, L"EDIT", nullptr, WS_CHILD, 0, 0, m_viewRect.right - m_viewRect.left, 20,
 		mh_window, nullptr, nullptr, nullptr
 	);
-	::SetFocus(mh_edit);
 }
 
 void SketchDialog::OnPaint()
 {
+	static const auto OnDrawTextMode = [](SketchDialog *const ap_dalog)
+	{
+		const auto textLegnth = ::GetWindowTextLength(ap_dalog->mh_edit) + 1;
+		auto tempText = std::make_unique<wchar_t[]>(textLegnth);
+		::GetWindowText(ap_dalog->mh_edit, tempText.get(), textLegnth);
+		
+		ap_dalog->m_modelDataList.back().text = tempText.get();
+	};
+
+	///////////////////////////////////////////////////////////////////
+	// implementation
+	///////////////////////////////////////////////////////////////////
+
 	mp_direct2d->Clear();
+
+	if (WINDOW_BRUSH::DT::TEXT_TYPING == m_parentModelData.drawType) {
+		OnDrawTextMode(this);
+	}
+
 	static_cast<SketchView *>(mp_direct2d)->Paint(m_modelDataList);
+}
+
+void SketchDialog::PreTranslateMessage(MSG &a_msg)
+{
+	if (WM_KEYDOWN != a_msg.message) {
+		return;
+	}
+
+	if (WINDOW_BRUSH::DT::TEXT_OUTLINE == m_parentModelData.drawType) {
+		m_parentModelData.drawType = WINDOW_BRUSH::DT::TEXT_TYPING;
+		m_modelDataList.back().drawType = WINDOW_BRUSH::DT::TEXT_TYPING;
+
+		::SetFocus(mh_edit);
+		::PostMessage(mh_edit, WM_KEYDOWN, a_msg.wParam, a_msg.lParam);
+		
+		Invalidate();
+	} else if(WINDOW_BRUSH::DT::TEXT_TYPING == m_parentModelData.drawType) {
+		if (a_msg.wParam == VK_RETURN) {
+			SetTextOutlineModeHandler(0, true);
+		}
+		else if (a_msg.wParam == VK_ESCAPE) {
+			SetTextOutlineModeHandler(0, false);
+		}
+		
+		Invalidate();
+	}
 }
 
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
@@ -175,7 +220,6 @@ int SketchDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 	case WINDOW_BRUSH::DT::CURVE:
 		data.points.push_back({ static_cast<float>(point.x), static_cast<float>(point.y) });
 		m_modelDataList.push_back(data);
-		Invalidate();
 		break;
 	case WINDOW_BRUSH::DT::RECTANGLE:
 		data.rect = {
@@ -183,7 +227,6 @@ int SketchDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 			static_cast<float>(point.x), static_cast<float>(point.y)
 		};
 		m_modelDataList.push_back(data);
-		Invalidate();
 		break;
 	case WINDOW_BRUSH::DT::CIRCLE:
 		data.rect = {
@@ -191,15 +234,18 @@ int SketchDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 			static_cast<float>(point.x), static_cast<float>(point.y)
 		};
 		m_modelDataList.push_back(data);
-		Invalidate();
 		break;
 	case WINDOW_BRUSH::DT::TEXT_OUTLINE:
+		data.points.push_back({ static_cast<float>(point.x), static_cast<float>(point.y) });
 		m_modelDataList.push_back(data);
 		::SetWindowText(mh_edit, L"");
 		break;
-	default:
+	case WINDOW_BRUSH::DT::TEXT_TYPING:
+		SetTextOutlineModeHandler(0, true);
 		break;
 	}
+
+	Invalidate();
 
 	return S_OK;
 }
@@ -207,35 +253,9 @@ int SketchDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 // to handle the WM_LBUTTONUP message that occurs when a window is destroyed
 int SketchDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	if (!m_leftButtonDown) {
-		return S_OK;
-	}
-
-	::ReleaseCapture();
-
-	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
-	m_leftButtonDown = false;
-
-	auto &data = m_modelDataList.back();
-	if (WINDOW_BRUSH::DT::TEXT_OUTLINE == data.drawType) {
-		data.points.push_back({ static_cast<float>(point.x), static_cast<float>(point.y) });
-
-		Invalidate();
-	}
-
-	return S_OK;
-}
-
-// to handle the WM_KEYDOWN message that occurs when a window is destroyed
-int SketchDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
-{
-	const unsigned char pressedKey = static_cast<unsigned char>(a_wordParam);
-
-	if (VK_RETURN == pressedKey) {
-
-	}
-	else if (VK_ESCAPE == pressedKey) {
-
+	if (m_leftButtonDown) {
+		m_leftButtonDown = false;
+		::ReleaseCapture();
 	}
 
 	return S_OK;
@@ -248,7 +268,37 @@ int SketchDialog::UpdateModelDataHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	return S_OK;
 }
 
+int SketchDialog::SetTextOutlineModeHandler(WPARAM a_wordParam, LPARAM a_longParam)
+{
+	const auto isDone = static_cast<bool>(a_longParam);
+	if (!isDone) {
+		m_modelDataList.back().drawType = WINDOW_BRUSH::DT::TEXT_OUTLINE;
+	}
+	else {
+		m_modelDataList.back().drawType = WINDOW_BRUSH::DT::TEXT;
+	}
+	
+	m_parentModelData.drawType = WINDOW_BRUSH::DT::TEXT_OUTLINE;
+	::SetFocus(mh_window);
+
+	return S_OK;
+}
+
+// to handle the SKETCH::WM_ON_EDIT_MAX_LEGNTH
+int SketchDialog::OnEditMaxLengthHandler(WPARAM a_wordParam, LPARAM a_longParam)
+{
+	wchar_t *p_memoryText = reinterpret_cast<wchar_t *>(a_wordParam);
+	const auto length = a_longParam;
+
+	::SetWindowTextW(mh_edit, p_memoryText);
+	::PostMessage(mh_edit, EM_SETSEL, length, length);
+
+	delete[] p_memoryText;
+
+	return S_OK;
+}
+
 void SketchDialog::UpdateWindowBrushModelData(const WINDOW_BRUSH::MD *ap_modelData)
 {
-	::PostMessage(mh_window, SKETCH::WM_UPDATEMD, reinterpret_cast<WPARAM>(ap_modelData), 0);
+	::PostMessage(mh_window, SKETCH::WM_UPDATE_MODEL_DATA, reinterpret_cast<WPARAM>(ap_modelData), 0);
 }

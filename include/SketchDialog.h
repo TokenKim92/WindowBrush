@@ -28,17 +28,20 @@ public:
 protected:
 	virtual void OnInitDialog() override;
 	virtual void OnPaint() override;
+	virtual void PreTranslateMessage(MSG &ap_msg) override;
 
-	// to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
+	// to handle the WM_MOUSEMOVE message
 	int MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_LBUTTONDOWN message that occurs when a window is destroyed
+	// to handle the WM_LBUTTONDOWN message
 	int MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_LBUTTONUP message that occurs when a window is destroyed
+	// to handle the WM_LBUTTONUP message
 	int MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_KEYDOWN message that occurs when a window is destroyed
-	int KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_UPDATEMD message that occurs when a window is destroyed
+	// to handle the SKETCH::WM_UPDATE_MODEL_DATA
 	int UpdateModelDataHandler(WPARAM a_wordParam, LPARAM a_longParam);
+	// to handle the SKETCH::WM_SET_TEXTOUTLINE_MODE
+	int SetTextOutlineModeHandler(WPARAM a_wordParam, LPARAM a_longParam);
+	// to handle the SKETCH::WM_ON_EDIT_MAX_LEGNTH
+	int OnEditMaxLengthHandler(WPARAM a_wordParam, LPARAM a_longParam);
 };
 
 #endif //_SKETCH_DIALOG_H_
