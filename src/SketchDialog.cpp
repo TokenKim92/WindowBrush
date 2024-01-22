@@ -167,7 +167,16 @@ void SketchDialog::PreTranslateMessage(MSG &a_msg)
 			::DestroyWindow(ap_dialog->mh_window);
 		}
 	};
-
+	static const auto OnMultiKeyDown = [](SketchDialog *const ap_dialog)
+	{
+		if (GetKeyState(VK_CONTROL) & 0x8000 && GetKeyState('Z') & 0x8000) {
+			if (0 != ap_dialog->m_modelDataList.size()) {
+				ap_dialog->m_modelDataList.pop_back();
+				ap_dialog->Invalidate();
+			}
+		}
+		return;
+	};
 
 	///////////////////////////////////////////////////////////////////
 	// implementation
@@ -175,6 +184,9 @@ void SketchDialog::PreTranslateMessage(MSG &a_msg)
 
 	switch (a_msg.message)
 	{
+	case WM_CHAR:
+		OnMultiKeyDown(this);
+		break;
 	case WM_KEYDOWN:
 		OnKeyDown(this, a_msg);
 		break;
