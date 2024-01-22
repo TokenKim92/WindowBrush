@@ -59,10 +59,7 @@ SketchDialog::SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_sc
 
 SketchDialog::~SketchDialog()
 {
-	if (nullptr != mh_edit) {
-		::DestroyWindow(mh_edit);
-	}
-	::DeleteObject(mh_screenBitmap);
+	
 }
 
 void SketchDialog::OnInitDialog()
@@ -79,6 +76,21 @@ void SketchDialog::OnInitDialog()
 		WS_EX_CLIENTEDGE, L"EDIT", nullptr, WS_CHILD, 0, 0, m_viewRect.right - m_viewRect.left, 20,
 		mh_window, nullptr, nullptr, nullptr
 	);
+
+	if (m_parentModelData.isFadeMode) {
+		::SetTimer(mh_window, reinterpret_cast<UINT_PTR>(this), SKETCH::FPS_TIME, FadeObjectOnTimer);
+	}
+}
+
+void SketchDialog::OnDestroy()
+{
+	if (m_parentModelData.isFadeMode) {
+		::KillTimer(mh_window, reinterpret_cast<UINT_PTR>(this));
+	}
+	if (nullptr != mh_edit) {
+		::DestroyWindow(mh_edit);
+	}
+	::DeleteObject(mh_screenBitmap);
 }
 
 void SketchDialog::OnPaint()
@@ -136,6 +148,15 @@ int SketchDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
 	if (!m_leftButtonDown) {
 		return S_OK;
+	}
+
+	if (m_parentModelData.isFadeMode) {
+		// timer can not be called on mouse move, therefore here `OnFadeObjects` will be called per fps time
+		ULONGLONG currentMilliseconds = GetTickCount64();
+		if (currentMilliseconds - m_previousMilliseconds > SKETCH::FPS_TIME) {
+			m_previousMilliseconds = currentMilliseconds;
+			FadeObject(false);
+		}
 	}
 
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
@@ -263,7 +284,15 @@ int SketchDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longPara
 
 int SketchDialog::UpdateModelDataHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
+	const auto previousModelData = m_parentModelData;
 	m_parentModelData = *reinterpret_cast<WINDOW_BRUSH::MD *>(a_wordParam);
+
+	if (previousModelData.isFadeMode) {
+		::KillTimer(mh_window, reinterpret_cast<UINT_PTR>(this));
+	}
+	if (m_parentModelData.isFadeMode) {
+		::SetTimer(mh_window, reinterpret_cast<UINT_PTR>(this), SKETCH::FPS_TIME, FadeObjectOnTimer);
+	}
 
 	return S_OK;
 }
@@ -301,4 +330,38 @@ int SketchDialog::OnEditMaxLengthHandler(WPARAM a_wordParam, LPARAM a_longParam)
 void SketchDialog::UpdateWindowBrushModelData(const WINDOW_BRUSH::MD *ap_modelData)
 {
 	::PostMessage(mh_window, SKETCH::WM_UPDATE_MODEL_DATA, reinterpret_cast<WPARAM>(ap_modelData), 0);
+}
+
+void SketchDialog::FadeObject(const bool isOnTimer)
+{
+	size_t count = m_modelDataList.size();
+	if (0 == count) {
+		return;
+	}
+
+	const auto countToDisappear = m_parentModelData.fadeTimer / SKETCH::FPS_TIME;
+	const float speedToDisapper = 1.0f / countToDisappear;
+	if (!isOnTimer) {
+		--count; // on mouse moving the last item should not be updated
+	}
+
+	size_t lastDisappearedIndex = SKETCH::INVALID_INDEX;
+	for (size_t i = 0; i < count; i++) {
+		m_modelDataList[i].defaultData.transparency -= speedToDisapper;
+
+		if (0 >= m_modelDataList[i].defaultData.transparency) {
+			lastDisappearedIndex = i;
+		}
+	}
+
+	if (SKETCH::INVALID_INDEX != lastDisappearedIndex) {
+		m_modelDataList.erase(std::next(m_modelDataList.begin(), 0), std::next(m_modelDataList.begin(), lastDisappearedIndex));
+	}
+	
+	Invalidate();
+}
+
+void __stdcall SketchDialog::FadeObjectOnTimer(HWND ah_wnd, UINT a_msg, UINT_PTR ap_data, DWORD a_isMouseMoving)
+{
+	reinterpret_cast<SketchDialog *>(ap_data)->FadeObject();
 }

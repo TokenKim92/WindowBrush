@@ -9,6 +9,9 @@
 namespace SKETCH {
 	const size_t INVALID_INDEX = static_cast<size_t>(-1);
 
+	const unsigned int FPS = 30;
+	const unsigned int FPS_TIME = 1000 / FPS;
+
 	const unsigned int WM_UPDATE_MODEL_DATA = 24001;
 	const unsigned int WM_SET_TEXTOUTLINE_MODE = WM_UPDATE_MODEL_DATA + 1;
 	const unsigned int WM_ON_EDIT_MAX_LEGNTH = WM_UPDATE_MODEL_DATA + 2;

@@ -403,6 +403,10 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 
 			if (nullptr != ap_dialog->mp_sketchDialog) {
 				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
+
+				if (nullptr != ap_dialog->mp_sketchDialog) {
+					ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
+				}
 			}
 		}
 	};

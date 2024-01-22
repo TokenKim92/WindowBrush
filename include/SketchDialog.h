@@ -27,6 +27,7 @@ public:
 
 protected:
 	virtual void OnInitDialog() override;
+	virtual void OnDestroy() override;
 	virtual void OnPaint() override;
 	virtual void PreTranslateMessage(MSG &ap_msg) override;
 
@@ -42,6 +43,11 @@ protected:
 	int SetTextOutlineModeHandler(WPARAM a_wordParam, LPARAM a_longParam);
 	// to handle the SKETCH::WM_ON_EDIT_MAX_LEGNTH
 	int OnEditMaxLengthHandler(WPARAM a_wordParam, LPARAM a_longParam);
+
+
+private:
+	void FadeObject(const bool isOnTimer = true);
+	static void __stdcall FadeObjectOnTimer(HWND ah_wnd, UINT a_msg, UINT_PTR ap_data, DWORD a_isMouseMoving);
 };
 
 #endif //_SKETCH_DIALOG_H_
