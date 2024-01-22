@@ -125,33 +125,59 @@ void SketchDialog::OnPaint()
 
 void SketchDialog::PreTranslateMessage(MSG &a_msg)
 {
-	if (WM_KEYDOWN != a_msg.message) {
-		return;
-	}
-
-	if (WINDOW_BRUSH::DT::TEXT_OUTLINE == m_parentModelData.drawType) {
-		m_parentModelData.drawType = WINDOW_BRUSH::DT::TEXT_TYPING;
-		m_modelDataList.back().drawType = WINDOW_BRUSH::DT::TEXT_TYPING;
-
-		::SetFocus(mh_edit);
-		::PostMessage(mh_edit, WM_KEYDOWN, a_msg.wParam, a_msg.lParam);
-
-		Invalidate();
-	}
-	else if (WINDOW_BRUSH::DT::TEXT_TYPING == m_parentModelData.drawType) {
-		if (a_msg.wParam == VK_RETURN) {
-			SetTextOutlineModeHandler(0, true);
+	static const auto KeyDownToTextOutlineModel = [](SketchDialog *const ap_dialog, const MSG &a_msg)
+	{
+		if (VK_RETURN == a_msg.wParam || VK_ESCAPE == a_msg.wParam) {
+			ap_dialog->m_modelDataList.pop_back();
 		}
-		else if (a_msg.wParam == VK_ESCAPE) {
-			SetTextOutlineModeHandler(0, false);
+		else {
+			ap_dialog->m_parentModelData.drawType = WINDOW_BRUSH::DT::TEXT_TYPING;
+			ap_dialog->m_modelDataList.back().drawType = WINDOW_BRUSH::DT::TEXT_TYPING;
+
+			::SetFocus(ap_dialog->mh_edit);
+			::PostMessage(ap_dialog->mh_edit, WM_KEYDOWN, a_msg.wParam, a_msg.lParam);
+		}
+		ap_dialog->Invalidate();
+	};
+	static const auto OnKeyDown = [](SketchDialog *const ap_dialog, const MSG &a_msg)
+	{
+		if (WINDOW_BRUSH::DT::TEXT_OUTLINE == ap_dialog->m_parentModelData.drawType) {
+			if (0 != ap_dialog->m_modelDataList.size()) {
+				const SKETCH::MD &modelData = ap_dialog->m_modelDataList.back();
+				if (WINDOW_BRUSH::DT::TEXT_OUTLINE == modelData.drawType) {
+					KeyDownToTextOutlineModel(ap_dialog, a_msg);
+
+					return;
+				}
+			}
+		}
+		else if (WINDOW_BRUSH::DT::TEXT_TYPING == ap_dialog->m_parentModelData.drawType) {
+			if (a_msg.wParam == VK_RETURN) {
+				ap_dialog->SetTextOutlineModeHandler(0, true);
+			}
+			else if (a_msg.wParam == VK_ESCAPE) {
+				ap_dialog->SetTextOutlineModeHandler(0, false);
+			}
+			ap_dialog->Invalidate();
+
+			return;
 		}
 
-		Invalidate();
-	}
-	else {
-		if (a_msg.wParam == VK_ESCAPE) {
-			::DestroyWindow(mh_window);
+		if (VK_ESCAPE == a_msg.wParam) {
+			::DestroyWindow(ap_dialog->mh_window);
 		}
+	};
+
+
+	///////////////////////////////////////////////////////////////////
+	// implementation
+	///////////////////////////////////////////////////////////////////
+
+	switch (a_msg.message)
+	{
+	case WM_KEYDOWN:
+		OnKeyDown(this, a_msg);
+		break;
 	}
 }
 
@@ -320,6 +346,7 @@ int SketchDialog::SetTextOutlineModeHandler(WPARAM a_wordParam, LPARAM a_longPar
 	}
 
 	m_parentModelData.drawType = WINDOW_BRUSH::DT::TEXT_OUTLINE;
+	::SetWindowText(mh_edit, L"");
 	::SetFocus(mh_window);
 
 	return S_OK;
