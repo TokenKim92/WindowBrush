@@ -54,6 +54,7 @@ SketchDialog::SketchDialog(const HWND &ah_parentWindow, const WINDOW_BRUSH::MD &
 	AddMessageHandler(SKETCH::WM_UPDATE_MODEL_DATA, static_cast<MessageHandler>(&SketchDialog::UpdateModelDataHandler));
 	AddMessageHandler(SKETCH::WM_SET_TEXTOUTLINE_MODE, static_cast<MessageHandler>(&SketchDialog::SetTextOutlineModeHandler));
 	AddMessageHandler(SKETCH::WM_ON_EDIT_MAX_LEGNTH, static_cast<MessageHandler>(&SketchDialog::OnEditMaxLengthHandler));
+	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&SketchDialog::KeyDownHandler));
 
 	srand(static_cast<unsigned int>(time(NULL)));
 }
@@ -169,7 +170,16 @@ void SketchDialog::PreTranslateMessage(MSG &a_msg)
 	};
 	static const auto OnMultiKeyDown = [](SketchDialog *const ap_dialog)
 	{
-		if (GetKeyState(VK_CONTROL) & 0x8000 && GetKeyState('Z') & 0x8000) {
+		static const auto IsControlKeyDown = []()
+		{
+			return GetKeyState(VK_CONTROL) & 0x8000;
+		};
+		static const auto IsZKeyDown = []()
+		{
+			return GetKeyState('Z') & 0x8000;
+		};
+
+		if (IsControlKeyDown() && IsZKeyDown()) {
 			if (0 != ap_dialog->m_modelDataList.size()) {
 				ap_dialog->m_modelDataList.pop_back();
 				ap_dialog->Invalidate();
@@ -374,6 +384,28 @@ int SketchDialog::OnEditMaxLengthHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	::PostMessage(mh_edit, EM_SETSEL, length, length);
 
 	delete[] p_memoryText;
+
+	return S_OK;
+}
+
+// to handle the WM_KEYDOWN
+int SketchDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
+{
+	// if only the shortcut keys of WindowBrushDialog is clicked it sends to the WindowBrushDialog
+
+	if (0 != m_modelDataList.size()) {
+		const auto lastDataDrawType = m_modelDataList.back().drawType;
+		if (WINDOW_BRUSH::DT::TEXT_OUTLINE == lastDataDrawType || WINDOW_BRUSH::DT::TEXT_TYPING == lastDataDrawType) {
+			return S_OK;
+		}
+	}
+
+	const unsigned char pressedKey = static_cast<unsigned char>(a_wordParam);
+	
+	if ('C' == pressedKey || 'R' == pressedKey || 'E' == pressedKey || 'T' == pressedKey ||
+		'W' == pressedKey || 'G' == pressedKey || 'P' == pressedKey || 'F' == pressedKey) {
+		::PostMessageW(mh_parentWindow, WM_KEYDOWN, a_wordParam, a_longParam);
+	}
 
 	return S_OK;
 }

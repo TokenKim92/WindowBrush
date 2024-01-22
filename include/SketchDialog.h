@@ -45,6 +45,8 @@ protected:
 	int SetTextOutlineModeHandler(WPARAM a_wordParam, LPARAM a_longParam);
 	// to handle the SKETCH::WM_ON_EDIT_MAX_LEGNTH
 	int OnEditMaxLengthHandler(WPARAM a_wordParam, LPARAM a_longParam);
+	// to handle the WM_KEYDOWN
+	int KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
 
 private:
 	void FadeObject(const bool isOnTimer = true);

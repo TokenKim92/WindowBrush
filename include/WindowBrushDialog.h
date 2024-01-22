@@ -33,14 +33,16 @@ protected:
 	virtual void OnPaint() override;
 	virtual void OnSetColorMode() override;
 
-	// to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
+	// to handle the WM_MOUSEMOVE message
 	int MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_LBUTTONDOWN  message that occurs when a window is destroyed
+	// to handle the WM_LBUTTONDOWN  message
 	int MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_LBUTTONUP  message that occurs when a window is destroyed
+	// to handle the WM_LBUTTONUP  message
 	int MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_MOUSELEAVE  message that occurs when a window is destroyed
+	// to handle the WM_MOUSELEAVE  message 
 	int MouseLeaveHandler(WPARAM a_wordParam, LPARAM a_longParam);
+	// to handle the WM_KEYDOWN
+	int KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
 
 	// to handle the WM_SYSCOMMAND message that occurs when a window is created
 	virtual msg_handler int SysCommandHandler(WPARAM a_menuID, LPARAM a_longParam) override;
@@ -48,6 +50,20 @@ protected:
 protected:
 	void KillInfoDialogTimer();
 	int KilledSketchDialogHandler(WPARAM a_wordParam, LPARAM a_longParam);
+
+	void OnDrawButtonUp(const WINDOW_BRUSH::DT &a_type);
+	void OnCurveButtonUp();
+	void OnRectangleButtonUp();
+	void OnEllipseButtonUp();
+	void OnTextButtonUp();
+	void OnStrokeButtonUp();
+	void OnColorButtonUp();
+	void OnGradientButtonUp();
+	void OnFadeButtonUp();
+
+	void OnClickSelectScreenMenu();
+	void OnClickColorOpacityMenu();
+	void OnClickFadeSpeedMenu();
 };
 
 #endif //_WINDOW_BRUSH_DIALOG_H_
