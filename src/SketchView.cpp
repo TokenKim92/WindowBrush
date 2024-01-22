@@ -137,12 +137,12 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 		ID2D1Brush *p_previousBrush = nullptr;
 		if (SKETCH::INVALID_INDEX != a_data.gradientBrushIndex) {
 			const auto p_gradientBrush = ap_view->m_gradientTable.at(a_data.gradientBrushIndex);
-			p_gradientBrush->SetOpacity(a_data.transparency);
+			p_gradientBrush->SetOpacity(a_data.opacity);
 			p_previousBrush = ap_view->SetBrush(p_gradientBrush);
 		}
 		else {
 			DColor color = a_data.color;
-			color.a = a_data.transparency;
+			color.a = a_data.opacity;
 			ap_view->SetBrushColor(color);
 		}
 
@@ -219,14 +219,18 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 		DRect extentRect;
 
 		ap_view->SetStrokeWidth(strokeWidth);
-		if (SKETCH::INVALID_INDEX == a_modelData.defaultData.gradientBrushIndex) {
-			ap_view->SetBrushColor(a_modelData.defaultData.color);
+		if (SKETCH::INVALID_INDEX != a_modelData.defaultData.gradientBrushIndex) {
+			const auto p_gradientBrush = ap_view->m_gradientTable.at(a_modelData.defaultData.gradientBrushIndex);
+			p_gradientBrush->SetOpacity(a_modelData.defaultData.opacity);
+			const auto p_previousBrush = ap_view->SetBrush(p_gradientBrush);
 			extentRect = ap_view->DrawTextOutline(L"Text", startPoint, textSize.height);
+			ap_view->SetBrush(p_previousBrush);
 		}
 		else {
-			const auto previousBrush = ap_view->SetBrush(ap_view->m_gradientTable.at(a_modelData.defaultData.gradientBrushIndex));
+			DColor color = a_modelData.defaultData.color;
+			color.a = a_modelData.defaultData.opacity;
+			ap_view->SetBrushColor(color);
 			extentRect = ap_view->DrawTextOutline(L"Text", startPoint, textSize.height);
-			ap_view->SetBrush(previousBrush);
 		}
 
 		ap_view->SetStrokeStyle(previousStroke);
@@ -276,14 +280,19 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 		const float strokeWidth = a_modelData.defaultData.fontSize * 0.02f;
 
 		ap_view->SetStrokeWidth(strokeWidth);
-		if (SKETCH::INVALID_INDEX == a_modelData.defaultData.gradientBrushIndex) {
-			ap_view->SetBrushColor(a_modelData.defaultData.color);
+		if (SKETCH::INVALID_INDEX != a_modelData.defaultData.gradientBrushIndex) {
+			const auto p_gradientBrush = ap_view->m_gradientTable.at(a_modelData.defaultData.gradientBrushIndex);
+			p_gradientBrush->SetOpacity(a_modelData.defaultData.opacity);
+			const auto p_previousBrush = ap_view->SetBrush(p_gradientBrush);
 			ap_view->DrawUserText(text.c_str(), rect);
+			ap_view->SetBrush(p_previousBrush);
+			
 		}
 		else {
-			const auto previousBrush = ap_view->SetBrush(ap_view->m_gradientTable.at(a_modelData.defaultData.gradientBrushIndex));
+			DColor color = a_modelData.defaultData.color;
+			color.a = a_modelData.defaultData.opacity;
+			ap_view->SetBrushColor(color);
 			ap_view->DrawUserText(text.c_str(), rect);
-			ap_view->SetBrush(previousBrush);
 		}
 
 		return { rect, strokeWidth };

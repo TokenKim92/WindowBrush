@@ -22,7 +22,7 @@ namespace SKETCH {
 	{
 		unsigned int strokeWidth;
 		unsigned int fontSize;
-		float transparency;
+		float opacity;
 		DColor color;
 		size_t gradientBrushIndex;
 	}DD;

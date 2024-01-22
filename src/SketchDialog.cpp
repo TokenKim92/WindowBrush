@@ -209,7 +209,7 @@ int SketchDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPa
 
 		data.fontSize = ap_dialog->m_parentModelData.fontSize;
 		data.strokeWidth = ap_dialog->m_parentModelData.strokeWidth;
-		data.transparency = ap_dialog->m_parentModelData.colorOpacity;
+		data.opacity = ap_dialog->m_parentModelData.colorOpacity;
 		data.color = ap_dialog->m_parentModelData.selectedColor;
 		data.gradientBrushIndex = ap_dialog->m_parentModelData.isGradientMode
 			? rand() % SKETCH::GRADIENT_BRUSH_COUNT
@@ -352,16 +352,16 @@ void SketchDialog::FadeObject(const bool isOnTimer)
 	}
 
 	const auto countToDisappear = m_parentModelData.fadeTimer / SKETCH::FPS_TIME;
-	const float speedToDisapper = m_parentModelData.colorOpacity / countToDisappear;
+	const float speedToDisappear = m_parentModelData.colorOpacity / countToDisappear;
 	if (!isOnTimer) {
 		--count; // on mouse moving the last item should not be updated
 	}
 
 	size_t lastDisappearedIndex = SKETCH::INVALID_INDEX;
 	for (size_t i = 0; i < count; i++) {
-		m_modelDataList[i].defaultData.transparency -= speedToDisapper;
+		m_modelDataList[i].defaultData.opacity -= speedToDisappear;
 
-		if (0 >= m_modelDataList[i].defaultData.transparency) {
+		if (0 >= m_modelDataList[i].defaultData.opacity) {
 			lastDisappearedIndex = i;
 		}
 	}

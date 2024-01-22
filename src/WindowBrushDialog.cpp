@@ -402,10 +402,6 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 
 			if (nullptr != ap_dialog->mp_sketchDialog) {
 				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
-
-				if (nullptr != ap_dialog->mp_sketchDialog) {
-					ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
-				}
 			}
 		}
 	};
@@ -438,6 +434,10 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 
 		if (BT::OK == instanceDialog.DoModal(ap_dialog->mh_window, centerPosX - size.cx / 2, centerPosY - size.cy / 2)) {
 			ap_dialog->m_modelData.fadeTimer = instanceDialog.GetValue();
+
+			if (nullptr != ap_dialog->mp_sketchDialog) {
+				ap_dialog->mp_sketchDialog->UpdateWindowBrushModelData(&ap_dialog->m_modelData);
+			}
 		}
 	};
 
