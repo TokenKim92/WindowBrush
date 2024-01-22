@@ -352,7 +352,7 @@ void SketchDialog::FadeObject(const bool isOnTimer)
 	}
 
 	const auto countToDisappear = m_parentModelData.fadeTimer / SKETCH::FPS_TIME;
-	const float speedToDisapper = 1.0f / countToDisappear;
+	const float speedToDisapper = m_parentModelData.colorOpacity / countToDisappear;
 	if (!isOnTimer) {
 		--count; // on mouse moving the last item should not be updated
 	}
