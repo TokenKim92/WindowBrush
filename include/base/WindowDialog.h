@@ -80,6 +80,8 @@ public:
     void DisableSize();
     void DisableMinimize();
     void DisableMaximize();
+    void DisableClose();
+    void EnableClose();
 
 protected:
     static LRESULT CALLBACK WindowProcedure(HWND ah_window, UINT a_messageID, WPARAM a_wordParam, LPARAM a_longParam);
@@ -100,13 +102,16 @@ protected:
     msg_handler int DestroyHandler(WPARAM a_wordParam, LPARAM a_longParam);
     // to handle the WM_PAINT message that occurs when a window is created
     msg_handler int PaintHandler(WPARAM a_wordParam, LPARAM a_longParam);
-    // to handle the WM_SYSCOMMAND message that occurs when a window is created
+    // to handle the WM_SYSCOMMAND message
     virtual msg_handler int SysCommandHandler(WPARAM a_menuID, LPARAM a_longParam);
+
 
     virtual void OnInitDialog();
     virtual void OnDestroy();
+    virtual void OnQuit();
     virtual void OnPaint();
     virtual void OnSetColorMode();
+
     virtual void PreTranslateMessage(MSG &a_msg);
 
     void SetClickedButtonType(BT &a_type);

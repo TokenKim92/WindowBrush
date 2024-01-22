@@ -47,7 +47,7 @@ protected:
 
 protected:
 	void KillInfoDialogTimer();
-	void DestroySketchDialog();
+	int KilledSketchDialogHandler(WPARAM a_wordParam, LPARAM a_longParam);
 };
 
 #endif //_WINDOW_BRUSH_DIALOG_H_

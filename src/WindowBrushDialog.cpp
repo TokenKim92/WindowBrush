@@ -67,6 +67,7 @@ void WindowBrushDialog::OnInitDialog()
 	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&WindowBrushDialog::MouseLeftButtonDownHandler));
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&WindowBrushDialog::MouseLeftButtonUpHandler));
 	AddMessageHandler(WM_MOUSELEAVE, static_cast<MessageHandler>(&WindowBrushDialog::MouseLeaveHandler));
+	AddMessageHandler(WINDOW_BRUSH::WM_KILLED_SKETCH, static_cast<MessageHandler>(&WindowBrushDialog::KilledSketchDialogHandler));
 
 	const auto p_view = new WindowBrushView(mh_window, GetColorMode());
 	InheritDirect2D(p_view);
@@ -88,10 +89,6 @@ void WindowBrushDialog::OnInitDialog()
 void WindowBrushDialog::OnDestroy()
 {
 	KillInfoDialogTimer();
-
-	if (mp_sketchDialog) {
-		DestroySketchDialog();
-	}
 }
 
 void WindowBrushDialog::OnPaint()
@@ -187,7 +184,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 
 		// same button click -> turn off
 		if (a_type == ap_dialog->m_modelData.drawType) {
-			ap_dialog->DestroySketchDialog();
+			::DestroyWindow(ap_dialog->mp_sketchDialog->GetWidnowHandle());
 
 			ap_dialog->m_modelData.drawType = WINDOW_BRUSH::DT::NONE;
 			HMENU h_systemMenu = ::GetSystemMenu(ap_dialog->mh_window, FALSE);
@@ -216,13 +213,15 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		}
 
 		const auto scaledRect = GetScaledRect(ap_dialog->m_modelData.selectedScreenRect);
-		ap_dialog->mp_sketchDialog = new SketchDialog(ap_dialog->m_modelData, scaledRect);
+		ap_dialog->mp_sketchDialog = new SketchDialog(ap_dialog->mh_window, ap_dialog->m_modelData, scaledRect);
 		ap_dialog->mp_sketchDialog->SetColorMode(ap_dialog->m_colorMode);
 
-		if (!ap_dialog->mp_sketchDialog->Create(scaledRect.left, scaledRect.top)) {
-			ap_dialog->m_modelData.drawType = WINDOW_BRUSH::DT::NONE;
-			ap_dialog->DestroySketchDialog();
-		}
+		ap_dialog->DisableClose();
+		ap_dialog->mp_sketchDialog->DoModal(nullptr, scaledRect.left, scaledRect.top);
+		ap_dialog->m_modelData.drawType = WINDOW_BRUSH::DT::NONE;
+		ap_dialog->EnableClose();
+
+		ap_dialog->Invalidate();
 	};
 	static const auto OnStrokeButtonUp = [](WindowBrushDialog *const ap_dialog)
 	{
@@ -522,10 +521,10 @@ void WindowBrushDialog::KillInfoDialogTimer()
 	}
 }
 
-void WindowBrushDialog::DestroySketchDialog()
+int WindowBrushDialog::KilledSketchDialogHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	mp_sketchDialog->DestroyWindow();
-
 	delete mp_sketchDialog;
 	mp_sketchDialog = nullptr;
+
+	return S_OK;
 }

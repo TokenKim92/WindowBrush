@@ -9,6 +9,7 @@
 class SketchDialog : public WindowDialog
 {
 protected:
+	const HWND mh_parentWindow;
 	WINDOW_BRUSH::MD m_parentModelData;
 	std::vector<SKETCH::MD> m_modelDataList;
 
@@ -20,7 +21,7 @@ protected:
 	HWND mh_edit;
 
 public:
-	SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_scaledRect);
+	SketchDialog(const HWND &ah_parentWindow, const WINDOW_BRUSH::MD &a_modelData, const RECT &a_scaledRect);
 	virtual ~SketchDialog();
 
 	void UpdateWindowBrushModelData(const WINDOW_BRUSH::MD *a_modelData);
@@ -28,8 +29,9 @@ public:
 protected:
 	virtual void OnInitDialog() override;
 	virtual void OnDestroy() override;
+	virtual void OnQuit() override;
 	virtual void OnPaint() override;
-	virtual void PreTranslateMessage(MSG &ap_msg) override;
+	virtual void PreTranslateMessage(MSG &a_msg) override;
 
 	// to handle the WM_MOUSEMOVE message
 	int MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam);
@@ -43,7 +45,6 @@ protected:
 	int SetTextOutlineModeHandler(WPARAM a_wordParam, LPARAM a_longParam);
 	// to handle the SKETCH::WM_ON_EDIT_MAX_LEGNTH
 	int OnEditMaxLengthHandler(WPARAM a_wordParam, LPARAM a_longParam);
-
 
 private:
 	void FadeObject(const bool isOnTimer = true);

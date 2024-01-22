@@ -4,8 +4,9 @@
 #include "time.h"
 #include <memory>
 
-SketchDialog::SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_scaledRect) :
+SketchDialog::SketchDialog(const HWND &ah_parentWindow, const WINDOW_BRUSH::MD &a_modelData, const RECT &a_scaledRect) :
 	WindowDialog(L"SKETCHDIALOG", L"SketchDialog"),
+	mh_parentWindow(ah_parentWindow),
 	m_parentModelData(a_modelData),
 	m_scaledRect(a_scaledRect)
 {
@@ -59,7 +60,7 @@ SketchDialog::SketchDialog(const WINDOW_BRUSH::MD &a_modelData, const RECT &a_sc
 
 SketchDialog::~SketchDialog()
 {
-	
+
 }
 
 void SketchDialog::OnInitDialog()
@@ -67,7 +68,7 @@ void SketchDialog::OnInitDialog()
 	DisableMaximize();
 	DisableMinimize();
 	DisableSize();
-	
+
 	const auto p_view = new SketchView(mh_window, mh_screenBitmap, m_parentModelData.selectedScreenRect, GetColorMode());
 	InheritDirect2D(p_view);
 	p_view->Create();
@@ -93,6 +94,11 @@ void SketchDialog::OnDestroy()
 	::DeleteObject(mh_screenBitmap);
 }
 
+void SketchDialog::OnQuit()
+{
+	::PostMessage(mh_parentWindow, WINDOW_BRUSH::WM_KILLED_SKETCH, 0, 0);
+}
+
 void SketchDialog::OnPaint()
 {
 	static const auto OnDrawTextMode = [](SketchDialog *const ap_dalog)
@@ -100,7 +106,7 @@ void SketchDialog::OnPaint()
 		const auto textLegnth = ::GetWindowTextLength(ap_dalog->mh_edit) + 1;
 		auto tempText = std::make_unique<wchar_t[]>(textLegnth);
 		::GetWindowText(ap_dalog->mh_edit, tempText.get(), textLegnth);
-		
+
 		ap_dalog->m_modelDataList.back().text = tempText.get();
 	};
 
@@ -129,17 +135,23 @@ void SketchDialog::PreTranslateMessage(MSG &a_msg)
 
 		::SetFocus(mh_edit);
 		::PostMessage(mh_edit, WM_KEYDOWN, a_msg.wParam, a_msg.lParam);
-		
+
 		Invalidate();
-	} else if(WINDOW_BRUSH::DT::TEXT_TYPING == m_parentModelData.drawType) {
+	}
+	else if (WINDOW_BRUSH::DT::TEXT_TYPING == m_parentModelData.drawType) {
 		if (a_msg.wParam == VK_RETURN) {
 			SetTextOutlineModeHandler(0, true);
 		}
 		else if (a_msg.wParam == VK_ESCAPE) {
 			SetTextOutlineModeHandler(0, false);
 		}
-		
+
 		Invalidate();
+	}
+	else {
+		if (a_msg.wParam == VK_ESCAPE) {
+			::DestroyWindow(mh_window);
+		}
 	}
 }
 
@@ -306,7 +318,7 @@ int SketchDialog::SetTextOutlineModeHandler(WPARAM a_wordParam, LPARAM a_longPar
 	else {
 		m_modelDataList.back().drawType = WINDOW_BRUSH::DT::TEXT;
 	}
-	
+
 	m_parentModelData.drawType = WINDOW_BRUSH::DT::TEXT_OUTLINE;
 	::SetFocus(mh_window);
 
@@ -357,7 +369,7 @@ void SketchDialog::FadeObject(const bool isOnTimer)
 	if (SKETCH::INVALID_INDEX != lastDisappearedIndex) {
 		m_modelDataList.erase(std::next(m_modelDataList.begin(), 0), std::next(m_modelDataList.begin(), lastDisappearedIndex));
 	}
-	
+
 	Invalidate();
 }
 

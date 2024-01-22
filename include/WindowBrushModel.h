@@ -5,6 +5,8 @@
 
 namespace WINDOW_BRUSH {
 
+	const unsigned int WM_KILLED_SKETCH = 23001;
+
 	const double CONVERT_RADIAN = 0.0174532888;
 	const float DEFAULT_TRANSPARENCY = 0.6f;
 
