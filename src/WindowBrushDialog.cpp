@@ -40,11 +40,11 @@ WindowBrushDialog::WindowBrushDialog() :
 	m_modelData.strokeWidth = 20;
 	m_modelData.fontSize = 180;
 	m_modelData.isGradientMode = false;
-	m_modelData.selectedColor = RGB_TO_COLORF(ORANGE_500);
+	m_modelData.selectedColor = RGB_TO_COLORF(BLUE_500);
 	m_modelData.isFadeMode = false;
 
 	m_modelData.selectedScreenRect = { 0, 0, ::GetSystemMetrics(SM_CXSCREEN), ::GetSystemMetrics(SM_CYSCREEN) };
-	m_modelData.fadeTimer = 500;
+	m_modelData.fadeTimer = 1500;
 	m_modelData.colorOpacity = 1.0f;
 
 	m_infoDialogData = { this, nullptr };
@@ -426,7 +426,7 @@ void WindowBrushDialog::OnStrokeButtonUp()
 {
 	const std::vector<std::pair<std::wstring, unsigned int>> itemList = {
 		{ L"stroke width(px)", m_modelData.strokeWidth },
-		{ L"font size(px)", m_modelData.fontSize }
+		{ L"font size(dpi)", m_modelData.fontSize }
 	};
 
 	EditDialog instanceDialog(L"Stroke Width", itemList, EDIT::RANGE({ 1, 999 }));
