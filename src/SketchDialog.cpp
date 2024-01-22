@@ -355,6 +355,17 @@ int SketchDialog::UpdateModelDataHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		::SetTimer(mh_window, reinterpret_cast<UINT_PTR>(this), SKETCH::FPS_TIME, FadeObjectOnTimer);
 	}
 
+	if (WINDOW_BRUSH::DT::TEXT_OUTLINE == previousModelData.drawType) {
+		if (0 != m_modelDataList.size()) {
+			m_modelDataList.pop_back();
+			Invalidate();
+		}
+	}
+	else if (WINDOW_BRUSH::DT::TEXT_TYPING == previousModelData.drawType) {
+		m_modelDataList.back().drawType = WINDOW_BRUSH::DT::TEXT;
+		Invalidate();
+	}
+
 	return S_OK;
 }
 
