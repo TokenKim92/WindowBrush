@@ -3,6 +3,7 @@
 #include "Utility.h"
 #include "time.h"
 #include <memory>
+#include <algorithm>
 
 SketchDialog::SketchDialog(const HWND &ah_parentWindow, const WINDOW_BRUSH::MD &a_modelData, const RECT &a_scaledRect) :
 	WindowDialog(L"SKETCHDIALOG", L"SketchDialog"),
@@ -429,17 +430,24 @@ void SketchDialog::FadeObject(const bool isOnTimer)
 		--count; // on mouse moving the last item should not be updated
 	}
 
-	size_t lastDisappearedIndex = SKETCH::INVALID_INDEX;
+	std::vector<size_t> deletedDataIndexList;
 	for (size_t i = 0; i < count; i++) {
-		m_modelDataList[i].defaultData.opacity -= speedToDisappear;
+		SKETCH::MD &modelData = m_modelDataList[i];
 
-		if (0 >= m_modelDataList[i].defaultData.opacity) {
-			lastDisappearedIndex = i;
+		if (WINDOW_BRUSH::DT::TEXT_OUTLINE != modelData.drawType &&
+			WINDOW_BRUSH::DT::TEXT_TYPING != modelData.drawType) {
+			modelData.defaultData.opacity -= speedToDisappear;
+
+			if (0 >= modelData.defaultData.opacity) {
+				deletedDataIndexList.push_back(i);
+			}
 		}
 	}
 
-	if (SKETCH::INVALID_INDEX != lastDisappearedIndex) {
-		m_modelDataList.erase(std::next(m_modelDataList.begin(), 0), std::next(m_modelDataList.begin(), lastDisappearedIndex));
+	// reverse index to avoid memory access exception on delete item
+	std::reverse(deletedDataIndexList.begin(), deletedDataIndexList.end());
+	for (const auto &index : deletedDataIndexList) {
+		m_modelDataList.erase(std::next(m_modelDataList.begin(), index));
 	}
 
 	Invalidate();
