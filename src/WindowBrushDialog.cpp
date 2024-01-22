@@ -17,10 +17,6 @@
 #pragma comment (lib, "AppTemplate.lib")     
 #endif
 
-#define MENU_SELECT_SCREEN		MENU_LIGHT_MODE + 1
-#define MENU_COLOR_OPACITY		MENU_LIGHT_MODE + 2
-#define MENU_FADE_SPEED			MENU_LIGHT_MODE + 3
-
 void __stdcall ShowInfoDialog(HWND ah_wnd, UINT a_msg, UINT_PTR ap_data, DWORD dwTime)
 {
 	::KillTimer(ah_wnd, ap_data);
@@ -37,6 +33,7 @@ WindowBrushDialog::WindowBrushDialog() :
 	WindowDialog(L"WINDOWBRUSH", L"")
 {
 	SetSize(WINDOW_BRUSH::DIALOG_WIDTH, WINDOW_BRUSH::DIALOG_HEIGHT);
+	SetExtendStyle(WS_EX_TOPMOST | WS_EX_LAYERED);
 
 	m_modelData.hoverButtonType = WINDOW_BRUSH::BT::NONE;
 	m_modelData.drawType = WINDOW_BRUSH::DT::NONE;
@@ -51,9 +48,10 @@ WindowBrushDialog::WindowBrushDialog() :
 	m_modelData.colorOpacity = 1.0f;
 
 	m_infoDialogData = { this, nullptr };
+	mp_sketchDialog = nullptr;
 
 	m_isLeftMouse = true;
-	mp_sketchDialog = nullptr;
+	m_isHiddenMode = false;
 }
 
 void WindowBrushDialog::OnInitDialog()
@@ -78,13 +76,15 @@ void WindowBrushDialog::OnInitDialog()
 
 	HMENU h_systemMenu = ::GetSystemMenu(mh_window, FALSE);
 	if (nullptr != h_systemMenu) {
-		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_SELECT_SCREEN, L"Select Screen\tCtrl+S");
-		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_COLOR_OPACITY, L"Color Opacity\tCtrl+C");
-		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, MENU_FADE_SPEED, L"Fade Timer\tCtrl+F");
+		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, WINDOW_BRUSH::MENU_SELECT_SCREEN, L"Select Screen\tCtrl+S");
+		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, WINDOW_BRUSH::MENU_COLOR_OPACITY, L"Color Opacity\tCtrl+C");
+		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_STRING, WINDOW_BRUSH::MENU_FADE_SPEED, L"Fade Timer\tCtrl+F");
 		::InsertMenuW(h_systemMenu, MENU_LIGHT_MODE, MF_SEPARATOR, NULL, nullptr);
+		::InsertMenuW(h_systemMenu, SC_MOVE, MF_STRING, WINDOW_BRUSH::MENU_HIDDEN, L"Hidden Mode\tCtrl+H");
 	}
 
 	::EnumDisplayMonitors(nullptr, nullptr, GetPhysicalScreenRects, reinterpret_cast<LPARAM>(&m_physicalScreenRects));
+	::SetLayeredWindowAttributes(mh_window, 0, 255, LWA_ALPHA);
 }
 
 void WindowBrushDialog::OnDestroy()
@@ -207,10 +207,11 @@ int WindowBrushDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	// implementation
 	///////////////////////////////////////////////////////////////////
 
-	static std::map<unsigned char, void (WindowBrushDialog::*)()> keyTableWithControl = {
+	static std::map<unsigned char, void (WindowBrushDialog:: *)()> keyTableWithControl = {
 		{'S', &WindowBrushDialog::OnClickSelectScreenMenu},
 		{'C', &WindowBrushDialog::OnClickColorOpacityMenu},
-		{'F', &WindowBrushDialog::OnClickFadeSpeedMenu}
+		{'F', &WindowBrushDialog::OnClickFadeSpeedMenu},
+		{'H', &WindowBrushDialog::OnClickHiddenMenu}
 	};
 	static std::map<unsigned char, void (WindowBrushDialog:: *)()> keyTable = {
 		{'C', &WindowBrushDialog::OnCurveButtonUp},
@@ -244,14 +245,17 @@ msg_handler int WindowBrushDialog::SysCommandHandler(WPARAM a_menuID, LPARAM a_l
 {
 	switch (a_menuID)
 	{
-	case MENU_SELECT_SCREEN:
+	case WINDOW_BRUSH::MENU_SELECT_SCREEN:
 		OnClickSelectScreenMenu();
 		break;
-	case MENU_COLOR_OPACITY:
+	case WINDOW_BRUSH::MENU_COLOR_OPACITY:
 		OnClickColorOpacityMenu();
 		break;
-	case MENU_FADE_SPEED:
+	case WINDOW_BRUSH::MENU_FADE_SPEED:
 		OnClickFadeSpeedMenu();
+		break;
+	case WINDOW_BRUSH::MENU_HIDDEN:
+		OnClickHiddenMenu();
 		break;
 	default:
 		break;
@@ -363,7 +367,7 @@ void WindowBrushDialog::OnDrawButtonUp(const WINDOW_BRUSH::DT &a_type)
 		m_modelData.drawType = WINDOW_BRUSH::DT::NONE;
 		HMENU h_systemMenu = ::GetSystemMenu(mh_window, FALSE);
 		if (nullptr != h_systemMenu) {
-			::EnableMenuItem(h_systemMenu, MENU_SELECT_SCREEN, MF_ENABLED);
+			::EnableMenuItem(h_systemMenu, WINDOW_BRUSH::MENU_SELECT_SCREEN, MF_ENABLED);
 		}
 
 		Invalidate();
@@ -383,7 +387,7 @@ void WindowBrushDialog::OnDrawButtonUp(const WINDOW_BRUSH::DT &a_type)
 	// button click -> turn on
 	HMENU h_systemMenu = ::GetSystemMenu(mh_window, FALSE);
 	if (nullptr != h_systemMenu) {
-		::EnableMenuItem(h_systemMenu, MENU_SELECT_SCREEN, MF_DISABLED);
+		::EnableMenuItem(h_systemMenu, WINDOW_BRUSH::MENU_SELECT_SCREEN, MF_DISABLED);
 	}
 
 	const auto scaledRect = GetScaledRect(m_modelData.selectedScreenRect);
@@ -590,3 +594,11 @@ void WindowBrushDialog::OnClickFadeSpeedMenu ()
 
 	::SetFocus(mh_window);
 };
+
+void WindowBrushDialog::OnClickHiddenMenu()
+{
+	m_isHiddenMode = !m_isHiddenMode;
+
+	const unsigned char alpha = m_isHiddenMode ? 0 : 255;
+	::SetLayeredWindowAttributes(mh_window, 0, alpha, LWA_ALPHA);
+}

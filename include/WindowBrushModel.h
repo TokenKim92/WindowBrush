@@ -7,6 +7,11 @@ namespace WINDOW_BRUSH {
 
 	const unsigned int WM_KILLED_SKETCH = 23001;
 
+	const unsigned int MENU_SELECT_SCREEN = MENU_LIGHT_MODE + 1;
+	const unsigned int MENU_COLOR_OPACITY = MENU_LIGHT_MODE + 2;
+	const unsigned int MENU_FADE_SPEED = MENU_LIGHT_MODE + 3;
+	const unsigned int MENU_HIDDEN = MENU_LIGHT_MODE + 4;
+
 	const double CONVERT_RADIAN = 0.0174532888;
 	const float DEFAULT_TRANSPARENCY = 0.6f;
 

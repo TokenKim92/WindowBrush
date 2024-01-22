@@ -19,6 +19,7 @@ protected:
 	SketchDialog *mp_sketchDialog;;
 
 	bool m_isLeftMouse;
+	bool m_isHiddenMode;
 
 public:
 	WindowBrushDialog();
@@ -64,6 +65,7 @@ protected:
 	void OnClickSelectScreenMenu();
 	void OnClickColorOpacityMenu();
 	void OnClickFadeSpeedMenu();
+	void OnClickHiddenMenu();
 };
 
 #endif //_WINDOW_BRUSH_DIALOG_H_

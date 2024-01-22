@@ -18,7 +18,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE ah_instance, _In_opt_ HINSTANCE ah_notUseIn
 		const int centerPosY = ::GetSystemMetrics(SM_CYSCREEN) / 2;
 
 		WindowBrushDialog dialog;
-		dialog.SetExtendStyle(WS_EX_TOPMOST);
 		return dialog.DoModal(nullptr, centerPosX - dialog.GetSize().cx / 2, centerPosY - dialog.GetSize().cy / 2);
 	}
 

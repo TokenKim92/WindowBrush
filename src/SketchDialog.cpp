@@ -403,7 +403,8 @@ int SketchDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	const unsigned char pressedKey = static_cast<unsigned char>(a_wordParam);
 	
 	if ('C' == pressedKey || 'R' == pressedKey || 'E' == pressedKey || 'T' == pressedKey ||
-		'W' == pressedKey || 'G' == pressedKey || 'P' == pressedKey || 'F' == pressedKey) {
+		'W' == pressedKey || 'G' == pressedKey || 'P' == pressedKey || 'F' == pressedKey ||
+		'H' == pressedKey) {
 		::PostMessageW(mh_parentWindow, WM_KEYDOWN, a_wordParam, a_longParam);
 	}
 
