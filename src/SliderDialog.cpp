@@ -65,7 +65,7 @@ int SliderDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		const auto startChannelPoint = ap_dialog->m_ticPoints.front();
 		const auto endChannelPoint = ap_dialog->m_ticPoints.back();
 
-		if (startChannelPoint.x + SLIDER::THUMB_RADIUS > a_point.x) {
+		if (startChannelPoint.x + SLIDER::THUMB_RADIUS > a_point.x || 0 > static_cast<short>(a_point.x)) {
 			currentThumbIndex = 0;	// so as not to go out of range
 		}
 		else if (endChannelPoint.x - SLIDER::THUMB_RADIUS < a_point.x) {
@@ -138,7 +138,7 @@ int SliderDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 // to handle the WM_LBUTTONDOWN message that occurs when a window is destroyed
 int SliderDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	//::SetCapture(mh_window);
+	::SetCapture(mh_window);
 
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
@@ -188,7 +188,7 @@ int SliderDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longPara
 	// implementation
 	////////////////////////////////////////////////////////////////
 
-	//::ReleaseCapture();
+	::ReleaseCapture();
 
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
