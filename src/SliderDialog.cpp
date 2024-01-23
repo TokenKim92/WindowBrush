@@ -23,6 +23,12 @@ SliderDialog::SliderDialog(
 	}
 	
 	m_modelData = { SLIDER::BT::NONE, SLIDER::BT::NONE, thumbIndex, {0, } };
+
+	// add message handlers
+	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&SliderDialog::MouseMoveHandler));
+	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&SliderDialog::MouseLeftButtonDownHandler));
+	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&SliderDialog::MouseLeftButtonUpHandler));
+	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&SliderDialog::KeyDownHandler));
 }
 
 void SliderDialog::OnInitDialog()
@@ -30,12 +36,6 @@ void SliderDialog::OnInitDialog()
 	DisableMaximize();
 	DisableMinimize();
 	DisableSize();
-
-	// add message handlers
-	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&SliderDialog::MouseMoveHandler));
-	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&SliderDialog::MouseLeftButtonDownHandler));
-	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&SliderDialog::MouseLeftButtonUpHandler));
-	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&SliderDialog::KeyDownHandler));
 
 	const auto p_view = new SliderView(mh_window, m_title, m_rangeData, m_ticInterval, m_ticIntervalTitle, GetColorMode());
 	InheritDirect2D(p_view);

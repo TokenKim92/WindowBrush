@@ -12,7 +12,7 @@ SliderView::SliderView(
 	m_ticIntervalTitle(a_ticIntervalTitle)
 {
 	memset(&m_titleRect, 0, sizeof(DRect));
-	memset(&m_sliderRect, 0, sizeof(DRect));
+	memset(&m_sliderRect, 0, sizeof(SR));
 	memset(&m_buttonBackgroundRect, 0, sizeof(DRect));
 
 	memset(&m_colorSet, 0, sizeof(CS));
@@ -152,7 +152,7 @@ void SliderView::Paint(const SLIDER::MD &a_modelData)
 			: L"Cancel";
 
 		ap_view->SetBrushColor(color);
-		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(a_type), 5.0f);
+		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(a_type), SLIDER::BUTTON_ROUND_RADIUS);
 		ap_view->DrawPlainText(text.c_str(), ap_view->m_buttonTable.at(a_type), ap_view->mp_textFont);
 	};
 	static const auto DrawChannel = [](SliderView *const ap_view)
@@ -189,6 +189,10 @@ void SliderView::Paint(const SLIDER::MD &a_modelData)
 	};
 	static const auto DrawThumbValue = [](SliderView *const ap_view, const SLIDER::MD &a_modelData)
 	{
+		if (a_modelData.thumbIndex >= ap_view->m_ticIntervalTitle.size()) {
+			return;
+		}
+
 		const auto point = ap_view->m_ticPoints.at(a_modelData.thumbIndex);
 		DRect rect = {
 			point.x - SLIDER::THUMB_VALUE_HEIGHT, point.y + SLIDER::THUMB_RADIUS + SLIDER::THUMB_MARGIN,
@@ -197,9 +201,7 @@ void SliderView::Paint(const SLIDER::MD &a_modelData)
 		ap_view->SetBrushColor(ap_view->m_colorSet.darkBackground);
 		ap_view->FillRoundedRectangle(rect, 3.0f);
 
-		std::wstring title = a_modelData.thumbIndex < ap_view->m_ticIntervalTitle.size()
-			? ap_view->m_ticIntervalTitle.at(a_modelData.thumbIndex)
-			: L"-";
+		std::wstring title = ap_view->m_ticIntervalTitle.at(a_modelData.thumbIndex);
 		ap_view->DrawPlainText(title, rect, ap_view->mp_textFont);
 	};
 

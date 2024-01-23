@@ -29,7 +29,9 @@ namespace SLIDER {
 	const float TIC_HALF_WIDTH = 1.0f;
 	const float TIC_HALF_HEIGHT = 8.0f;
 
-	typedef enum class BUTTON_TPYE
+	const float BUTTON_ROUND_RADIUS = 5.0f;
+
+	typedef enum class BUTTON_TYPE
 	{
 		NONE,
 		THUMB,
