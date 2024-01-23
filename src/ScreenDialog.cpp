@@ -32,6 +32,62 @@ ScreenDialog::ScreenDialog(const RECT &a_selectedScreenRect) :
 
 		return SCREEN::INVALID_INDEX;
 	};
+	const auto InitHBitmapList = [](const std::vector<RECT> &a_physicalScreenRects, std::vector<std::pair<DRect, HBITMAP>> &a_bitmapDataList)
+	{
+		const auto CreateScreenHBitmap = [](const HDC &ah_screenDC, const HDC &ah_memDC, const RECT &a_sourceRect, const DRect &a_destinationRect)
+		{
+			const int destinationWidth = static_cast<int>(a_destinationRect.right - a_destinationRect.left);
+			const int detinationHeight = static_cast<int>(a_destinationRect.bottom - a_destinationRect.top);
+
+			HBITMAP h_tempBitmap = ::CreateCompatibleBitmap(ah_screenDC, destinationWidth, detinationHeight);
+			::SelectObject(ah_memDC, h_tempBitmap);
+			::SetStretchBltMode(ah_memDC, COLORONCOLOR);
+
+			::StretchBlt(
+				ah_memDC,
+				0, 0,
+				destinationWidth, detinationHeight,
+				ah_screenDC,
+				a_sourceRect.left, a_sourceRect.top,
+				a_sourceRect.right - a_sourceRect.left, a_sourceRect.bottom - a_sourceRect.top,
+				SRCCOPY
+			);
+			
+			return h_tempBitmap;
+		};
+
+		////////////////////////////////////////////////////////////////
+		// implementation
+		////////////////////////////////////////////////////////////////
+
+		const float screenButtonWidth = SCREEN::DIALOG_WIDTH - SCREEN::SCREEN_X_MARGIN * 2.0f;
+		float posTop = SCREEN::TITLE_HEIGHT;
+		double ratio;
+		float screenButtonHeight;
+		DRect screenButtonRect;
+
+		HDC h_screenDC = ::GetWindowDC(nullptr);
+		HDC h_tempDC = ::CreateCompatibleDC(h_screenDC);
+
+		for (const auto &physicalRect : a_physicalScreenRects) {
+			ratio = static_cast<double>(physicalRect.bottom - physicalRect.top) / static_cast<double>(physicalRect.right - physicalRect.left);
+			screenButtonHeight = static_cast<float>(screenButtonWidth * ratio);
+			screenButtonRect = {
+				SCREEN::SCREEN_X_MARGIN, posTop,
+				SCREEN::DIALOG_WIDTH - SCREEN::SCREEN_X_MARGIN, posTop + screenButtonHeight,
+			};
+
+			a_bitmapDataList.push_back({
+				screenButtonRect,
+				CreateScreenHBitmap(h_screenDC, h_tempDC, physicalRect, screenButtonRect)
+			});
+
+			posTop += screenButtonHeight + SCREEN::SCREEN_Y_MARGIN;
+		}
+
+		::DeleteDC(h_tempDC);
+		::ReleaseDC(nullptr, h_screenDC);
+	};
 
 	////////////////////////////////////////////////////////////////
 	// implementation
@@ -47,6 +103,8 @@ ScreenDialog::ScreenDialog(const RECT &a_selectedScreenRect) :
 		SCREEN::BT::NONE, SCREEN::BT::NONE,
 		SCREEN::INVALID_INDEX, GetIndexFromSelectedScreen(a_selectedScreenRect, m_physicalScreenRects)
 	};
+
+	InitHBitmapList(m_physicalScreenRects, m_bitmapDataList);
 }
 
 void ScreenDialog::OnInitDialog()
@@ -61,11 +119,18 @@ void ScreenDialog::OnInitDialog()
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ScreenDialog::MouseLeftButtonUpHandler));
 	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ScreenDialog::KeyDownHandler));
 
-	const auto p_view = new ScreenView(mh_window, GetColorMode());
+	const auto p_view = new ScreenView(mh_window, m_bitmapDataList, GetColorMode());
 	InheritDirect2D(p_view);
 	p_view->Create();
 	m_buttonTable = p_view->GetButtonTable();
 	m_screenTable = p_view->GetScreenTable();
+}
+
+void ScreenDialog::OnDestroy()
+{
+	for (auto &bitmapData : m_bitmapDataList) {
+		::DeleteObject(bitmapData.second);
+	}
 }
 
 void ScreenDialog::OnPaint()

@@ -11,7 +11,8 @@ class ScreenDialog : public WindowDialog
 protected:
 	SCREEN::MD m_modelData;
 	std::vector<RECT> m_physicalScreenRects;
-
+	std::vector<std::pair<DRect, HBITMAP>> m_bitmapDataList;
+	
 	std::map<SCREEN::BT, DRect> m_buttonTable;
 	std::map<size_t, DRect> m_screenTable;
 
@@ -23,6 +24,7 @@ public:
 
 protected:
 	virtual void OnInitDialog() override;
+	virtual void OnDestroy() override;
 	virtual void OnPaint() override;
 
 	// to handle the WM_MOUSEMOVE message that occurs when a window is destroyed

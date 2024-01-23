@@ -3,8 +3,9 @@
 #include "Utility.h"
 extern ApplicationCore *gp_appCore;
 
-ScreenView::ScreenView(const HWND ah_window, const CM &a_mode, const RECT *const ap_viewRect) :
-	Direct2DEx(ah_window, ap_viewRect)
+ScreenView::ScreenView(const HWND ah_window, const std::vector<std::pair<DRect, HBITMAP>> &a_bitmapDataList, const CM &a_mode, const RECT *const ap_viewRect) :
+	Direct2DEx(ah_window, ap_viewRect),
+	m_bitmapDataList(a_bitmapDataList)
 {
 	memset(&m_titleRect, 0, sizeof(DRect));
 	memset(&m_buttonBackgroundRect, 0, sizeof(DRect));
@@ -44,64 +45,16 @@ ScreenView::~ScreenView()
 
 int ScreenView::Create()
 {
-	const auto InitScreenItems = [](ScreenView *const ap_view)
+	const auto InitScreenBitmaps = [](ScreenView *const ap_view)
 	{
-		const auto CreateScreenBitmap = [](ScreenView *const ap_view, const RECT &a_sourceRect, const DRect &a_destinationRect)
-		{
-			const int destinationWidth = static_cast<int>(a_destinationRect.right - a_destinationRect.left);
-			const int detinationHeight = static_cast<int>(a_destinationRect.bottom - a_destinationRect.top);
-
-			HDC h_screenDC = ::GetWindowDC(nullptr);
-			HDC h_tempDC = ::CreateCompatibleDC(h_screenDC);
-			HBITMAP h_tempBitmap = ::CreateCompatibleBitmap(h_screenDC, destinationWidth, detinationHeight);
-			::SelectObject(h_tempDC, h_tempBitmap);
-			::SetStretchBltMode(h_tempDC, COLORONCOLOR);
-
-			::StretchBlt(
-				h_tempDC,
-				0, 0,
-				destinationWidth, detinationHeight,
-				h_screenDC,
-				a_sourceRect.left, a_sourceRect.top,
-				a_sourceRect.right - a_sourceRect.left, a_sourceRect.bottom - a_sourceRect.top,
-				SRCCOPY
-			);
-			const auto p_bitmap = ap_view->CreateBitmapFromHBitmap(h_tempBitmap);
-
-			::DeleteObject(h_tempBitmap);
-			::DeleteDC(h_tempDC);
-			::ReleaseDC(nullptr, h_screenDC);
-
-			return p_bitmap;
-		};
-
-		////////////////////////////////////////////////////////////////
-		// implementation
-		////////////////////////////////////////////////////////////////
-
-		::EnumDisplayMonitors(nullptr, nullptr, GetPhysicalScreenRects, reinterpret_cast<LPARAM>(&ap_view->m_physicalScreenRects));
-
-		const float screenButtonWidth = SCREEN::DIALOG_WIDTH - SCREEN::SCREEN_X_MARGIN * 2.0f;
-		float posTop = SCREEN::TITLE_HEIGHT;
 		size_t index = 0;
-		double ratio;
-		float screenButtonHeight;
-		DRect screenButtonRect;
-
-		for (const auto &physicalRect : ap_view->m_physicalScreenRects) {
-			ratio = static_cast<double>(physicalRect.bottom - physicalRect.top) / static_cast<double>(physicalRect.right - physicalRect.left);
-			screenButtonHeight = static_cast<float>(screenButtonWidth * ratio);
-			screenButtonRect = {
-				SCREEN::SCREEN_X_MARGIN, posTop,
-				SCREEN::DIALOG_WIDTH - SCREEN::SCREEN_X_MARGIN, posTop + screenButtonHeight,
-			};
-
+		for (auto &bitmapData : ap_view->m_bitmapDataList) {
 			ap_view->m_screenTable.insert({
 				index,
-				{ screenButtonRect,  CreateScreenBitmap(ap_view, physicalRect, screenButtonRect) }
+				{ bitmapData.first, ap_view->CreateBitmapFromHBitmap(bitmapData.second) }
 			});
-			posTop += screenButtonHeight + SCREEN::SCREEN_Y_MARGIN;
-			index++;;
+
+			++index;
 		}
 	};
 	const auto CreateUserFont = [](ScreenView *const ap_view, const float &a_fontSize)
@@ -122,7 +75,7 @@ int ScreenView::Create()
 		return result;
 	}
 
-	InitScreenItems(this);
+	InitScreenBitmaps(this);
 
 	const float centerPosX = (mp_viewRect->right - mp_viewRect->left) / 2.0f;
 	m_titleRect = {
