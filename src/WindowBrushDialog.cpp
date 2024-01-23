@@ -52,13 +52,6 @@ WindowBrushDialog::WindowBrushDialog() :
 
 	m_isLeftMouse = true;
 	m_isHiddenMode = false;
-}
-
-void WindowBrushDialog::OnInitDialog()
-{
-	DisableMaximize();
-	DisableMinimize();
-	DisableSize();
 
 	// add message handlers
 	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&WindowBrushDialog::MouseMoveHandler));
@@ -67,6 +60,13 @@ void WindowBrushDialog::OnInitDialog()
 	AddMessageHandler(WM_MOUSELEAVE, static_cast<MessageHandler>(&WindowBrushDialog::MouseLeaveHandler));
 	AddMessageHandler(WINDOW_BRUSH::WM_KILLED_SKETCH, static_cast<MessageHandler>(&WindowBrushDialog::KilledSketchDialogHandler));
 	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&WindowBrushDialog::KeyDownHandler));
+}
+
+void WindowBrushDialog::OnInitDialog()
+{
+	DisableMaximize();
+	DisableMinimize();
+	DisableSize();
 
 	const auto p_view = new WindowBrushView(mh_window, GetColorMode());
 	InheritDirect2D(p_view);
@@ -114,10 +114,10 @@ int WindowBrushDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		::TrackMouseEvent(&data);
 	}
 
-	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
+	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
 	for (auto const &[type, rect] : m_buttonTable) {
-		if (PointInRect(rect, pos)) {
+		if (PointInRect(rect, point)) {
 			if (type != m_modelData.hoverButtonType) {
 				m_modelData.hoverButtonType = type;
 				KillInfoDialogTimer();
@@ -143,8 +143,6 @@ int WindowBrushDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 // to handle the WM_LBUTTONDOWN  message that occurs when a window is destroyed
 int WindowBrushDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 {
-	const POINT pos = { LOWORD(a_longParam), HIWORD(a_longParam) };
-
 	KillInfoDialogTimer();
 
 	return S_OK;
@@ -561,8 +559,8 @@ void WindowBrushDialog::OnClickFadeSpeedMenu ()
 {
 	const size_t ticInterval = 500;
 	SLIDER::RD rangeData = {
-		L"Fast", 0,
-		L"Slow", 3000
+		L"Fast", 100,
+		L"Slow", 3100
 	};
 	int thumbIndex = static_cast<int>(m_modelData.fadeTimer / ticInterval);
 	std::wostringstream out;
