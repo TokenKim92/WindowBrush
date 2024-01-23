@@ -44,6 +44,7 @@ SketchDialog::SketchDialog(const HWND &ah_parentWindow, const WINDOW_BRUSH::MD &
 	SetStyle(WS_POPUP | WS_VISIBLE);
 
 	m_leftButtonDown = false;
+	m_isKeyDownOnTyping = false;
 	m_previousMilliseconds = 0;
 	mh_screenBitmap = GetScreenHBitmap(a_scaledRect, a_modelData.selectedScreenRect);
 	mh_edit = nullptr;
@@ -116,16 +117,26 @@ void SketchDialog::OnPaint()
 	// implementation
 	///////////////////////////////////////////////////////////////////
 
-	mp_direct2d->Clear();
+	static unsigned __int64 previousTime = 0; //ms
 
 	if (WINDOW_BRUSH::DT::TEXT_TYPING == m_parentModelData.drawType) {
+		Invalidate();
+
+		unsigned __int64 currentTime = GetTickCount64();
+		if (currentTime - previousTime < SKETCH::TOGGLE_TAB_TIME && !m_isKeyDownOnTyping) {
+			return;
+		}
+
+		m_isKeyDownOnTyping = false;
+		previousTime = currentTime;
 		OnDrawTextMode(this);
 	}
 
+	mp_direct2d->Clear();
 	static_cast<SketchView *>(mp_direct2d)->Paint(m_modelDataList);
 }
 
-void SketchDialog::PreTranslateMessage(MSG &a_msg)
+bool SketchDialog::PreTranslateMessage(MSG &a_msg)
 {
 	static const auto KeyDownToTextOutlineModel = [](SketchDialog *const ap_dialog, const MSG &a_msg)
 	{
@@ -147,6 +158,7 @@ void SketchDialog::PreTranslateMessage(MSG &a_msg)
 			if (0 != ap_dialog->m_modelDataList.size()) {
 				const SKETCH::MD &modelData = ap_dialog->m_modelDataList.back();
 				if (WINDOW_BRUSH::DT::TEXT_OUTLINE == modelData.drawType) {
+					::SetWindowText(ap_dialog->mh_edit, L" ");
 					KeyDownToTextOutlineModel(ap_dialog, a_msg);
 
 					return;
@@ -160,6 +172,7 @@ void SketchDialog::PreTranslateMessage(MSG &a_msg)
 			else if (a_msg.wParam == VK_ESCAPE) {
 				ap_dialog->SetTextOutlineModeHandler(0, false);
 			}
+			ap_dialog->m_isKeyDownOnTyping = true;
 			ap_dialog->Invalidate();
 
 			return;
@@ -186,7 +199,7 @@ void SketchDialog::PreTranslateMessage(MSG &a_msg)
 				ap_dialog->Invalidate();
 			}
 		}
-		return;
+		return true;
 	};
 
 	///////////////////////////////////////////////////////////////////
@@ -199,9 +212,16 @@ void SketchDialog::PreTranslateMessage(MSG &a_msg)
 		OnMultiKeyDown(this);
 		break;
 	case WM_KEYDOWN:
+		if (VK_LEFT == a_msg.wParam || VK_RIGHT == a_msg.wParam || VK_UP == a_msg.wParam ||
+			VK_DOWN == a_msg.wParam || VK_HOME == a_msg.wParam || VK_END == a_msg.wParam ||
+			VK_TAB == a_msg.wParam || VK_INSERT == a_msg.wParam) {
+			return false;
+		}
 		OnKeyDown(this, a_msg);
 		break;
 	}
+
+	return WindowDialog::PreTranslateMessage(a_msg);
 }
 
 // to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
@@ -213,7 +233,7 @@ int SketchDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 
 	if (m_parentModelData.isFadeMode) {
 		// timer can not be called on mouse move, therefore here `OnFadeObjects` will be called per fps time
-		ULONGLONG currentMilliseconds = GetTickCount64();
+		unsigned __int64 currentMilliseconds = GetTickCount64();
 		if (currentMilliseconds - m_previousMilliseconds > SKETCH::FPS_TIME) {
 			m_previousMilliseconds = currentMilliseconds;
 			FadeObject(false);
@@ -393,7 +413,7 @@ int SketchDialog::OnEditMaxLengthHandler(WPARAM a_wordParam, LPARAM a_longParam)
 	const auto length = a_longParam;
 
 	::SetWindowTextW(mh_edit, p_memoryText);
-	::PostMessage(mh_edit, EM_SETSEL, length, length);
+	::PostMessage(mh_edit, EM_SETSEL, length - 1, length - 1);
 
 	delete[] p_memoryText;
 

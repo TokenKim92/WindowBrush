@@ -112,7 +112,7 @@ protected:
     virtual void OnPaint();
     virtual void OnSetColorMode();
 
-    virtual void PreTranslateMessage(MSG &a_msg);
+    virtual bool PreTranslateMessage(MSG &a_msg);
 
     void SetClickedButtonType(BT &a_type);
 

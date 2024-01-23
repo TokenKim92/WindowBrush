@@ -242,6 +242,8 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 	};
 	static const auto DrawUserText = [](SketchView *const ap_view, SKETCH::MD a_modelData) -> std::pair<DRect, float>
 	{
+		static bool tabFlag = false;
+
 		if (a_modelData.text.length() < 1) {
 			const bool isDone = false;
 			::PostMessage(ap_view->mh_window, SKETCH::WM_SET_TEXTOUTLINE_MODE, 0, isDone);
@@ -256,14 +258,14 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 		const auto startPoint = a_modelData.points.front();
 		const float maxTextWidth = ap_view->m_physicalRect.right - ap_view->m_physicalRect.left - startPoint.x;
 		const float maxTextHeight = ap_view->m_physicalRect.bottom - ap_view->m_physicalRect.top - startPoint.y;
-		auto &text = a_modelData.text;
+		auto text = a_modelData.text;
 		const auto originalTextLength = text.length();
 		DSize textSize = ap_view->GetTextExtent(text.c_str(), maxTextWidth, maxTextHeight);
 
 		// if the text width is lager than monitor screen
 		while (textSize.height > maxTextHeight) {
-			// delete a last letter
-			text.pop_back();
+			// delete a last letter except the white space
+			text.erase(text.length() - 2, 1);
 			textSize = ap_view->GetTextExtent(text.c_str(), maxTextWidth, maxTextHeight);
 		}
 
@@ -279,6 +281,15 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 		const DRect rect = { startPoint.x, startPoint.y, startPoint.x + textSize.width, startPoint.y + textSize.height };
 		const float strokeWidth = a_modelData.defaultData.fontSize * 0.02f;
 
+		if (WINDOW_BRUSH::DT::TEXT_TYPING == a_modelData.drawType) {
+			tabFlag = !tabFlag;
+
+			if (tabFlag) {
+				text.pop_back();
+				text += L"I";
+			}
+		}
+
 		ap_view->SetStrokeWidth(strokeWidth);
 		if (SKETCH::INVALID_INDEX != a_modelData.defaultData.gradientBrushIndex) {
 			const auto p_gradientBrush = ap_view->m_gradientTable.at(a_modelData.defaultData.gradientBrushIndex);
@@ -286,7 +297,6 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 			const auto p_previousBrush = ap_view->SetBrush(p_gradientBrush);
 			ap_view->DrawUserText(text.c_str(), rect);
 			ap_view->SetBrush(p_previousBrush);
-			
 		}
 		else {
 			DColor color = a_modelData.defaultData.color;
@@ -294,7 +304,7 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 			ap_view->SetBrushColor(color);
 			ap_view->DrawUserText(text.c_str(), rect);
 		}
-
+		
 		return { rect, strokeWidth };
 	};
 	

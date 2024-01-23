@@ -10,7 +10,8 @@ namespace SKETCH {
 	const size_t INVALID_INDEX = static_cast<size_t>(-1);
 
 	const unsigned int FPS = 30;
-	const unsigned int FPS_TIME = 1000 / FPS;
+	const unsigned int FPS_TIME = 1000 / FPS;	//ms	
+	const unsigned int TOGGLE_TAB_TIME = 500;	//ms
 
 	const unsigned int WM_UPDATE_MODEL_DATA = 24001;
 	const unsigned int WM_SET_TEXTOUTLINE_MODE = WM_UPDATE_MODEL_DATA + 1;

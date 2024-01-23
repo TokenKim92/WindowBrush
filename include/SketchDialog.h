@@ -14,6 +14,7 @@ protected:
 	std::vector<SKETCH::MD> m_modelDataList;
 
 	bool m_leftButtonDown;
+	bool m_isKeyDownOnTyping;
 	unsigned __int64 m_previousMilliseconds;
 
 	const RECT m_scaledRect;
@@ -31,7 +32,7 @@ protected:
 	virtual void OnDestroy() override;
 	virtual void OnQuit() override;
 	virtual void OnPaint() override;
-	virtual void PreTranslateMessage(MSG &a_msg) override;
+	virtual bool PreTranslateMessage(MSG &a_msg) override;
 
 	// to handle the WM_MOUSEMOVE message
 	int MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam);
