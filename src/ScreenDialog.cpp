@@ -105,6 +105,12 @@ ScreenDialog::ScreenDialog(const RECT &a_selectedScreenRect) :
 	};
 
 	InitHBitmapList(m_physicalScreenRects, m_bitmapDataList);
+
+	// add message handlers
+	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&ScreenDialog::MouseMoveHandler));
+	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&ScreenDialog::MouseLeftButtonDownHandler));
+	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ScreenDialog::MouseLeftButtonUpHandler));
+	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ScreenDialog::KeyDownHandler));
 }
 
 void ScreenDialog::OnInitDialog()
@@ -112,12 +118,6 @@ void ScreenDialog::OnInitDialog()
 	DisableMaximize();
 	DisableMinimize();
 	DisableSize();
-
-	// add message handlers
-	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&ScreenDialog::MouseMoveHandler));
-	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&ScreenDialog::MouseLeftButtonDownHandler));
-	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ScreenDialog::MouseLeftButtonUpHandler));
-	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ScreenDialog::KeyDownHandler));
 
 	const auto p_view = new ScreenView(mh_window, m_bitmapDataList, GetColorMode());
 	InheritDirect2D(p_view);

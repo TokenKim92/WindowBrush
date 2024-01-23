@@ -20,8 +20,9 @@ namespace SCREEN {
 
 	const float BUTTON_MARGIN = 20.0f;
 	const float BUTTON_HEIGHT = 35.0f;
+	const float BUTTON_ROUND_RADIUS = 5.0f;
 
-	typedef enum class BUTTON_TPYE
+	typedef enum class BUTTON_TYPE
 	{
 		NONE,
 		SAVE,

@@ -1,6 +1,7 @@
 #include "ScreenView.h"
 #include "ColorPalette.h"
 #include "Utility.h"
+
 extern ApplicationCore *gp_appCore;
 
 ScreenView::ScreenView(const HWND ah_window, const std::vector<std::pair<DRect, HBITMAP>> &a_bitmapDataList, const CM &a_mode, const RECT *const ap_viewRect) :
@@ -117,7 +118,7 @@ void ScreenView::Paint(const SCREEN::MD &a_modelData)
 	{
 		const float transparency = SCREEN::BT::SCREEN == a_modelData.hoverButtonType && a_item.first == a_modelData.hoverScreenIndex
 			? 1.0f
-			: 0.6f;
+			: SCREEN::DEFAULT_TRANSPARENCY;
 
 		ap_view->DrawBitmap(a_item.second.second, a_item.second.first, transparency);
 
@@ -143,7 +144,7 @@ void ScreenView::Paint(const SCREEN::MD &a_modelData)
 			: L"Cancel";
 
 		ap_view->SetBrushColor(color);
-		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(a_type), 5.0f);
+		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(a_type), SCREEN::BUTTON_ROUND_RADIUS);
 		ap_view->DrawPlainText(text.c_str(), ap_view->m_buttonTable.at(a_type), ap_view->mp_textFont);
 	};
 
