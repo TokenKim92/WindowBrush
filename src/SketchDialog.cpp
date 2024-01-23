@@ -373,8 +373,10 @@ int SketchDialog::UpdateModelDataHandler(WPARAM a_wordParam, LPARAM a_longParam)
 
 	if (WINDOW_BRUSH::DT::TEXT_OUTLINE == previousModelData.drawType) {
 		if (0 != m_modelDataList.size()) {
-			m_modelDataList.pop_back();
-			Invalidate();
+			if (WINDOW_BRUSH::DT::TEXT_OUTLINE == m_modelDataList.back().drawType) {
+				m_modelDataList.pop_back();
+				Invalidate();
+			}
 		}
 	}
 	else if (WINDOW_BRUSH::DT::TEXT_TYPING == previousModelData.drawType) {
