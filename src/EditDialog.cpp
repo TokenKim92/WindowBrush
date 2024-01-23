@@ -26,6 +26,12 @@ EditDialog::EditDialog(
 	for (const auto &item : m_itemList) {
 		m_modelData.valueList.push_back(item.second);
 	}
+
+	// add message handlers
+	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&EditDialog::MouseMoveHandler));
+	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&EditDialog::MouseLeftButtonDownHandler));
+	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&EditDialog::MouseLeftButtonUpHandler));
+	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&EditDialog::KeyDownHandler));
 }
 
 void EditDialog::OnInitDialog()
@@ -33,12 +39,6 @@ void EditDialog::OnInitDialog()
 	DisableMaximize();
 	DisableMinimize();
 	DisableSize();
-
-	// add message handlers
-	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&EditDialog::MouseMoveHandler));
-	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&EditDialog::MouseLeftButtonDownHandler));
-	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&EditDialog::MouseLeftButtonUpHandler));
-	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&EditDialog::KeyDownHandler));
 
 	const auto p_view = new EditView(mh_window, L"Stroke Width", m_itemList, m_range, GetColorMode());
 	InheritDirect2D(p_view);

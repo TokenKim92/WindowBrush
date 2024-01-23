@@ -1,7 +1,9 @@
 #ifndef _EDIT_MODEL_H_
 #define _EDIT_MODEL_H_
 
+#include "ColorPalette.h"
 #include <vector>
+#include <string>
 
 namespace EDIT {
 	const size_t INVALID_INDEX = static_cast<size_t>(-1);
@@ -28,7 +30,12 @@ namespace EDIT {
 
 	const float MAX_DIGIT_LEGNHT = 3;
 
-	typedef enum class BUTTON_TPYE
+	const DColor WARNING_COLOR = RGB_TO_COLORF(RED_300);
+	const std::wstring WARNING_TEXT = L"(!) Invalid number value.";
+
+	const float BUTTON_ROUND_RADIUS = 5.0f;
+
+	typedef enum class BUTTON_TYPE
 	{
 		NONE,
 		EDIT,

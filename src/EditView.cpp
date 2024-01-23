@@ -21,8 +21,6 @@ EditView::EditView(
 	memset(&m_warningRect, 0, sizeof(DRect));
 	memset(&m_buttonBackgroundRect, 0, sizeof(DRect));
 
-	memset(&m_colorSet, 0, sizeof(CS));
-
 	mp_titleFont = nullptr;
 	mp_textFont = nullptr;
 
@@ -159,8 +157,8 @@ void EditView::Paint(const EDIT::MD &a_modelData)
 	static const  auto DrawWarning = [](EditView *const ap_view)
 	{
 		auto prevTextFormat = ap_view->SetTextFormat(ap_view->mp_textFont);
-		ap_view->SetBrushColor(RGB_TO_COLORF(RED_300));
-		ap_view->DrawUserText(L"(!) Invalid number value.", ap_view->m_warningRect);
+		ap_view->SetBrushColor(EDIT::WARNING_COLOR);
+		ap_view->DrawUserText(EDIT::WARNING_TEXT.c_str(), ap_view->m_warningRect);
 		ap_view->SetTextFormat(prevTextFormat);
 	};
 	static const auto DrawSaveButton = [](EditView *const ap_view, const bool isValid, const EDIT::MD &a_modelData)
@@ -177,7 +175,7 @@ void EditView::Paint(const EDIT::MD &a_modelData)
 		}
 
 		ap_view->SetBrushColor(color);
-		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(EDIT::BT::SAVE), 5.0f);
+		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(EDIT::BT::SAVE), EDIT::BUTTON_ROUND_RADIUS);
 		ap_view->DrawPlainText(L"Save", ap_view->m_buttonTable.at(EDIT::BT::SAVE), ap_view->mp_textFont);
 	};
 	static const auto DrawCancelButton = [](EditView *const ap_view, const EDIT::MD &a_modelData)
@@ -188,7 +186,7 @@ void EditView::Paint(const EDIT::MD &a_modelData)
 		}
 
 		ap_view->SetBrushColor(color);
-		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(EDIT::BT::CANCEL), 5.0f);
+		ap_view->FillRoundedRectangle(ap_view->m_buttonTable.at(EDIT::BT::CANCEL), EDIT::BUTTON_ROUND_RADIUS);
 		ap_view->DrawPlainText(L"Cancel", ap_view->m_buttonTable.at(EDIT::BT::CANCEL), ap_view->mp_textFont);
 	};
 

@@ -27,13 +27,13 @@ protected:
 	virtual void OnInitDialog() override;
 	virtual void OnPaint() override;
 
-	// to handle the WM_MOUSEMOVE message that occurs when a window is destroyed
+	// to handle the WM_MOUSEMOVE message
 	int MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_LBUTTONDOWN message that occurs when a window is destroyed
+	// to handle the WM_LBUTTONDOWN message
 	int MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_LBUTTONUP message that occurs when a window is destroyed
+	// to handle the WM_LBUTTONUP message
 	int MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam);
-	// to handle the WM_KEYDOWN message that occurs when a window is destroyed
+	// to handle the WM_KEYDOWN message
 	int KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam);
 
 	void OnSave();
