@@ -12,7 +12,11 @@ ColorView::ColorView(
 	m_selectView(this, a_selectedColor, a_colorList, a_mode),
 	m_addView(this, a_mode)
 {
+	memset(&m_viewSize, 0, sizeof(SIZE));
+
+	mp_titleFont = nullptr;
 	memset(&m_titleRect, 0, sizeof(DRect));
+
 	if (CM::DARK == a_mode) {
 		m_titleColor = RGB_TO_COLORF(NEUTRAL_200);
 		m_textBackgroundColor = RGB_TO_COLORF(NEUTRAL_900);
@@ -26,7 +30,6 @@ ColorView::ColorView(
 		SetBackgroundColor(RGB_TO_COLORF(NEUTRAL_50));
 	}
 
-	mp_titleFont = nullptr;
 	m_selectedHue = RGB_TO_COLORF((COLORREF)0x0100e3);
 }
 
@@ -45,6 +48,7 @@ int ColorView::Create()
 	m_viewSize = { mp_viewRect->right - mp_viewRect->left, mp_viewRect->bottom - mp_viewRect->top };
 
 	m_titleRect = { 0.0f, 0.0f, static_cast<float>(m_viewSize.cx), static_cast<float>(COLOR::TITLE_HEIGHT) };
+	
 	// create instance of direct2d
 	mp_titleFont = CreateTextFormat(DEFAULT_FONT_NAME, 14.0f, DWRITE_FONT_WEIGHT_SEMI_BOLD, DWRITE_FONT_STYLE_NORMAL);
 	mp_titleFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -89,7 +93,7 @@ void ColorView::DrawTitle(const COLOR::DM &a_mode)
 
 void ColorView::InitColorAddView(const DPoint &a_centerPoint)
 {
-	m_addView.Init(a_centerPoint, m_viewSize);
+	m_addView.Init(mh_window, a_centerPoint, m_viewSize);
 	m_addView.UpdateLightnessData(m_selectedHue);
 }
 

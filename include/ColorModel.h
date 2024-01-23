@@ -9,13 +9,26 @@ namespace COLOR {
 	const unsigned int DIALOG_WIDTH = 240;
 	const unsigned int DIALOG_HEIGHT = static_cast<unsigned int>(DIALOG_WIDTH * 1.14);
 
-	const size_t INTERVAL = 40;
-	const size_t TITLE_HEIGHT = 35;
-	const size_t INDICATE_HEIGHT = 25;
+	const long TITLE_HEIGHT = 35;
 
-	const float LIHTNESS_CIRCLE_RADIUS = DIALOG_WIDTH * 0.2f;
-	const float HUE_CIRCLE_RADIUS = DIALOG_WIDTH * 0.33f;
-	const float BUTTON_RADIUS = 10.0f;
+	const size_t INTERVAL = 40;
+	const float COLOR_RADIUS = 10.0f;
+	const float PLUS_BUTTON_RADIUS = 7.0f;
+	
+	// for ColorAdd
+	const float RETURN_ICON_X_MARGIN = 14.0f;
+	const float RETURN_ICON_Y_MARGIN = 10.0f;
+	
+	const float LIGHTNESS_CIRCLE_RADIUS = DIALOG_WIDTH * 0.2f;
+	const float HUE_CIRCLE_RADIUS = DIALOG_WIDTH * 0.33f;	
+	const float HUE_STROKE_HALF_WIDTH = 2.5f;
+
+	const float ADD_BUTTON_MARGIN = 20.0f;
+	const float ADD_BUTTON_SIZE = 20.0f;
+
+	const float INDICATE_MARGIN = 10.0f;
+	const float INDICATE_WIDTH = 100.0f;
+	const float INDICATE_HEIGHT = 35.0f;
 
 	typedef enum class DRAW_MODE
 	{

@@ -18,13 +18,13 @@ ColorAddView::ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode) :
 		m_oppositeColor = RGB_TO_COLORF(NEUTRAL_200);
 	}
 	memset(&m_currentLightness, 0, sizeof(DColor));
-
 	memset(&m_lightnessRect, 0, sizeof(DRect));
-	const float margin = 10.0f;
-	const DSize indicateButtonSize = { 100.0f, 35.0f };
+
 	m_indicateRect = {
-		COLOR::DIALOG_WIDTH - indicateButtonSize.width - margin, COLOR::DIALOG_HEIGHT - indicateButtonSize.height - margin,
-		COLOR::DIALOG_WIDTH - margin, COLOR::DIALOG_HEIGHT - margin
+		COLOR::DIALOG_WIDTH - COLOR::INDICATE_WIDTH - COLOR::INDICATE_MARGIN,
+		COLOR::DIALOG_HEIGHT - COLOR::INDICATE_HEIGHT - COLOR::INDICATE_MARGIN,
+		COLOR::DIALOG_WIDTH - COLOR::INDICATE_MARGIN,
+		COLOR::DIALOG_HEIGHT - COLOR::INDICATE_MARGIN
 	};
 
 	mp_lightnessGradientBrush = nullptr;
@@ -42,13 +42,12 @@ ColorAddView::~ColorAddView()
 	InterfaceRelease(&mp_memoryTarget);
 }
 
-void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
+void ColorAddView::Init(const HWND &ah_wnd, const DPoint &a_centerPoint, const SIZE &a_viewSize)
 {
 	const auto InitHueDataList = [](ColorAddView *const ap_view, const float &a_centerPosX, const float &a_centerPosY)
 	{
-		const float STROKE_WIDTH = 2.5f;
-		const float startHueRadius = COLOR::HUE_CIRCLE_RADIUS - STROKE_WIDTH;
-		const float endHueRadius = COLOR::HUE_CIRCLE_RADIUS + STROKE_WIDTH;
+		const float startHueRadius = COLOR::HUE_CIRCLE_RADIUS - COLOR::HUE_STROKE_HALF_WIDTH;
+		const float endHueRadius = COLOR::HUE_CIRCLE_RADIUS + COLOR::HUE_STROKE_HALF_WIDTH;
 
 		ap_view->m_hueDataList.resize(720);
 
@@ -72,6 +71,20 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 
 			degree++;
 		}
+	};
+	const auto InitMemoryInterfaces = [](ColorAddView *const ap_view, const SIZE &a_viewSize)
+	{
+		if (S_OK == gp_appCore->GetWICFactory()->CreateBitmap(
+			a_viewSize.cx, a_viewSize.cy, GUID_WICPixelFormat32bppPRGBA, WICBitmapCacheOnDemand, &ap_view->mp_memoryBitmap
+		)) {
+			if (S_OK == gp_appCore->GetFactory()->CreateWicBitmapRenderTarget(
+				ap_view->mp_memoryBitmap, D2D1::RenderTargetProperties(), &ap_view->mp_memoryTarget
+			)) {
+				return true;
+			}
+		}
+
+		return false;
 	};
 	const auto UpdateMemoryHueCircle = [](ColorAddView *const ap_view)
 	{
@@ -97,44 +110,42 @@ void ColorAddView::Init(const DPoint &a_centerPoint, const SIZE &a_viewSize)
 	// implementation
 	////////////////////////////////////////////////////////////////
 
-	m_viewSize = a_viewSize;
-	m_lightnessRect = {
-		a_centerPoint.x - COLOR::LIHTNESS_CIRCLE_RADIUS, a_centerPoint.y - COLOR::LIHTNESS_CIRCLE_RADIUS,
-		a_centerPoint.x + COLOR::LIHTNESS_CIRCLE_RADIUS, a_centerPoint.y + COLOR::LIHTNESS_CIRCLE_RADIUS
-	};
-
-	auto result = gp_appCore->GetWICFactory()->CreateBitmap(
-		a_viewSize.cx, a_viewSize.cy, GUID_WICPixelFormat32bppPRGBA, WICBitmapCacheOnDemand, &mp_memoryBitmap
-	);
-	if (S_OK != result) {
-		return;
-	}
-
-	result = gp_appCore->GetFactory()->CreateWicBitmapRenderTarget(mp_memoryBitmap, D2D1::RenderTargetProperties(), &mp_memoryTarget);
-	if (S_OK != result) {
+	if (!InitMemoryInterfaces(this, a_viewSize)) {
+		::DestroyWindow(ah_wnd);
 		return;
 	}
 
 	InitHueDataList(this, a_centerPoint.x, a_centerPoint.y);
 	UpdateMemoryHueCircle(this);
 
-	m_returnIconPoints = {
-	{{ 14.0f, COLOR::TITLE_HEIGHT / 2.0f }, { COLOR::TITLE_HEIGHT - 14.0f, 10.0f }},
-	{{ 14.0f, COLOR::TITLE_HEIGHT / 2.0f }, { COLOR::TITLE_HEIGHT - 14.0f, COLOR::TITLE_HEIGHT - 10.0f }}
+	m_viewSize = a_viewSize;
+	m_lightnessRect = {
+		a_centerPoint.x - COLOR::LIGHTNESS_CIRCLE_RADIUS, a_centerPoint.y - COLOR::LIGHTNESS_CIRCLE_RADIUS,
+		a_centerPoint.x + COLOR::LIGHTNESS_CIRCLE_RADIUS, a_centerPoint.y + COLOR::LIGHTNESS_CIRCLE_RADIUS
 	};
-
-	const float margin = 20.0f;
-	const float addButtonSize = 20.0f;
+	m_returnIconPoints = {
+		{
+			{ COLOR::RETURN_ICON_X_MARGIN, COLOR::TITLE_HEIGHT / 2.0f },
+			{ COLOR::TITLE_HEIGHT - COLOR::RETURN_ICON_X_MARGIN, COLOR::RETURN_ICON_Y_MARGIN }
+		},
+		{
+			{ COLOR::RETURN_ICON_X_MARGIN, COLOR::TITLE_HEIGHT / 2.0f },
+			{ COLOR::TITLE_HEIGHT - COLOR::RETURN_ICON_X_MARGIN, COLOR::TITLE_HEIGHT - COLOR::RETURN_ICON_Y_MARGIN }
+		}
+	};
 	m_buttonTable = {
 		{
 			COLOR::BT::RETURN,
-			{ 10.0f, 10.0f, COLOR::TITLE_HEIGHT - 10.0f, COLOR::TITLE_HEIGHT - 10.0f }
+			{ 
+				COLOR::RETURN_ICON_X_MARGIN, COLOR::RETURN_ICON_Y_MARGIN, 
+				COLOR::TITLE_HEIGHT - COLOR::RETURN_ICON_X_MARGIN, COLOR::TITLE_HEIGHT - COLOR::RETURN_ICON_Y_MARGIN,
+			}
 		},
 		{
 			COLOR::BT::ADD,
 			{
-				margin, COLOR::DIALOG_HEIGHT - addButtonSize - margin,
-				addButtonSize + margin, COLOR::DIALOG_HEIGHT - margin
+				 COLOR::ADD_BUTTON_MARGIN, COLOR::DIALOG_HEIGHT - COLOR::ADD_BUTTON_SIZE - COLOR::ADD_BUTTON_MARGIN,
+				COLOR::ADD_BUTTON_SIZE + COLOR::ADD_BUTTON_MARGIN, COLOR::DIALOG_HEIGHT - COLOR::ADD_BUTTON_MARGIN
 			}
 
 		}
@@ -200,7 +211,7 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 			rect.left + (rect.right - rect.left) / 2.0f ,rect.top + (rect.bottom - rect.top) / 2.0f
 		};
 		if (COLOR::BT::LIGHTNESS == a_modelData.clickedButtonType) {
-			ExpandRect(rect, COLOR::BUTTON_RADIUS);
+			ExpandRect(rect, COLOR::COLOR_RADIUS);
 		}
 
 		// fill button
@@ -245,11 +256,10 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 		ap_view->mp_direct2d->DrawEllipse(mainRect);
 
 		// draw small circle
-		const float SMALL_RADIUS = 7.0f;
 		float offset = 2.0f;
 		const DRect smallRect = {
-			mainRect.right - SMALL_RADIUS - offset, mainRect.top + SMALL_RADIUS + offset,
-			mainRect.right + SMALL_RADIUS - offset, mainRect.top - SMALL_RADIUS + offset,
+			mainRect.right - COLOR::PLUS_BUTTON_RADIUS - offset, mainRect.top + COLOR::PLUS_BUTTON_RADIUS + offset,
+			mainRect.right + COLOR::PLUS_BUTTON_RADIUS - offset, mainRect.top - COLOR::PLUS_BUTTON_RADIUS + offset,
 		};
 		ap_view->mp_direct2d->FillEllipse(smallRect);
 
@@ -270,10 +280,11 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 		ap_view->mp_direct2d->SetStrokeWidth(1.0f);
 
 		// draw title
+		offset = 80.0f;
 		const auto rect = ap_view->m_buttonTable.at(COLOR::BT::ADD);
 		const DRect titleRect = {
 			rect.right, rect.top,
-			rect.right + 80.0f, rect.bottom
+			rect.right + offset, rect.bottom
 		};
 
 		auto previousFont = ap_view->mp_direct2d->SetTextFormat(ap_view->mp_indicateFont);

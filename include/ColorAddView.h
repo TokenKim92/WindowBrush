@@ -38,7 +38,7 @@ public:
 	ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode);
 	virtual ~ColorAddView();
 
-	void Init(const DPoint &a_centerPoint, const SIZE &a_viewSize);
+	void Init(const HWND &ah_wnd, const DPoint &a_centerPoint, const SIZE &a_viewSize);
 	void Paint(const COLOR::MD &a_modelData);
 	void UpdateLightnessData(const DColor &a_hue);
 

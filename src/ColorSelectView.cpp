@@ -81,11 +81,10 @@ void ColorSelectView::Init(const SIZE &a_viewSize)
 
 const DRect ColorSelectView::GetColorRect(const size_t a_index)
 {
-	const float COLOR_RADIUS = 10.0f;
 	const float posX = static_cast<float>(m_colorCircleStartPoint.x + COLOR::INTERVAL * (a_index % m_colorCountPerWidth));
 	const float posY = static_cast<float>(m_colorCircleStartPoint.y + COLOR::INTERVAL * (a_index / m_colorCountPerHeight));
 
-	return DRect({ posX - COLOR_RADIUS, posY - COLOR_RADIUS, posX + COLOR_RADIUS, posY + COLOR_RADIUS });
+	return DRect({ posX - COLOR::COLOR_RADIUS, posY - COLOR::COLOR_RADIUS, posX + COLOR::COLOR_RADIUS, posY + COLOR::COLOR_RADIUS });
 }
 
 void ColorSelectView::Paint(const COLOR::MD &a_modelData)
@@ -153,11 +152,10 @@ void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 		}
 
 		// draw small circle
-		const float SMALL_RADIUS = 7.0f;
 		float offset = 2.0f;
 		const DRect smallRect = {
-			mainRect.right - SMALL_RADIUS - offset, mainRect.top + SMALL_RADIUS + offset,
-			mainRect.right + SMALL_RADIUS - offset, mainRect.top - SMALL_RADIUS + offset,
+			mainRect.right - COLOR::PLUS_BUTTON_RADIUS - offset, mainRect.top + COLOR::PLUS_BUTTON_RADIUS + offset,
+			mainRect.right + COLOR::PLUS_BUTTON_RADIUS - offset, mainRect.top - COLOR::PLUS_BUTTON_RADIUS + offset,
 		};
 		ap_view->mp_direct2d->FillEllipse(smallRect);
 

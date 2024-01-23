@@ -26,11 +26,12 @@ ColorDialog::ColorDialog(const DColor &a_selectedColor, const std::vector<DColor
 	memset(&m_colorCenterPoint, 0, sizeof(DPoint));
 	isInitializedAddMode = false;
 	m_selectedColorIndex = COLOR::INVALID_INDEX;
-}
 
-ColorDialog::~ColorDialog()
-{
-
+	// add message handlers
+	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&ColorDialog::MouseMoveHandler));
+	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonDownHandler));
+	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonUpHandler));
+	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ColorDialog::KeyDownHandler));
 }
 
 void ColorDialog::OnInitDialog()
@@ -39,22 +40,11 @@ void ColorDialog::OnInitDialog()
 	DisableMinimize();
 	DisableSize();
 
-	// add message handlers
-	AddMessageHandler(WM_MOUSEMOVE, static_cast<MessageHandler>(&ColorDialog::MouseMoveHandler));
-	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonDownHandler));
-	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&ColorDialog::MouseLeftButtonUpHandler));
-	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&ColorDialog::KeyDownHandler));
-
 	const auto p_view = new ColorView(mh_window, m_previousSelectedColor, m_colorList, GetColorMode());
 	InheritDirect2D(p_view);
 	p_view->Create();
 	m_colorDataTable = p_view->GetColorDataTable();
 	m_addButtonData = p_view->GetAddButtonData();
-}
-
-void ColorDialog::OnDestroy()
-{
-
 }
 
 void ColorDialog::OnPaint()
@@ -107,8 +97,8 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		const auto y = static_cast<float>(a_centerPoint.y + sin(theta) * COLOR::HUE_CIRCLE_RADIUS * sign);
 
 		a_modelData.hueButtonRect = {
-			x - COLOR::BUTTON_RADIUS, y - COLOR::BUTTON_RADIUS,
-			x + COLOR::BUTTON_RADIUS, y + COLOR::BUTTON_RADIUS
+			x - COLOR::COLOR_RADIUS, y - COLOR::COLOR_RADIUS,
+			x + COLOR::COLOR_RADIUS, y + COLOR::COLOR_RADIUS
 		};
 
 		ap_view->UpdateLightnessCircle(DPoint({ x, y }));
@@ -119,7 +109,7 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		const float dy = a_point.y - a_centerPoint.y;
 
 		float x, y;
-		if (dx * dx + dy * dy < COLOR::LIHTNESS_CIRCLE_RADIUS * COLOR::LIHTNESS_CIRCLE_RADIUS) {
+		if (dx * dx + dy * dy < COLOR::LIGHTNESS_CIRCLE_RADIUS * COLOR::LIGHTNESS_CIRCLE_RADIUS) {
 			x = static_cast<float>(a_point.x);
 			y = static_cast<float>(a_point.y);
 		}
@@ -127,13 +117,13 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 			double theta = atan(dy / dx);
 			int sign = dx >= 0 ? 1 : -1;
 
-			x = static_cast<float>(a_centerPoint.x + cos(theta) * (COLOR::LIHTNESS_CIRCLE_RADIUS - 1.0f) * sign);
-			y = static_cast<float>(a_centerPoint.y + sin(theta) * (COLOR::LIHTNESS_CIRCLE_RADIUS - 1.0f) * sign);
+			x = static_cast<float>(a_centerPoint.x + cos(theta) * (COLOR::LIGHTNESS_CIRCLE_RADIUS - 1.0f) * sign);
+			y = static_cast<float>(a_centerPoint.y + sin(theta) * (COLOR::LIGHTNESS_CIRCLE_RADIUS - 1.0f) * sign);
 		}
 
 		a_modelData.lightnessButtonRect = {
-			x - COLOR::BUTTON_RADIUS, y - COLOR::BUTTON_RADIUS,
-			x + COLOR::BUTTON_RADIUS, y + COLOR::BUTTON_RADIUS
+			x - COLOR::COLOR_RADIUS, y - COLOR::COLOR_RADIUS,
+			x + COLOR::COLOR_RADIUS, y + COLOR::COLOR_RADIUS
 		};
 	};
 	static const auto OnAddMode = [](ColorDialog *const ap_dialog, const POINT &a_point)
@@ -183,11 +173,14 @@ int ColorDialog::MouseMoveHandler(WPARAM a_wordParam, LPARAM a_longParam)
 
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
-	if (COLOR::DM::SELECT == m_drawMode) {
+	switch (m_drawMode)
+	{
+	case COLOR::DM::SELECT:
 		OnSelectMode(this, point);
-	}
-	else {
+		break;
+	case COLOR::DM::ADD:
 		OnAddMode(this, point);
+		break;
 	}
 
 	return S_OK;
@@ -240,11 +233,14 @@ int ColorDialog::MouseLeftButtonDownHandler(WPARAM a_wordParam, LPARAM a_longPar
 
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
-	if (COLOR::DM::SELECT == m_drawMode) {
+	switch (m_drawMode)
+	{
+	case COLOR::DM::SELECT:
 		OnSelectMode(this, point);
-	}
-	else {
+		break;
+	case COLOR::DM::ADD:
 		OnAddMode(this, point);
+		break;
 	}
 
 	return S_OK;
@@ -316,11 +312,14 @@ int ColorDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_longParam
 
 	const POINT point = { LOWORD(a_longParam), HIWORD(a_longParam) };
 
-	if (COLOR::DM::SELECT == m_drawMode) {
+	switch (m_drawMode)
+	{
+	case COLOR::DM::SELECT:
 		OnSelectMode(this, point);
-	}
-	else {
+		break;
+	case COLOR::DM::ADD:
 		OnAddMode(this, point);
+		break;
 	}
 
 	return S_OK;
@@ -355,13 +354,13 @@ void ColorDialog::ChangeMode(const COLOR::DM &a_drawModw)
 		};
 
 		m_modelData.hueButtonRect = {
-			m_colorCenterPoint.x + COLOR::HUE_CIRCLE_RADIUS - COLOR::BUTTON_RADIUS, m_colorCenterPoint.y - COLOR::BUTTON_RADIUS,
-			m_colorCenterPoint.x + COLOR::HUE_CIRCLE_RADIUS + COLOR::BUTTON_RADIUS, m_colorCenterPoint.y + COLOR::BUTTON_RADIUS
+			m_colorCenterPoint.x + COLOR::HUE_CIRCLE_RADIUS - COLOR::COLOR_RADIUS, m_colorCenterPoint.y - COLOR::COLOR_RADIUS,
+			m_colorCenterPoint.x + COLOR::HUE_CIRCLE_RADIUS + COLOR::COLOR_RADIUS, m_colorCenterPoint.y + COLOR::COLOR_RADIUS
 		};
 
 		m_modelData.lightnessButtonRect = {
-			m_colorCenterPoint.x - COLOR::BUTTON_RADIUS, m_colorCenterPoint.y - COLOR::BUTTON_RADIUS,
-			m_colorCenterPoint.x + COLOR::BUTTON_RADIUS, m_colorCenterPoint.y + COLOR::BUTTON_RADIUS
+			m_colorCenterPoint.x - COLOR::COLOR_RADIUS, m_colorCenterPoint.y - COLOR::COLOR_RADIUS,
+			m_colorCenterPoint.x + COLOR::COLOR_RADIUS, m_colorCenterPoint.y + COLOR::COLOR_RADIUS
 		};
 
 		static_cast<ColorView *>(mp_direct2d)->InitColorAddView(m_colorCenterPoint);
