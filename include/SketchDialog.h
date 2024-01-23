@@ -23,7 +23,7 @@ protected:
 
 public:
 	SketchDialog(const HWND &ah_parentWindow, const WINDOW_BRUSH::MD &a_modelData, const RECT &a_scaledRect);
-	virtual ~SketchDialog();
+	virtual ~SketchDialog() = default;
 
 	void UpdateWindowBrushModelData(const WINDOW_BRUSH::MD *a_modelData);
 

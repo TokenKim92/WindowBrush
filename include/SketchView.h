@@ -34,6 +34,7 @@ public:
 	void Paint(const std::vector<SKETCH::MD> &a_modelDataList);
 
 protected:
+	// this method is not used for performance 
 	unsigned char GetAverageBrightness(const HBITMAP &ah_bitmap);
 };
 

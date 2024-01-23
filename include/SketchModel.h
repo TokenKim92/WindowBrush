@@ -13,11 +13,15 @@ namespace SKETCH {
 	const unsigned int FPS_TIME = 1000 / FPS;	//ms	
 	const unsigned int TOGGLE_TAB_TIME = 500;	//ms
 
+	const float BORDER_STROKE_WIDTH = 4.0f;
+
 	const unsigned int WM_UPDATE_MODEL_DATA = 24001;
-	const unsigned int WM_SET_TEXTOUTLINE_MODE = WM_UPDATE_MODEL_DATA + 1;
-	const unsigned int WM_ON_EDIT_MAX_LEGNTH = WM_UPDATE_MODEL_DATA + 2;
+	const unsigned int WM_SET_TEXT_OUTLINE_MODE = WM_UPDATE_MODEL_DATA + 1;
+	const unsigned int WM_ON_EDIT_MAX_LENGTH = WM_UPDATE_MODEL_DATA + 2;
 	
 	const size_t GRADIENT_BRUSH_COUNT = 10;
+
+	const float RECTANGLE_ROUND_RADIUS = 5.0f;
 
 	typedef struct DEFAULT_DATA
 	{

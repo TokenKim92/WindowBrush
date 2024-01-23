@@ -127,7 +127,7 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 {
 	static const auto DrawBorder = [](SketchView *const ap_view)
 	{
-		ap_view->SetStrokeWidth(4.0f);
+		ap_view->SetStrokeWidth(SKETCH::BORDER_STROKE_WIDTH);
 		ap_view->SetBrushColor(ap_view->m_colorSet.highlight);
 		ap_view->DrawRectangle(ap_view->m_viewRect);
 		ap_view->SetStrokeWidth(1.0f);
@@ -158,11 +158,8 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 			if (S_OK == p_geometry->Open(&p_sink)) {
 				p_sink->BeginFigure(a_modelData.points[0], D2D1_FIGURE_BEGIN_FILLED);
 
-				size_t count = a_modelData.points.size();
-				if (count > 1) {
-					for (size_t i = 1; i < count; i++) {
-						p_sink->AddLine(a_modelData.points[i]);
-					}
+				for (size_t i = 0; i < a_modelData.points.size(); i++) {
+					p_sink->AddLine(a_modelData.points[i]);
 				}
 
 				p_sink->EndFigure(D2D1_FIGURE_END_OPEN);
@@ -246,7 +243,7 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 
 		if (a_modelData.text.length() < 1) {
 			const bool isDone = false;
-			::PostMessage(ap_view->mh_window, SKETCH::WM_SET_TEXTOUTLINE_MODE, 0, isDone);
+			::PostMessage(ap_view->mh_window, SKETCH::WM_SET_TEXT_OUTLINE_MODE, 0, isDone);
 			DrawTextOutline(ap_view, a_modelData);
 			
 			return {};
@@ -275,7 +272,7 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 			auto p_memoryText = new wchar_t[textLength + 1];
 			wcscpy_s(p_memoryText, textLength + 1, text.c_str());
 
-			::PostMessage(ap_view->mh_window, SKETCH::WM_ON_EDIT_MAX_LEGNTH, reinterpret_cast<WPARAM>(p_memoryText), textLength);
+			::PostMessage(ap_view->mh_window, SKETCH::WM_ON_EDIT_MAX_LENGTH, reinterpret_cast<WPARAM>(p_memoryText), textLength);
 		}
 
 		const DRect rect = { startPoint.x, startPoint.y, startPoint.x + textSize.width, startPoint.y + textSize.height };
@@ -286,7 +283,7 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 
 			if (tabFlag) {
 				text.pop_back();
-				text += L"I";
+				text += L"I"; // TODO:: find a better letter for the tab
 			}
 		}
 
@@ -323,7 +320,7 @@ void SketchView::Paint(const std::vector<SKETCH::MD> &a_modelDataList)
 			WINDOW_BRUSH::DT::RECTANGLE,
 			[](SketchView *const ap_view, const SKETCH::MD &a_modelData) {
 				const auto p_previousBrush = SetByDefaultData(ap_view, a_modelData.defaultData);
-				ap_view->DrawRectangle(a_modelData.rect);
+				ap_view->DrawRoundedRectangle(a_modelData.rect, SKETCH::RECTANGLE_ROUND_RADIUS);
 
 				if (nullptr != p_previousBrush) {
 					ap_view->SetBrush(p_previousBrush);

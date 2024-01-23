@@ -46,6 +46,7 @@ SketchDialog::SketchDialog(const HWND &ah_parentWindow, const WINDOW_BRUSH::MD &
 	m_leftButtonDown = false;
 	m_isKeyDownOnTyping = false;
 	m_previousMilliseconds = 0;
+
 	mh_screenBitmap = GetScreenHBitmap(a_scaledRect, a_modelData.selectedScreenRect);
 	mh_edit = nullptr;
 
@@ -54,16 +55,11 @@ SketchDialog::SketchDialog(const HWND &ah_parentWindow, const WINDOW_BRUSH::MD &
 	AddMessageHandler(WM_LBUTTONDOWN, static_cast<MessageHandler>(&SketchDialog::MouseLeftButtonDownHandler));
 	AddMessageHandler(WM_LBUTTONUP, static_cast<MessageHandler>(&SketchDialog::MouseLeftButtonUpHandler));
 	AddMessageHandler(SKETCH::WM_UPDATE_MODEL_DATA, static_cast<MessageHandler>(&SketchDialog::UpdateModelDataHandler));
-	AddMessageHandler(SKETCH::WM_SET_TEXTOUTLINE_MODE, static_cast<MessageHandler>(&SketchDialog::SetTextOutlineModeHandler));
-	AddMessageHandler(SKETCH::WM_ON_EDIT_MAX_LEGNTH, static_cast<MessageHandler>(&SketchDialog::OnEditMaxLengthHandler));
+	AddMessageHandler(SKETCH::WM_SET_TEXT_OUTLINE_MODE, static_cast<MessageHandler>(&SketchDialog::SetTextOutlineModeHandler));
+	AddMessageHandler(SKETCH::WM_ON_EDIT_MAX_LENGTH, static_cast<MessageHandler>(&SketchDialog::OnEditMaxLengthHandler));
 	AddMessageHandler(WM_KEYDOWN, static_cast<MessageHandler>(&SketchDialog::KeyDownHandler));
 
 	srand(static_cast<unsigned int>(time(NULL)));
-}
-
-SketchDialog::~SketchDialog()
-{
-
 }
 
 void SketchDialog::OnInitDialog()
