@@ -1,13 +1,13 @@
-#ifndef _COLOR_ADD_VIEW_H_
-#define _COLOR_ADD_VIEW_H_
+#ifndef _PALETTE_ADD_VIEW_H_
+#define _PALETTE_ADD_VIEW_H_
 
 #include "Direct2DEx.h"
-#include "ColorModel.h"
+#include "PaletteModel.h"
 #include <vector>
 #include <map>
 #include <memory>
 
-class ColorAddView
+class PaletteAddView
 {
 protected:
 	Direct2DEx *const mp_direct2d;
@@ -22,7 +22,7 @@ protected:
 
 	std::vector<std::pair<DColor, std::pair<DPoint, DPoint>>> m_hueDataList;
 	std::vector<std::pair<DPoint, DPoint>> m_returnIconPoints;
-	std::map<COLOR::BT, DRect> m_buttonTable;
+	std::map<PALETTE::BT, DRect> m_buttonTable;
 
 	// interface
 	ID2D1LinearGradientBrush *mp_lightnessGradientBrush;
@@ -35,16 +35,16 @@ protected:
 	std::unique_ptr<unsigned char[]> mp_memoryPattern;
 
 public:
-	ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode);
-	virtual ~ColorAddView();
+	PaletteAddView(Direct2DEx *const ap_direct2d, const CM &a_mode);
+	virtual ~PaletteAddView();
 
 	void Init(const HWND &ah_wnd, const DPoint &a_centerPoint, const SIZE &a_viewSize);
-	void Paint(const COLOR::MD &a_modelData);
+	void Paint(const PALETTE::MD &a_modelData);
 	void UpdateLightnessData(const DColor &a_hue);
 
-	const std::map<COLOR::BT, DRect> &GetButtonTable();
+	const std::map<PALETTE::BT, DRect> &GetButtonTable();
 	DColor GetPixelColorOnPoint(const DPoint &a_point);
 	DColor &GetCurrentLightness();
 };
 
-#endif //!_COLOR_ADD_VIEW_H_
+#endif //!_PALETTE_ADD_VIEW_H_

@@ -58,7 +58,7 @@ protected:
 	void OnEllipseButtonUp();
 	void OnTextButtonUp();
 	void OnStrokeButtonUp();
-	void OnColorButtonUp();
+	void OnPaletteButtonUp();
 	void OnGradientButtonUp();
 	void OnFadeButtonUp();
 

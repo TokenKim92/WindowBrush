@@ -1,7 +1,7 @@
-#ifndef _COLOR_MODEL_H_
-#define _COLOR_MODEL_H_
+#ifndef _PALETTE_MODEL_H_
+#define _PALETTE_MODEL_H_
 
-namespace COLOR {
+namespace PALETTE {
 
 	const size_t INVALID_INDEX = static_cast<size_t>(-1);
 	const float DEFAULT_TRANSPARENCY = 0.8f;
@@ -15,7 +15,7 @@ namespace COLOR {
 	const float COLOR_RADIUS = 10.0f;
 	const float PLUS_BUTTON_RADIUS = 7.0f;
 	
-	// for ColorAdd
+	// for PaletteAddView
 	const float RETURN_ICON_X_MARGIN = 14.0f;
 	const float RETURN_ICON_Y_MARGIN = 10.0f;
 	
@@ -57,4 +57,4 @@ namespace COLOR {
 
 }
 
-#endif //!_COLOR_MODEL_H_
+#endif //!_PALETTE_MODEL_H_

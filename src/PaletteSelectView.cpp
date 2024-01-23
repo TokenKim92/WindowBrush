@@ -1,8 +1,8 @@
-#include "ColorSelectView.h"
+#include "PaletteSelectView.h"
 #include "ColorPalette.h"
 #include "Utility.h"
 
-ColorSelectView::ColorSelectView(
+PaletteSelectView::PaletteSelectView(
 	Direct2DEx *const ap_direct2d, const DColor &a_selectedColor, const std::vector<DColor> &a_colorList, const CM &a_mode
 ) :
 	mp_direct2d(ap_direct2d),
@@ -27,22 +27,22 @@ ColorSelectView::ColorSelectView(
 	m_maxColorDataSize = 0;
 }
 
-ColorSelectView::~ColorSelectView()
+PaletteSelectView::~PaletteSelectView()
 {
 	InterfaceRelease(&mp_addButtonStroke);
 }
 
-void ColorSelectView::Init(const SIZE &a_viewSize)
+void PaletteSelectView::Init(const SIZE &a_viewSize)
 {
-	const int height = a_viewSize.cy - COLOR::TITLE_HEIGHT;
-	size_t offset = a_viewSize.cx % COLOR::INTERVAL ? 0 : 1;
-	m_colorCountPerWidth = a_viewSize.cx / COLOR::INTERVAL - offset;
-	offset = height % COLOR::INTERVAL ? 0 : 1;
-	m_colorCountPerHeight = height / COLOR::INTERVAL - offset;
+	const int height = a_viewSize.cy - PALETTE::TITLE_HEIGHT;
+	size_t offset = a_viewSize.cx % PALETTE::INTERVAL ? 0 : 1;
+	m_colorCountPerWidth = a_viewSize.cx / PALETTE::INTERVAL - offset;
+	offset = height % PALETTE::INTERVAL ? 0 : 1;
+	m_colorCountPerHeight = height / PALETTE::INTERVAL - offset;
 
 	m_colorCircleStartPoint = {
-		(a_viewSize.cx - (m_colorCountPerWidth - 1) * COLOR::INTERVAL) / 2.0f,
-		COLOR::TITLE_HEIGHT + (height - (m_colorCountPerHeight - 1) * COLOR::INTERVAL) / 2.0f
+		(a_viewSize.cx - (m_colorCountPerWidth - 1) * PALETTE::INTERVAL) / 2.0f,
+		PALETTE::TITLE_HEIGHT + (height - (m_colorCountPerHeight - 1) * PALETTE::INTERVAL) / 2.0f
 	};
 
 	m_maxColorDataSize = m_colorCountPerWidth * m_colorCountPerHeight;
@@ -79,17 +79,17 @@ void ColorSelectView::Init(const SIZE &a_viewSize)
 	mp_addButtonStroke = mp_direct2d->CreateUserStrokeStyle(D2D1_DASH_STYLE_DASH);
 }
 
-const DRect ColorSelectView::GetColorRect(const size_t a_index)
+const DRect PaletteSelectView::GetColorRect(const size_t a_index)
 {
-	const float posX = static_cast<float>(m_colorCircleStartPoint.x + COLOR::INTERVAL * (a_index % m_colorCountPerWidth));
-	const float posY = static_cast<float>(m_colorCircleStartPoint.y + COLOR::INTERVAL * (a_index / m_colorCountPerHeight));
+	const float posX = static_cast<float>(m_colorCircleStartPoint.x + PALETTE::INTERVAL * (a_index % m_colorCountPerWidth));
+	const float posY = static_cast<float>(m_colorCircleStartPoint.y + PALETTE::INTERVAL * (a_index / m_colorCountPerHeight));
 
-	return DRect({ posX - COLOR::COLOR_RADIUS, posY - COLOR::COLOR_RADIUS, posX + COLOR::COLOR_RADIUS, posY + COLOR::COLOR_RADIUS });
+	return DRect({ posX - PALETTE::COLOR_RADIUS, posY - PALETTE::COLOR_RADIUS, posX + PALETTE::COLOR_RADIUS, posY + PALETTE::COLOR_RADIUS });
 }
 
-void ColorSelectView::Paint(const COLOR::MD &a_modelData)
+void PaletteSelectView::Paint(const PALETTE::MD &a_modelData)
 {
-	static const auto DrawColorItems = [](ColorSelectView *const ap_view, const COLOR::MD &a_modelData)
+	static const auto DrawColorItems = [](PaletteSelectView *const ap_view, const PALETTE::MD &a_modelData)
 	{
 		DRect rect;
 		for (auto const &[index, colorData] : ap_view->m_colorDataTable) {
@@ -108,11 +108,11 @@ void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 			ap_view->mp_direct2d->FillEllipse(rect);
 		}
 	};
-	static const auto DrawSelectedColorItem = [](ColorSelectView *const ap_view, const COLOR::MD &a_modelData)
+	static const auto DrawSelectedColorItem = [](PaletteSelectView *const ap_view, const PALETTE::MD &a_modelData)
 	{
 		DRect rect;
 		const size_t selectedColorIndex = ap_view->m_selectedColorData.first;
-		if (COLOR::INVALID_INDEX != selectedColorIndex) {
+		if (PALETTE::INVALID_INDEX != selectedColorIndex) {
 			rect = ap_view->m_colorDataTable.at(selectedColorIndex).second;
 
 			// draw border
@@ -129,7 +129,7 @@ void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 			ap_view->mp_direct2d->FillEllipse(rect);
 		}
 	};
-	static const auto DrawAddButton = [](ColorSelectView *const ap_view, const COLOR::MD &a_modelData)
+	static const auto DrawAddButton = [](PaletteSelectView *const ap_view, const PALETTE::MD &a_modelData)
 	{
 		// draw main circle
 		DRect mainRect = ap_view->m_addButtonData.second;
@@ -154,8 +154,8 @@ void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 		// draw small circle
 		float offset = 2.0f;
 		const DRect smallRect = {
-			mainRect.right - COLOR::PLUS_BUTTON_RADIUS - offset, mainRect.top + COLOR::PLUS_BUTTON_RADIUS + offset,
-			mainRect.right + COLOR::PLUS_BUTTON_RADIUS - offset, mainRect.top - COLOR::PLUS_BUTTON_RADIUS + offset,
+			mainRect.right - PALETTE::PLUS_BUTTON_RADIUS - offset, mainRect.top + PALETTE::PLUS_BUTTON_RADIUS + offset,
+			mainRect.right + PALETTE::PLUS_BUTTON_RADIUS - offset, mainRect.top - PALETTE::PLUS_BUTTON_RADIUS + offset,
 		};
 		ap_view->mp_direct2d->FillEllipse(smallRect);
 
@@ -188,7 +188,7 @@ void ColorSelectView::Paint(const COLOR::MD &a_modelData)
 	DrawAddButton(this, a_modelData);
 }
 
-void ColorSelectView::AddColor(const DColor &a_color)
+void PaletteSelectView::AddColor(const DColor &a_color)
 {
 	const size_t index = m_colorDataTable.size();
 	m_colorDataTable.insert({ index, { a_color, GetColorRect(index) } });
@@ -196,16 +196,16 @@ void ColorSelectView::AddColor(const DColor &a_color)
 	m_addButtonData = { index + 1, GetColorRect(index + 1) };
 }
 
-DColor ColorSelectView::GetColor(const size_t &a_index)
+DColor PaletteSelectView::GetColor(const size_t &a_index)
 {
-	if (COLOR::INVALID_INDEX != a_index || m_colorDataTable.size() > a_index) {
+	if (PALETTE::INVALID_INDEX != a_index || m_colorDataTable.size() > a_index) {
 		return m_colorDataTable.at(a_index).first;
 	}
 
 	return DColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 }
 
-std::vector<DColor> ColorSelectView::GetColorList()
+std::vector<DColor> PaletteSelectView::GetColorList()
 {
 	std::vector<DColor> tempVec;
 	for (auto &[index, data] : m_colorDataTable) {
@@ -215,7 +215,7 @@ std::vector<DColor> ColorSelectView::GetColorList()
 	return tempVec;
 }
 
-const std::map<size_t, DRect> ColorSelectView::GetColorDataTable()
+const std::map<size_t, DRect> PaletteSelectView::GetColorDataTable()
 {
 	std::map<size_t, DRect> tempMap;
 
@@ -226,7 +226,7 @@ const std::map<size_t, DRect> ColorSelectView::GetColorDataTable()
 	return tempMap;
 }
 
-const std::pair<size_t, DRect> &ColorSelectView::GetAddButtonData()
+const std::pair<size_t, DRect> &PaletteSelectView::GetAddButtonData()
 {
 	return m_addButtonData;
 }

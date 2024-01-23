@@ -22,12 +22,6 @@
     <Filter Include="Source Files\WindowBrushDialog">
       <UniqueIdentifier>{5eaa1e48-21f9-458b-be87-241cc56d3335}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\ColorDialog">
-      <UniqueIdentifier>{9b8efd2e-88f7-461a-85fb-961891da3a66}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\ColorDialog">
-      <UniqueIdentifier>{aa850421-18f4-4e16-b13f-d1b4814b5d3d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\EditDialog">
       <UniqueIdentifier>{396c7987-7eba-4e7d-af5d-f2541e0430c1}</UniqueIdentifier>
     </Filter>
@@ -58,6 +52,12 @@
     <Filter Include="Source Files\SketchDialog">
       <UniqueIdentifier>{c0779b2a-915e-4792-875b-45f10f756e03}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\PaletteDialog">
+      <UniqueIdentifier>{aa850421-18f4-4e16-b13f-d1b4814b5d3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PaletteDialog">
+      <UniqueIdentifier>{9b8efd2e-88f7-461a-85fb-961891da3a66}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WindowBrush.cpp">
@@ -69,20 +69,20 @@
     <ClCompile Include="src\WindowBrushDialog.cpp">
       <Filter>Source Files\WindowBrushDialog</Filter>
     </ClCompile>
-    <ClCompile Include="src\ColorDialog.cpp">
-      <Filter>Source Files\ColorDialog</Filter>
+    <ClCompile Include="src\PaletteDialog.cpp">
+      <Filter>Source Files\PaletteDialog</Filter>
     </ClCompile>
     <ClCompile Include="src\WindowBrushView.cpp">
       <Filter>Source Files\WindowBrushDialog</Filter>
     </ClCompile>
-    <ClCompile Include="src\ColorView.cpp">
-      <Filter>Source Files\ColorDialog</Filter>
+    <ClCompile Include="src\PaletteView.cpp">
+      <Filter>Source Files\PaletteDialog</Filter>
     </ClCompile>
-    <ClCompile Include="src\ColorSelectView.cpp">
-      <Filter>Source Files\ColorDialog</Filter>
+    <ClCompile Include="src\PaletteSelectView.cpp">
+      <Filter>Source Files\PaletteDialog</Filter>
     </ClCompile>
-    <ClCompile Include="src\ColorAddView.cpp">
-      <Filter>Source Files\ColorDialog</Filter>
+    <ClCompile Include="src\PaletteAddView.cpp">
+      <Filter>Source Files\PaletteDialog</Filter>
     </ClCompile>
     <ClCompile Include="src\EditDialog.cpp">
       <Filter>Source Files\EditDialog</Filter>
@@ -143,26 +143,26 @@
     <ClInclude Include="include\WindowBrushDialog.h">
       <Filter>Header Files\WindowBrushDialog</Filter>
     </ClInclude>
-    <ClInclude Include="include\ColorDialog.h">
-      <Filter>Header Files\ColorDialog</Filter>
+    <ClInclude Include="include\PaletteDialog.h">
+      <Filter>Header Files\PaletteDialog</Filter>
     </ClInclude>
     <ClInclude Include="include\WindowBrushView.h">
       <Filter>Header Files\WindowBrushDialog</Filter>
     </ClInclude>
-    <ClInclude Include="include\ColorView.h">
-      <Filter>Header Files\ColorDialog</Filter>
+    <ClInclude Include="include\PaletteView.h">
+      <Filter>Header Files\PaletteDialog</Filter>
     </ClInclude>
-    <ClInclude Include="include\ColorModel.h">
-      <Filter>Header Files\ColorDialog</Filter>
+    <ClInclude Include="include\PaletteModel.h">
+      <Filter>Header Files\PaletteDialog</Filter>
     </ClInclude>
     <ClInclude Include="include\WindowBrushModel.h">
       <Filter>Header Files\WindowBrushDialog</Filter>
     </ClInclude>
-    <ClInclude Include="include\ColorSelectView.h">
-      <Filter>Header Files\ColorDialog</Filter>
+    <ClInclude Include="include\PaletteSelectView.h">
+      <Filter>Header Files\PaletteDialog</Filter>
     </ClInclude>
-    <ClInclude Include="include\ColorAddView.h">
-      <Filter>Header Files\ColorDialog</Filter>
+    <ClInclude Include="include\PaletteAddView.h">
+      <Filter>Header Files\PaletteDialog</Filter>
     </ClInclude>
     <ClInclude Include="include\EditDialog.h">
       <Filter>Header Files\EditDialog</Filter>

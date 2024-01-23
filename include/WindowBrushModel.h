@@ -29,7 +29,7 @@ namespace WINDOW_BRUSH {
 		TEXT,
 		STROKE,
 		GRADIENT,
-		COLOR,
+		PALETTE,
 		FADE
 	} BT;
 

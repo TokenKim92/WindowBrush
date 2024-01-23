@@ -1,12 +1,12 @@
-#ifndef _COLOR_SELECT_VIEW_H_
-#define _COLOR_SELECT_VIEW_H_
+#ifndef _PALETTE_SELECT_VIEW_H_
+#define _PALETTE_SELECT_VIEW_H_
 
 #include "Direct2DEx.h"
-#include "ColorModel.h"
+#include "PaletteModel.h"
 #include <vector>
 #include <map>
 
-class ColorSelectView
+class PaletteSelectView
 {
 protected:
 	Direct2DEx *const mp_direct2d;
@@ -26,11 +26,11 @@ protected:
 	size_t m_maxColorDataSize;
 
 public:
-	ColorSelectView(Direct2DEx *const ap_direct2d, const DColor &a_selectedColor, const std::vector<DColor> &a_colorList, const CM &a_mode);
-	virtual ~ColorSelectView();
+	PaletteSelectView(Direct2DEx *const ap_direct2d, const DColor &a_selectedColor, const std::vector<DColor> &a_colorList, const CM &a_mode);
+	virtual ~PaletteSelectView();
 
 	void Init(const SIZE &a_viewSize);
-	void Paint(const COLOR::MD &a_modelData);
+	void Paint(const PALETTE::MD &a_modelData);
 
 	void AddColor(const DColor &a_color);
 
@@ -43,4 +43,4 @@ protected:
 	const DRect GetColorRect(const size_t a_index);
 };
 
-#endif //!_COLOR_SELECT_VIEW_H_
+#endif //!_PALETTE_SELECT_VIEW_H_

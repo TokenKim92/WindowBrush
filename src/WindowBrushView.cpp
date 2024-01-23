@@ -24,7 +24,7 @@ WindowBrushView::WindowBrushView(const HWND &ah_window, const CM &a_mode, const 
 	m_drawTable.insert({ WINDOW_BRUSH::BT::TEXT, &WindowBrushView::DrawTextShape });
 	m_drawTable.insert({ WINDOW_BRUSH::BT::STROKE, &WindowBrushView::DrawStrokeShape });
 	m_drawTable.insert({ WINDOW_BRUSH::BT::GRADIENT, &WindowBrushView::DrawGradientShape });
-	m_drawTable.insert({ WINDOW_BRUSH::BT::COLOR, &WindowBrushView::DrawColorShape });
+	m_drawTable.insert({ WINDOW_BRUSH::BT::PALETTE, &WindowBrushView::DrawColorShape });
 	m_drawTable.insert({ WINDOW_BRUSH::BT::FADE, &WindowBrushView::DrawFadeShape });
 }
 
@@ -54,7 +54,7 @@ int WindowBrushView::Create()
 			WINDOW_BRUSH::BT::TEXT,
 			WINDOW_BRUSH::BT::STROKE,
 			WINDOW_BRUSH::BT::GRADIENT,
-			WINDOW_BRUSH::BT::COLOR,
+			WINDOW_BRUSH::BT::PALETTE,
 			WINDOW_BRUSH::BT::FADE
 		};
 
@@ -85,7 +85,7 @@ int WindowBrushView::Create()
 
 		AddDividerRect(ap_view->m_dividerList, ap_view->m_buttonTable.at(WINDOW_BRUSH::BT::TEXT));
 		AddDividerRect(ap_view->m_dividerList, ap_view->m_buttonTable.at(WINDOW_BRUSH::BT::STROKE));
-		AddDividerRect(ap_view->m_dividerList, ap_view->m_buttonTable.at(WINDOW_BRUSH::BT::COLOR));
+		AddDividerRect(ap_view->m_dividerList, ap_view->m_buttonTable.at(WINDOW_BRUSH::BT::PALETTE));
 	};
 	const auto InitCurveShapeData = [](WindowBrushView *const ap_view)
 	{
@@ -258,7 +258,7 @@ int WindowBrushView::Create()
 		//----------------------------------------
 		ap_view->m_hueDataList.resize(90);
 
-		auto rect = ap_view->m_buttonTable.at(WINDOW_BRUSH::BT::COLOR);
+		auto rect = ap_view->m_buttonTable.at(WINDOW_BRUSH::BT::PALETTE);
 		ShrinkRect(rect, ap_view->m_colorShapeMargin - 7.0f);
 
 		const float centerPosX = rect.left + (rect.right - rect.left) / 2.0f;
@@ -491,14 +491,14 @@ void WindowBrushView::DrawGradientShape(const WINDOW_BRUSH::MD &a_data)
 void WindowBrushView::DrawColorShape(const WINDOW_BRUSH::MD &a_data)
 {
 #ifdef  SHOW_BUTTON_AREA
-	mp_direct2d->DrawRectangle(m_buttonTable.at(WINDOW_BRUSH::BT::COLOR));
+	mp_direct2d->DrawRectangle(m_buttonTable.at(WINDOW_BRUSH::BT::PALETTE));
 #endif 
 
 	// draw hue circle
 	DColor color;
 	for (const auto &hueData : m_hueDataList) {
 		color = hueData.first;
-		if (WINDOW_BRUSH::BT::COLOR == a_data.hoverButtonType) {
+		if (WINDOW_BRUSH::BT::PALETTE == a_data.hoverButtonType) {
 			color.a = 1.0f;
 		}
 		SetBrushColor(color);
@@ -508,11 +508,11 @@ void WindowBrushView::DrawColorShape(const WINDOW_BRUSH::MD &a_data)
 	// able color button
 	// draw selected color circle
 	if (!a_data.isGradientMode && nullptr != mp_colorShapeBrush) {
-		auto rect = m_buttonTable.at(WINDOW_BRUSH::BT::COLOR);
+		auto rect = m_buttonTable.at(WINDOW_BRUSH::BT::PALETTE);
 		ShrinkRect(rect, m_colorShapeMargin);
 
 		ID2D1Brush *const p_prevBrush = SetBrush(mp_colorShapeBrush);
-		const float transparency = WINDOW_BRUSH::BT::COLOR == a_data.hoverButtonType
+		const float transparency = WINDOW_BRUSH::BT::PALETTE == a_data.hoverButtonType
 			? 1.0f
 			: WINDOW_BRUSH::DEFAULT_TRANSPARENCY;
 		mp_colorShapeBrush->SetOpacity(transparency);

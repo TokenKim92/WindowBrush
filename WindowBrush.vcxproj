@@ -139,8 +139,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\ColorAddView.cpp" />
-    <ClCompile Include="src\ColorSelectView.cpp" />
+    <ClCompile Include="src\PaletteAddView.cpp" />
+    <ClCompile Include="src\PaletteSelectView.cpp" />
     <ClCompile Include="src\EditDialog.cpp" />
     <ClCompile Include="src\EditView.cpp" />
     <ClCompile Include="src\InfoDialog.cpp" />
@@ -151,8 +151,8 @@
     <ClCompile Include="src\SliderDialog.cpp" />
     <ClCompile Include="src\SliderView.cpp" />
     <ClCompile Include="src\WindowBrushView.cpp" />
-    <ClCompile Include="src\ColorDialog.cpp" />
-    <ClCompile Include="src\ColorView.cpp" />
+    <ClCompile Include="src\PaletteDialog.cpp" />
+    <ClCompile Include="src\PaletteView.cpp" />
     <ClCompile Include="src\Utility.cpp" />
     <ClCompile Include="src\WindowBrush.cpp" />
     <ClCompile Include="src\WindowBrushDialog.cpp" />
@@ -163,8 +163,8 @@
     <ClInclude Include="include\base\Direct2D.h" />
     <ClInclude Include="include\base\Direct2DEx.h" />
     <ClInclude Include="include\base\WindowDialog.h" />
-    <ClInclude Include="include\ColorAddView.h" />
-    <ClInclude Include="include\ColorSelectView.h" />
+    <ClInclude Include="include\PaletteAddView.h" />
+    <ClInclude Include="include\PaletteSelectView.h" />
     <ClInclude Include="include\EditDialog.h" />
     <ClInclude Include="include\EditModel.h" />
     <ClInclude Include="include\EditView.h" />
@@ -180,10 +180,10 @@
     <ClInclude Include="include\SliderModel.h" />
     <ClInclude Include="include\SliderView.h" />
     <ClInclude Include="include\WindowBrushView.h" />
-    <ClInclude Include="include\ColorDialog.h" />
-    <ClInclude Include="include\ColorModel.h" />
+    <ClInclude Include="include\PaletteDialog.h" />
+    <ClInclude Include="include\PaletteModel.h" />
     <ClInclude Include="include\framework.h" />
-    <ClInclude Include="include\ColorView.h" />
+    <ClInclude Include="include\PaletteView.h" />
     <ClInclude Include="include\Resource.h" />
     <ClInclude Include="include\targetver.h" />
     <ClInclude Include="include\Utility.h" />

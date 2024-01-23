@@ -1,10 +1,10 @@
-#include "ColorAddView.h"
-#include "Utility.h"
+#include "PaletteAddView.h"
 #include "ColorPalette.h"
+#include "Utility.h"
 
 extern ApplicationCore *gp_appCore;
 
-ColorAddView::ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode) :
+PaletteAddView::PaletteAddView(Direct2DEx *const ap_direct2d, const CM &a_mode) :
 	mp_direct2d(ap_direct2d)
 {
 	memset(&m_viewSize, 0, sizeof(SIZE));
@@ -21,10 +21,10 @@ ColorAddView::ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode) :
 	memset(&m_lightnessRect, 0, sizeof(DRect));
 
 	m_indicateRect = {
-		COLOR::DIALOG_WIDTH - COLOR::INDICATE_WIDTH - COLOR::INDICATE_MARGIN,
-		COLOR::DIALOG_HEIGHT - COLOR::INDICATE_HEIGHT - COLOR::INDICATE_MARGIN,
-		COLOR::DIALOG_WIDTH - COLOR::INDICATE_MARGIN,
-		COLOR::DIALOG_HEIGHT - COLOR::INDICATE_MARGIN
+		PALETTE::DIALOG_WIDTH - PALETTE::INDICATE_WIDTH - PALETTE::INDICATE_MARGIN,
+		PALETTE::DIALOG_HEIGHT - PALETTE::INDICATE_HEIGHT - PALETTE::INDICATE_MARGIN,
+		PALETTE::DIALOG_WIDTH - PALETTE::INDICATE_MARGIN,
+		PALETTE::DIALOG_HEIGHT - PALETTE::INDICATE_MARGIN
 	};
 
 	mp_lightnessGradientBrush = nullptr;
@@ -34,7 +34,7 @@ ColorAddView::ColorAddView(Direct2DEx *const ap_direct2d, const CM &a_mode) :
 	mp_memoryTarget = nullptr;
 }
 
-ColorAddView::~ColorAddView()
+PaletteAddView::~PaletteAddView()
 {
 	InterfaceRelease(&mp_lightnessGradientBrush);
 	InterfaceRelease(&mp_indicateFont);
@@ -42,12 +42,12 @@ ColorAddView::~ColorAddView()
 	InterfaceRelease(&mp_memoryTarget);
 }
 
-void ColorAddView::Init(const HWND &ah_wnd, const DPoint &a_centerPoint, const SIZE &a_viewSize)
+void PaletteAddView::Init(const HWND &ah_wnd, const DPoint &a_centerPoint, const SIZE &a_viewSize)
 {
-	const auto InitHueDataList = [](ColorAddView *const ap_view, const float &a_centerPosX, const float &a_centerPosY)
+	const auto InitHueDataList = [](PaletteAddView *const ap_view, const float &a_centerPosX, const float &a_centerPosY)
 	{
-		const float startHueRadius = COLOR::HUE_CIRCLE_RADIUS - COLOR::HUE_STROKE_HALF_WIDTH;
-		const float endHueRadius = COLOR::HUE_CIRCLE_RADIUS + COLOR::HUE_STROKE_HALF_WIDTH;
+		const float startHueRadius = PALETTE::HUE_CIRCLE_RADIUS - PALETTE::HUE_STROKE_HALF_WIDTH;
+		const float endHueRadius = PALETTE::HUE_CIRCLE_RADIUS + PALETTE::HUE_STROKE_HALF_WIDTH;
 
 		ap_view->m_hueDataList.resize(720);
 
@@ -72,7 +72,7 @@ void ColorAddView::Init(const HWND &ah_wnd, const DPoint &a_centerPoint, const S
 			degree++;
 		}
 	};
-	const auto InitMemoryInterfaces = [](ColorAddView *const ap_view, const SIZE &a_viewSize)
+	const auto InitMemoryInterfaces = [](PaletteAddView *const ap_view, const SIZE &a_viewSize)
 	{
 		if (S_OK == gp_appCore->GetWICFactory()->CreateBitmap(
 			a_viewSize.cx, a_viewSize.cy, GUID_WICPixelFormat32bppPRGBA, WICBitmapCacheOnDemand, &ap_view->mp_memoryBitmap
@@ -86,7 +86,7 @@ void ColorAddView::Init(const HWND &ah_wnd, const DPoint &a_centerPoint, const S
 
 		return false;
 	};
-	const auto UpdateMemoryHueCircle = [](ColorAddView *const ap_view)
+	const auto UpdateMemoryHueCircle = [](PaletteAddView *const ap_view)
 	{
 		ID2D1SolidColorBrush *p_solidBrush;
 		auto result = ap_view->mp_memoryTarget->CreateSolidColorBrush(DColor({ 0.0f, 0.0f, 0.0f, 1.0f }), &p_solidBrush);
@@ -120,32 +120,32 @@ void ColorAddView::Init(const HWND &ah_wnd, const DPoint &a_centerPoint, const S
 
 	m_viewSize = a_viewSize;
 	m_lightnessRect = {
-		a_centerPoint.x - COLOR::LIGHTNESS_CIRCLE_RADIUS, a_centerPoint.y - COLOR::LIGHTNESS_CIRCLE_RADIUS,
-		a_centerPoint.x + COLOR::LIGHTNESS_CIRCLE_RADIUS, a_centerPoint.y + COLOR::LIGHTNESS_CIRCLE_RADIUS
+		a_centerPoint.x - PALETTE::LIGHTNESS_CIRCLE_RADIUS, a_centerPoint.y - PALETTE::LIGHTNESS_CIRCLE_RADIUS,
+		a_centerPoint.x + PALETTE::LIGHTNESS_CIRCLE_RADIUS, a_centerPoint.y + PALETTE::LIGHTNESS_CIRCLE_RADIUS
 	};
 	m_returnIconPoints = {
 		{
-			{ COLOR::RETURN_ICON_X_MARGIN, COLOR::TITLE_HEIGHT / 2.0f },
-			{ COLOR::TITLE_HEIGHT - COLOR::RETURN_ICON_X_MARGIN, COLOR::RETURN_ICON_Y_MARGIN }
+			{ PALETTE::RETURN_ICON_X_MARGIN, PALETTE::TITLE_HEIGHT / 2.0f },
+			{ PALETTE::TITLE_HEIGHT - PALETTE::RETURN_ICON_X_MARGIN, PALETTE::RETURN_ICON_Y_MARGIN }
 		},
 		{
-			{ COLOR::RETURN_ICON_X_MARGIN, COLOR::TITLE_HEIGHT / 2.0f },
-			{ COLOR::TITLE_HEIGHT - COLOR::RETURN_ICON_X_MARGIN, COLOR::TITLE_HEIGHT - COLOR::RETURN_ICON_Y_MARGIN }
+			{ PALETTE::RETURN_ICON_X_MARGIN, PALETTE::TITLE_HEIGHT / 2.0f },
+			{ PALETTE::TITLE_HEIGHT - PALETTE::RETURN_ICON_X_MARGIN, PALETTE::TITLE_HEIGHT - PALETTE::RETURN_ICON_Y_MARGIN }
 		}
 	};
 	m_buttonTable = {
 		{
-			COLOR::BT::RETURN,
+			PALETTE::BT::RETURN,
 			{ 
-				COLOR::RETURN_ICON_X_MARGIN, COLOR::RETURN_ICON_Y_MARGIN, 
-				COLOR::TITLE_HEIGHT - COLOR::RETURN_ICON_X_MARGIN, COLOR::TITLE_HEIGHT - COLOR::RETURN_ICON_Y_MARGIN,
+				PALETTE::RETURN_ICON_X_MARGIN, PALETTE::RETURN_ICON_Y_MARGIN, 
+				PALETTE::TITLE_HEIGHT - PALETTE::RETURN_ICON_X_MARGIN, PALETTE::TITLE_HEIGHT - PALETTE::RETURN_ICON_Y_MARGIN,
 			}
 		},
 		{
-			COLOR::BT::ADD,
+			PALETTE::BT::ADD,
 			{
-				 COLOR::ADD_BUTTON_MARGIN, COLOR::DIALOG_HEIGHT - COLOR::ADD_BUTTON_SIZE - COLOR::ADD_BUTTON_MARGIN,
-				COLOR::ADD_BUTTON_SIZE + COLOR::ADD_BUTTON_MARGIN, COLOR::DIALOG_HEIGHT - COLOR::ADD_BUTTON_MARGIN
+				 PALETTE::ADD_BUTTON_MARGIN, PALETTE::DIALOG_HEIGHT - PALETTE::ADD_BUTTON_SIZE - PALETTE::ADD_BUTTON_MARGIN,
+				PALETTE::ADD_BUTTON_SIZE + PALETTE::ADD_BUTTON_MARGIN, PALETTE::DIALOG_HEIGHT - PALETTE::ADD_BUTTON_MARGIN
 			}
 
 		}
@@ -155,18 +155,18 @@ void ColorAddView::Init(const HWND &ah_wnd, const DPoint &a_centerPoint, const S
 	mp_indicateFont->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	mp_indicateFont->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
-	mp_memoryPattern = std::make_unique<unsigned char[]>(COLOR::DIALOG_WIDTH * COLOR::DIALOG_HEIGHT * sizeof(unsigned int));
+	mp_memoryPattern = std::make_unique<unsigned char[]>(PALETTE::DIALOG_WIDTH * PALETTE::DIALOG_HEIGHT * sizeof(unsigned int));
 
 	return;
 }
 
-void ColorAddView::Paint(const COLOR::MD &a_modelData)
+void PaletteAddView::Paint(const PALETTE::MD &a_modelData)
 {
-	static const auto DrawReturnButton = [](ColorAddView *const ap_view, const COLOR::MD &a_modelData)
+	static const auto DrawReturnButton = [](PaletteAddView *const ap_view, const PALETTE::MD &a_modelData)
 	{
 		DColor color = ap_view->m_mainColor;
-		if (COLOR::BT::RETURN == a_modelData.clickedButtonType || COLOR::BT::RETURN != a_modelData.hoverButtonType) {
-			color.a = COLOR::DEFAULT_TRANSPARENCY;
+		if (PALETTE::BT::RETURN == a_modelData.clickedButtonType || PALETTE::BT::RETURN != a_modelData.hoverButtonType) {
+			color.a = PALETTE::DEFAULT_TRANSPARENCY;
 		}
 		ap_view->mp_direct2d->SetBrushColor(color);
 		ap_view->mp_direct2d->SetStrokeWidth(3.0f);
@@ -174,14 +174,14 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 		ap_view->mp_direct2d->DrawLine(ap_view->m_returnIconPoints[1].first, ap_view->m_returnIconPoints[1].second);
 		ap_view->mp_direct2d->SetStrokeWidth(1.0f);
 	};
-	static const auto DrawHueCircle = [](ColorAddView *const ap_view)
+	static const auto DrawHueCircle = [](PaletteAddView *const ap_view)
 	{
 		for (const auto &hueData : ap_view->m_hueDataList) {
 			ap_view->mp_direct2d->SetBrushColor(hueData.first);
 			ap_view->mp_direct2d->DrawLine(hueData.second.first, hueData.second.second);
 		}
 	};
-	static const auto DrawLightnessCircle = [](ColorAddView *const ap_view)
+	static const auto DrawLightnessCircle = [](PaletteAddView *const ap_view)
 	{
 		if (nullptr == ap_view->mp_lightnessGradientBrush) {
 			ap_view->mp_direct2d->FillEllipse(ap_view->m_lightnessRect);
@@ -193,25 +193,25 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 		ap_view->mp_direct2d->FillEllipse(ap_view->m_lightnessRect);
 		ap_view->mp_direct2d->SetBrush(p_previousBrush);
 	};
-	static const auto DrawHueButton = [](ColorAddView *const ap_view, const COLOR::MD &a_modelData)
+	static const auto DrawHueButton = [](PaletteAddView *const ap_view, const PALETTE::MD &a_modelData)
 	{
 		DColor color = ap_view->m_mainColor;
-		if (COLOR::BT::HUE != a_modelData.hoverButtonType) {
-			color.a = COLOR::DEFAULT_TRANSPARENCY;
+		if (PALETTE::BT::HUE != a_modelData.hoverButtonType) {
+			color.a = PALETTE::DEFAULT_TRANSPARENCY;
 		}
 
 		// draw the circle to show the current color
 		ap_view->mp_direct2d->SetBrushColor(color);
 		ap_view->mp_direct2d->FillEllipse(a_modelData.hueButtonRect);
 	};
-	static const auto DrawLightnessButton = [](ColorAddView *const ap_view, const COLOR::MD &a_modelData)
+	static const auto DrawLightnessButton = [](PaletteAddView *const ap_view, const PALETTE::MD &a_modelData)
 	{
 		auto rect = a_modelData.lightnessButtonRect;
 		const DPoint centerPos = {
 			rect.left + (rect.right - rect.left) / 2.0f ,rect.top + (rect.bottom - rect.top) / 2.0f
 		};
-		if (COLOR::BT::LIGHTNESS == a_modelData.clickedButtonType) {
-			ExpandRect(rect, COLOR::COLOR_RADIUS);
+		if (PALETTE::BT::LIGHTNESS == a_modelData.clickedButtonType) {
+			ExpandRect(rect, PALETTE::COLOR_RADIUS);
 		}
 
 		// fill button
@@ -228,8 +228,8 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 			color = RGB_TO_COLORF(NEUTRAL_900);
 		}
 
-		if (COLOR::BT::LIGHTNESS != a_modelData.hoverButtonType) {
-			color.a = COLOR::DEFAULT_TRANSPARENCY;
+		if (PALETTE::BT::LIGHTNESS != a_modelData.hoverButtonType) {
+			color.a = PALETTE::DEFAULT_TRANSPARENCY;
 		}
 
 		ap_view->mp_direct2d->SetStrokeWidth(2.0f);
@@ -239,14 +239,14 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 
 		return colorOnPoint;
 	};
-	static const auto DrawAddButton = [](ColorAddView *const ap_view, const COLOR::MD &a_modelData)
+	static const auto DrawAddButton = [](PaletteAddView *const ap_view, const PALETTE::MD &a_modelData)
 	{
 		// draw main circle
-		DRect mainRect = ap_view->m_buttonTable.at(COLOR::BT::ADD);
-		if (COLOR::BT::ADD == a_modelData.clickedButtonType) {
+		DRect mainRect = ap_view->m_buttonTable.at(PALETTE::BT::ADD);
+		if (PALETTE::BT::ADD == a_modelData.clickedButtonType) {
 			ShrinkRect(mainRect, 1.0f);
 		}
-		else if (COLOR::BT::ADD == a_modelData.hoverButtonType) {
+		else if (PALETTE::BT::ADD == a_modelData.hoverButtonType) {
 			ExpandRect(mainRect, 2.0f);
 		}
 
@@ -258,8 +258,8 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 		// draw small circle
 		float offset = 2.0f;
 		const DRect smallRect = {
-			mainRect.right - COLOR::PLUS_BUTTON_RADIUS - offset, mainRect.top + COLOR::PLUS_BUTTON_RADIUS + offset,
-			mainRect.right + COLOR::PLUS_BUTTON_RADIUS - offset, mainRect.top - COLOR::PLUS_BUTTON_RADIUS + offset,
+			mainRect.right - PALETTE::PLUS_BUTTON_RADIUS - offset, mainRect.top + PALETTE::PLUS_BUTTON_RADIUS + offset,
+			mainRect.right + PALETTE::PLUS_BUTTON_RADIUS - offset, mainRect.top - PALETTE::PLUS_BUTTON_RADIUS + offset,
 		};
 		ap_view->mp_direct2d->FillEllipse(smallRect);
 
@@ -281,7 +281,7 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 
 		// draw title
 		offset = 80.0f;
-		const auto rect = ap_view->m_buttonTable.at(COLOR::BT::ADD);
+		const auto rect = ap_view->m_buttonTable.at(PALETTE::BT::ADD);
 		const DRect titleRect = {
 			rect.right, rect.top,
 			rect.right + offset, rect.bottom
@@ -292,7 +292,7 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 		ap_view->mp_direct2d->DrawUserText(L"Add color", titleRect);
 		ap_view->mp_direct2d->SetTextFormat(previousFont);
 	};
-	static const auto DrawIndicate = [](ColorAddView *const ap_view)
+	static const auto DrawIndicate = [](PaletteAddView *const ap_view)
 	{
 		std::wstring rgbText = L"HEX: " +
 			FloatToHexWString(ap_view->m_currentLightness.r) +
@@ -324,7 +324,7 @@ void ColorAddView::Paint(const COLOR::MD &a_modelData)
 	DrawIndicate(this);
 }
 
-void ColorAddView::UpdateLightnessData(const DColor &a_hue)
+void PaletteAddView::UpdateLightnessData(const DColor &a_hue)
 {
 	////////////////////////////////////////////////////////////////
 	// update memory render target
@@ -374,7 +374,7 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 	////////////////////////////////////////////////////////////////
 	// update memory pattern
 	////////////////////////////////////////////////////////////////
-	WICRect wicRect = { 0, 0, COLOR::DIALOG_WIDTH, COLOR::DIALOG_HEIGHT };
+	WICRect wicRect = { 0, 0, PALETTE::DIALOG_WIDTH, PALETTE::DIALOG_HEIGHT };
 	IWICBitmapLock *p_lock = nullptr;
 
 	if (nullptr == mp_memoryBitmap) {
@@ -397,19 +397,19 @@ void ColorAddView::UpdateLightnessData(const DColor &a_hue)
 	}
 }
 
-const std::map<COLOR::BT, DRect> &ColorAddView::GetButtonTable()
+const std::map<PALETTE::BT, DRect> &PaletteAddView::GetButtonTable()
 {
 	return m_buttonTable;
 }
 
-DColor ColorAddView::GetPixelColorOnPoint(const DPoint &a_point)
+DColor PaletteAddView::GetPixelColorOnPoint(const DPoint &a_point)
 {
-	const auto memoryIndex = COLOR::DIALOG_WIDTH * static_cast<unsigned int>(a_point.y) + static_cast<unsigned int>(a_point.x);
+	const auto memoryIndex = PALETTE::DIALOG_WIDTH * static_cast<unsigned int>(a_point.y) + static_cast<unsigned int>(a_point.x);
 	const auto p_color = reinterpret_cast<COLORREF *>(mp_memoryPattern.get()) + memoryIndex;
 	return RGB_TO_COLORF(*p_color);
 }
 
-DColor &ColorAddView::GetCurrentLightness()
+DColor &PaletteAddView::GetCurrentLightness()
 {
 	return m_currentLightness;
 }

@@ -1,6 +1,6 @@
 #include "WindowBrushDialog.h"
 #include "WindowBrushView.h"
-#include "ColorDialog.h"
+#include "PaletteDialog.h"
 #include "EditDialog.h"
 #include "ColorPalette.h"
 #include "SliderDialog.h"
@@ -160,7 +160,7 @@ int WindowBrushDialog::MouseLeftButtonUpHandler(WPARAM a_wordParam, LPARAM a_lon
 		{WINDOW_BRUSH::BT::TEXT, &WindowBrushDialog::OnTextButtonUp},
 		{WINDOW_BRUSH::BT::STROKE, &WindowBrushDialog::OnStrokeButtonUp},
 		{WINDOW_BRUSH::BT::GRADIENT, &WindowBrushDialog::OnGradientButtonUp},
-		{WINDOW_BRUSH::BT::COLOR, &WindowBrushDialog::OnColorButtonUp},
+		{WINDOW_BRUSH::BT::PALETTE, &WindowBrushDialog::OnPaletteButtonUp},
 		{WINDOW_BRUSH::BT::FADE, &WindowBrushDialog::OnFadeButtonUp}
 	};
 
@@ -220,7 +220,7 @@ int WindowBrushDialog::KeyDownHandler(WPARAM a_wordParam, LPARAM a_longParam)
 		{'T', &WindowBrushDialog::OnTextButtonUp},
 		{'W', &WindowBrushDialog::OnStrokeButtonUp},
 		{'G', &WindowBrushDialog::OnGradientButtonUp},
-		{'P', &WindowBrushDialog::OnColorButtonUp},
+		{'P', &WindowBrushDialog::OnPaletteButtonUp},
 		{'F', &WindowBrushDialog::OnFadeButtonUp}
 	};
 
@@ -273,7 +273,7 @@ std::wstring WindowBrushDialog::GetHoverButtonTitle()
 		{WINDOW_BRUSH::BT::TEXT, L"Text Tool (T)"},
 		{WINDOW_BRUSH::BT::STROKE, L"Width Tool (W)"},
 		{WINDOW_BRUSH::BT::GRADIENT, L"Gradation Tool (G)"},
-		{WINDOW_BRUSH::BT::COLOR, L"Palette Tool (P)"},
+		{WINDOW_BRUSH::BT::PALETTE, L"Palette Tool (P)"},
 		{WINDOW_BRUSH::BT::FADE, L"Fade Tool (F)"}
 	};
 
@@ -451,13 +451,13 @@ void WindowBrushDialog::OnStrokeButtonUp()
 	::SetFocus(mh_window);
 };
 
-void WindowBrushDialog::OnColorButtonUp()
+void WindowBrushDialog::OnPaletteButtonUp()
 {
 	if (m_modelData.isGradientMode) {
 		return;
 	}
 
-	ColorDialog instanceDialog(m_modelData.selectedColor, m_colorList);
+	PaletteDialog instanceDialog(m_modelData.selectedColor, m_colorList);
 	instanceDialog.SetColorMode(m_colorMode);
 
 	RECT rect;
