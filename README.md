@@ -16,7 +16,7 @@ The AppTemplate is a library to make Windows Desktop Application easier by using
 
 ## How to run
 
-Even if there is no virus, man can't download the executable file on website, so you must download the project and build it yourself. Clone this project and execute the WindowBrush.sln file with Visual Studio and just build.
+Even if there is no virus, man can't download the executable file on website, so you must download the project and build as `x86` it yourself. Clone this project and execute the WindowBrush.sln file with Visual Studio and just build.
 
 ## How to use
 
